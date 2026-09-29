@@ -19,10 +19,10 @@ class WeatherSnapshot {
   String get temperatureLabel => '${temperature.round()}°';
 
   Map<String, Object> toJson() => {
-        'temperature': temperature,
-        'code': code,
-        'fetchedAt': fetchedAt.toIso8601String(),
-      };
+    'temperature': temperature,
+    'code': code,
+    'fetchedAt': fetchedAt.toIso8601String(),
+  };
 
   factory WeatherSnapshot.fromJson(Map<String, dynamic> json) =>
       WeatherSnapshot(
@@ -73,8 +73,9 @@ class WeatherService {
     if (res.statusCode != 200) {
       throw WeatherException('Weather fetch failed (${res.statusCode})');
     }
-    final current = (jsonDecode(res.body) as Map<String, dynamic>)['current']
-        as Map<String, dynamic>;
+    final current =
+        (jsonDecode(res.body) as Map<String, dynamic>)['current']
+            as Map<String, dynamic>;
     return WeatherSnapshot(
       temperature: (current['temperature_2m'] as num).toDouble(),
       code: current['weather_code'] as int,
@@ -92,16 +93,16 @@ class WeatherException implements Exception {
 
 /// WMO weather interpretation codes, as documented by Open-Meteo.
 String describeWeatherCode(int code) => switch (code) {
-      0 => 'Clear',
-      1 => 'Mostly clear',
-      2 => 'Partly cloudy',
-      3 => 'Overcast',
-      45 || 48 => 'Fog',
-      51 || 53 || 55 || 56 || 57 => 'Drizzle',
-      61 || 63 || 65 || 66 || 67 => 'Rain',
-      71 || 73 || 75 || 77 => 'Snow',
-      80 || 81 || 82 => 'Showers',
-      85 || 86 => 'Snow showers',
-      95 || 96 || 99 => 'Thunderstorm',
-      _ => 'Unknown',
-    };
+  0 => 'Clear',
+  1 => 'Mostly clear',
+  2 => 'Partly cloudy',
+  3 => 'Overcast',
+  45 || 48 => 'Fog',
+  51 || 53 || 55 || 56 || 57 => 'Drizzle',
+  61 || 63 || 65 || 66 || 67 => 'Rain',
+  71 || 73 || 75 || 77 => 'Snow',
+  80 || 81 || 82 => 'Showers',
+  85 || 86 => 'Snow showers',
+  95 || 96 || 99 => 'Thunderstorm',
+  _ => 'Unknown',
+};

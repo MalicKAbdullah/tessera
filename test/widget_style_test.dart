@@ -18,7 +18,8 @@ void main() {
         weight: TextWeight.medium,
       );
       final decoded = WidgetStyle.fromJson(
-          jsonDecode(jsonEncode(style.toJson())) as Map<String, dynamic>);
+        jsonDecode(jsonEncode(style.toJson())) as Map<String, dynamic>,
+      );
       expect(decoded, style);
     });
 
@@ -48,17 +49,25 @@ void main() {
         countdownTitle: 'Trip',
         countdownDate: DateTime(2027, 3, 14),
         city: const City(
-            name: 'Lahore', region: 'Punjab, Pakistan', latitude: 31.5, longitude: 74.3),
+          name: 'Lahore',
+          region: 'Punjab, Pakistan',
+          latitude: 31.5,
+          longitude: 74.3,
+        ),
       );
       final decoded = WidgetContent.fromJson(
-          jsonDecode(jsonEncode(content.toJson())) as Map<String, dynamic>);
+        jsonDecode(jsonEncode(content.toJson())) as Map<String, dynamic>,
+      );
       expect(decoded.countdownDate, DateTime(2027, 3, 14));
       expect(decoded.city!.name, 'Lahore');
       expect(decoded.city!.longitude, 74.3);
     });
 
     test('daysUntil counts calendar days, not 24h spans', () {
-      expect(daysUntil(DateTime(2026, 10, 1), DateTime(2026, 9, 30, 23, 59)), 1);
+      expect(
+        daysUntil(DateTime(2026, 10, 1), DateTime(2026, 9, 30, 23, 59)),
+        1,
+      );
       expect(daysUntil(DateTime(2026, 9, 30), DateTime(2026, 9, 30, 8)), 0);
       expect(daysUntil(DateTime(2026, 9, 1), DateTime(2026, 9, 30)), -29);
     });

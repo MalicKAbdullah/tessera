@@ -68,12 +68,12 @@ TileText tileTextFor(WidgetKind kind, WidgetRef ref) {
 }
 
 String countdownCaption(int days) => switch (days) {
-      0 => 'is today',
-      1 => 'day to go',
-      -1 => 'day ago',
-      > 1 => 'days to go',
-      _ => 'days ago',
-    };
+  0 => 'is today',
+  1 => 'day to go',
+  -1 => 'day ago',
+  > 1 => 'days to go',
+  _ => 'days ago',
+};
 
 /// Flutter rendition of the native tile. Every property is implicitly
 /// animated so edits glide instead of snapping.
@@ -92,7 +92,11 @@ class WidgetPreview extends ConsumerWidget {
       child: SizedBox(
         width: width,
         height: width * 0.5,
-        child: TileSurface(style: style, text: text, isNote: kind == WidgetKind.note),
+        child: TileSurface(
+          style: style,
+          text: text,
+          isNote: kind == WidgetKind.note,
+        ),
       ),
     );
   }
@@ -202,24 +206,27 @@ class _Meter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(2),
-        child: SizedBox(
-          height: 3,
-          child: Stack(children: [
-            Positioned.fill(
-                child: ColoredBox(color: style.text.withValues(alpha: 0.12))),
-            TweenAnimationBuilder<double>(
-              tween: Tween(end: level),
-              duration: TesseraTheme.motion,
-              curve: TesseraTheme.ease,
-              builder: (context, v, _) => FractionallySizedBox(
-                widthFactor: v,
-                child: ColoredBox(color: style.accent),
-              ),
+    borderRadius: BorderRadius.circular(2),
+    child: SizedBox(
+      height: 3,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: ColoredBox(color: style.text.withValues(alpha: 0.12)),
+          ),
+          TweenAnimationBuilder<double>(
+            tween: Tween(end: level),
+            duration: TesseraTheme.motion,
+            curve: TesseraTheme.ease,
+            builder: (context, v, _) => FractionallySizedBox(
+              widthFactor: v,
+              child: ColoredBox(color: style.accent),
             ),
-          ]),
-        ),
-      );
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 /// Soft wallpaper stand-in so opacity and radius read as they will on a

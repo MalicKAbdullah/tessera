@@ -11,10 +11,12 @@ import 'src/features/widgets/services/widget_sync.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final prefs = await SharedPreferences.getInstance();
-  runApp(ProviderScope(
-    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
-    child: const TesseraApp(),
-  ));
+  runApp(
+    ProviderScope(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      child: const TesseraApp(),
+    ),
+  );
   // Widgets placed before this launch get the persisted look immediately.
   await const WidgetSync().pushAll(TesseraStore(prefs));
   await scheduleBackgroundRefresh();

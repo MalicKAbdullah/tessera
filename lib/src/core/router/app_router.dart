@@ -19,10 +19,13 @@ final appRouter = GoRouter(
             transitionDuration: TesseraTheme.motion,
             reverseTransitionDuration: const Duration(milliseconds: 320),
             child: EditorScreen(
-                kind: WidgetKind.fromId(state.pathParameters['kind']!)),
+              kind: WidgetKind.fromId(state.pathParameters['kind']!),
+            ),
             transitionsBuilder: (context, animation, _, child) {
               final curved = CurvedAnimation(
-                  parent: animation, curve: TesseraTheme.ease);
+                parent: animation,
+                curve: TesseraTheme.ease,
+              );
               return FadeTransition(opacity: curved, child: child);
             },
           ),

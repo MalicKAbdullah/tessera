@@ -7,20 +7,20 @@ class TesseraTheme {
   static const Duration motion = Duration(milliseconds: 420);
 
   static ThemeData light() => _build(
-        brightness: Brightness.light,
-        background: const Color(0xFFF6F5F2),
-        surface: const Color(0xFFFFFFFF),
-        onSurface: const Color(0xFF1C1D20),
-        muted: const Color(0xFF7B7A76),
-      );
+    brightness: Brightness.light,
+    background: const Color(0xFFF6F5F2),
+    surface: const Color(0xFFFFFFFF),
+    onSurface: const Color(0xFF1C1D20),
+    muted: const Color(0xFF7B7A76),
+  );
 
   static ThemeData dark() => _build(
-        brightness: Brightness.dark,
-        background: const Color(0xFF0F1012),
-        surface: const Color(0xFF18191C),
-        onSurface: const Color(0xFFEDEBE6),
-        muted: const Color(0xFF8C8B87),
-      );
+    brightness: Brightness.dark,
+    background: const Color(0xFF0F1012),
+    surface: const Color(0xFF18191C),
+    onSurface: const Color(0xFFEDEBE6),
+    muted: const Color(0xFF8C8B87),
+  );
 
   static ThemeData _build({
     required Brightness brightness,
@@ -29,17 +29,18 @@ class TesseraTheme {
     required Color onSurface,
     required Color muted,
   }) {
-    final scheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFFC9A77C),
-      brightness: brightness,
-    ).copyWith(
-      surface: surface,
-      onSurface: onSurface,
-      onSurfaceVariant: muted,
-      primary: onSurface,
-      onPrimary: background,
-      outlineVariant: onSurface.withValues(alpha: 0.08),
-    );
+    final scheme =
+        ColorScheme.fromSeed(
+          seedColor: const Color(0xFFC9A77C),
+          brightness: brightness,
+        ).copyWith(
+          surface: surface,
+          onSurface: onSurface,
+          onSurfaceVariant: muted,
+          primary: onSurface,
+          onPrimary: background,
+          outlineVariant: onSurface.withValues(alpha: 0.08),
+        );
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: scheme,
@@ -67,10 +68,12 @@ class TesseraTheme {
         overlayColor: onSurface.withValues(alpha: 0.06),
         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
       ),
-      pageTransitionsTheme: const PageTransitionsTheme(builders: {
-        TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-      }),
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: FadeForwardsPageTransitionsBuilder(),
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+        },
+      ),
     );
   }
 }

@@ -8,10 +8,10 @@ class TesseraApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp.router(
-        title: 'Tessera',
-        debugShowCheckedModeBanner: false,
-        theme: TesseraTheme.light(),
-        darkTheme: TesseraTheme.dark(),
-        routerConfig: appRouter,
-      );
+    title: 'Tessera',
+    debugShowCheckedModeBanner: false,
+    theme: TesseraTheme.light(),
+    darkTheme: TesseraTheme.dark(),
+    routerConfig: appRouter,
+  );
 }

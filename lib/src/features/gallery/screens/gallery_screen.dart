@@ -23,14 +23,20 @@ class GalleryScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Tessera',
-                          style: theme.textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.w300,
-                              letterSpacing: -0.5)),
+                      Text(
+                        'Tessera',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w300,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                       const SizedBox(height: 4),
-                      Text('Widgets, quietly yours.',
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant)),
+                      Text(
+                        'Widgets, quietly yours.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -79,8 +85,9 @@ class _GalleryCard extends StatelessWidget {
                 child: LayoutBuilder(
                   builder: (context, box) => Center(
                     child: WidgetPreview(
-                        kind: kind,
-                        width: (box.maxWidth - 40).clamp(160, 360)),
+                      kind: kind,
+                      width: (box.maxWidth - 40).clamp(160, 360),
+                    ),
                   ),
                 ),
               ),
@@ -93,17 +100,26 @@ class _GalleryCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(kind.label,
-                            style: theme.textTheme.titleMedium
-                                ?.copyWith(fontWeight: FontWeight.w500)),
-                        Text(kind.tagline,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant)),
+                        Text(
+                          kind.label,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        Text(
+                          kind.tagline,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  Icon(Icons.arrow_forward,
-                      size: 18, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.arrow_forward,
+                    size: 18,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ],
               ),
             ),
@@ -126,9 +142,14 @@ class Stagger extends StatefulWidget {
 }
 
 class _StaggerState extends State<Stagger> with SingleTickerProviderStateMixin {
-  late final _controller =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 560));
-  late final _curve = CurvedAnimation(parent: _controller, curve: TesseraTheme.ease);
+  late final _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 560),
+  );
+  late final _curve = CurvedAnimation(
+    parent: _controller,
+    curve: TesseraTheme.ease,
+  );
 
   @override
   void initState() {
@@ -146,11 +167,13 @@ class _StaggerState extends State<Stagger> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) => FadeTransition(
-        opacity: _curve,
-        child: SlideTransition(
-          position: Tween(begin: const Offset(0, 0.04), end: Offset.zero)
-              .animate(_curve),
-          child: widget.child,
-        ),
-      );
+    opacity: _curve,
+    child: SlideTransition(
+      position: Tween(
+        begin: const Offset(0, 0.04),
+        end: Offset.zero,
+      ).animate(_curve),
+      child: widget.child,
+    ),
+  );
 }

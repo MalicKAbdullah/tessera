@@ -18,9 +18,11 @@ class TesseraStore {
   static const _weatherKey = 'weather';
   static String _styleKey(WidgetKind kind) => 'style.${kind.id}';
 
-  WidgetStyle style(WidgetKind kind) => switch (_prefs.getString(_styleKey(kind))) {
-        final String raw =>
-          WidgetStyle.fromJson(jsonDecode(raw) as Map<String, dynamic>),
+  WidgetStyle style(WidgetKind kind) =>
+      switch (_prefs.getString(_styleKey(kind))) {
+        final String raw => WidgetStyle.fromJson(
+          jsonDecode(raw) as Map<String, dynamic>,
+        ),
         _ => WidgetStyle.fallback,
       };
 
@@ -28,19 +30,21 @@ class TesseraStore {
       _prefs.setString(_styleKey(kind), jsonEncode(style.toJson()));
 
   WidgetContent content() => switch (_prefs.getString(_contentKey)) {
-        final String raw =>
-          WidgetContent.fromJson(jsonDecode(raw) as Map<String, dynamic>),
-        _ => const WidgetContent(),
-      };
+    final String raw => WidgetContent.fromJson(
+      jsonDecode(raw) as Map<String, dynamic>,
+    ),
+    _ => const WidgetContent(),
+  };
 
   Future<void> saveContent(WidgetContent content) =>
       _prefs.setString(_contentKey, jsonEncode(content.toJson()));
 
   WeatherSnapshot? weather() => switch (_prefs.getString(_weatherKey)) {
-        final String raw =>
-          WeatherSnapshot.fromJson(jsonDecode(raw) as Map<String, dynamic>),
-        _ => null,
-      };
+    final String raw => WeatherSnapshot.fromJson(
+      jsonDecode(raw) as Map<String, dynamic>,
+    ),
+    _ => null,
+  };
 
   Future<void> saveWeather(WeatherSnapshot snapshot) =>
       _prefs.setString(_weatherKey, jsonEncode(snapshot.toJson()));

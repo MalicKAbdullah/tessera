@@ -16,7 +16,9 @@ class WidgetSync {
 
   Future<void> pushStyle(WidgetKind kind, WidgetStyle style) async {
     await HomeWidget.saveWidgetData<String>(
-        'style_${kind.id}', jsonEncode(style.toJson()));
+      'style_${kind.id}',
+      jsonEncode(style.toJson()),
+    );
     await refresh(kind);
   }
 
@@ -24,12 +26,18 @@ class WidgetSync {
     await HomeWidget.saveWidgetData<String>('note_text', content.note);
     await HomeWidget.saveWidgetData<String>('note_author', content.noteAuthor);
     await HomeWidget.saveWidgetData<String>(
-        'countdown_title', content.countdownTitle);
+      'countdown_title',
+      content.countdownTitle,
+    );
     final target = content.effectiveCountdownDate(DateTime.now());
-    await HomeWidget.saveWidgetData<String>('countdown_target',
-        '${target.year}-${target.month}-${target.day}');
     await HomeWidget.saveWidgetData<String>(
-        'weather_city', content.city?.name ?? '');
+      'countdown_target',
+      '${target.year}-${target.month}-${target.day}',
+    );
+    await HomeWidget.saveWidgetData<String>(
+      'weather_city',
+      content.city?.name ?? '',
+    );
     await refresh(WidgetKind.note);
     await refresh(WidgetKind.countdown);
     await refresh(WidgetKind.weather);
@@ -37,16 +45,22 @@ class WidgetSync {
 
   Future<void> pushWeather(WeatherSnapshot snapshot) async {
     await HomeWidget.saveWidgetData<String>(
-        'weather_temp', snapshot.temperatureLabel);
+      'weather_temp',
+      snapshot.temperatureLabel,
+    );
     await HomeWidget.saveWidgetData<String>(
-        'weather_condition', snapshot.condition);
+      'weather_condition',
+      snapshot.condition,
+    );
     await refresh(WidgetKind.weather);
   }
 
   Future<void> pushAll(TesseraStore store) async {
     for (final kind in WidgetKind.values) {
       await HomeWidget.saveWidgetData<String>(
-          'style_${kind.id}', jsonEncode(store.style(kind).toJson()));
+        'style_${kind.id}',
+        jsonEncode(store.style(kind).toJson()),
+      );
     }
     await pushContent(store.content());
     final weather = store.weather();
@@ -63,5 +77,6 @@ class WidgetSync {
       await HomeWidget.isRequestPinWidgetSupported() ?? false;
 
   Future<void> pin(WidgetKind kind) => HomeWidget.requestPinWidget(
-      qualifiedAndroidName: kind.qualifiedAndroidName);
+    qualifiedAndroidName: kind.qualifiedAndroidName,
+  );
 }

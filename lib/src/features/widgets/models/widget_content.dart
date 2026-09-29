@@ -24,36 +24,35 @@ class WidgetContent {
     String? countdownTitle,
     DateTime? countdownDate,
     City? city,
-  }) =>
-      WidgetContent(
-        note: note ?? this.note,
-        noteAuthor: noteAuthor ?? this.noteAuthor,
-        countdownTitle: countdownTitle ?? this.countdownTitle,
-        countdownDate: countdownDate ?? this.countdownDate,
-        city: city ?? this.city,
-      );
+  }) => WidgetContent(
+    note: note ?? this.note,
+    noteAuthor: noteAuthor ?? this.noteAuthor,
+    countdownTitle: countdownTitle ?? this.countdownTitle,
+    countdownDate: countdownDate ?? this.countdownDate,
+    city: city ?? this.city,
+  );
 
   Map<String, Object?> toJson() => {
-        'note': note,
-        'noteAuthor': noteAuthor,
-        'countdownTitle': countdownTitle,
-        'countdownDate': countdownDate?.toIso8601String(),
-        'city': city?.toJson(),
-      };
+    'note': note,
+    'noteAuthor': noteAuthor,
+    'countdownTitle': countdownTitle,
+    'countdownDate': countdownDate?.toIso8601String(),
+    'city': city?.toJson(),
+  };
 
   factory WidgetContent.fromJson(Map<String, dynamic> json) => WidgetContent(
-        note: json['note'] as String,
-        noteAuthor: json['noteAuthor'] as String,
-        countdownTitle: json['countdownTitle'] as String,
-        countdownDate: switch (json['countdownDate']) {
-          final String s => DateTime.parse(s),
-          _ => null,
-        },
-        city: switch (json['city']) {
-          final Map<String, dynamic> m => City.fromJson(m),
-          _ => null,
-        },
-      );
+    note: json['note'] as String,
+    noteAuthor: json['noteAuthor'] as String,
+    countdownTitle: json['countdownTitle'] as String,
+    countdownDate: switch (json['countdownDate']) {
+      final String s => DateTime.parse(s),
+      _ => null,
+    },
+    city: switch (json['city']) {
+      final Map<String, dynamic> m => City.fromJson(m),
+      _ => null,
+    },
+  );
 }
 
 class City {
@@ -70,18 +69,18 @@ class City {
   final double longitude;
 
   Map<String, Object> toJson() => {
-        'name': name,
-        'region': region,
-        'latitude': latitude,
-        'longitude': longitude,
-      };
+    'name': name,
+    'region': region,
+    'latitude': latitude,
+    'longitude': longitude,
+  };
 
   factory City.fromJson(Map<String, dynamic> json) => City(
-        name: json['name'] as String,
-        region: json['region'] as String,
-        latitude: (json['latitude'] as num).toDouble(),
-        longitude: (json['longitude'] as num).toDouble(),
-      );
+    name: json['name'] as String,
+    region: json['region'] as String,
+    latitude: (json['latitude'] as num).toDouble(),
+    longitude: (json['longitude'] as num).toDouble(),
+  );
 }
 
 /// Whole days from [now]'s date to [target]'s date; negative once passed.

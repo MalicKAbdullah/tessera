@@ -41,21 +41,33 @@ class EditorScreen extends ConsumerWidget {
       body: SafeArea(
         top: false,
         child: wide
-            ? Row(children: [
-                Expanded(child: Align(alignment: Alignment.topCenter, child: preview)),
-                Expanded(child: controls),
-              ])
-            : Column(children: [preview, Expanded(child: controls)]),
+            ? Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: preview,
+                    ),
+                  ),
+                  Expanded(child: controls),
+                ],
+              )
+            : Column(
+                children: [
+                  preview,
+                  Expanded(child: controls),
+                ],
+              ),
       ),
     );
   }
 
   List<Widget> _contentControls(WidgetKind kind) => switch (kind) {
-        WidgetKind.weather => const [_WeatherControls()],
-        WidgetKind.countdown => const [_CountdownControls()],
-        WidgetKind.note => const [_NoteControls()],
-        WidgetKind.clock || WidgetKind.calendar || WidgetKind.battery => const [],
-      };
+    WidgetKind.weather => const [_WeatherControls()],
+    WidgetKind.countdown => const [_CountdownControls()],
+    WidgetKind.note => const [_NoteControls()],
+    WidgetKind.clock || WidgetKind.calendar || WidgetKind.battery => const [],
+  };
 }
 
 class _StyleControls extends ConsumerWidget {
@@ -79,49 +91,61 @@ class _StyleControls extends ConsumerWidget {
               separatorBuilder: (_, _) => const SizedBox(width: 14),
               itemBuilder: (context, i) {
                 final p = presets[i];
-                final active = style.background == p.background &&
+                final active =
+                    style.background == p.background &&
                     style.text == p.text &&
                     style.accent == p.accent;
-                return Column(children: [
-                  ColorDot(
-                    color: p.background,
-                    selected: active,
-                    onTap: () => notifier.update((s) => s.copyWith(
-                        background: p.background, text: p.text, accent: p.accent)),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(p.name, style: Theme.of(context).textTheme.labelSmall),
-                ]);
+                return Column(
+                  children: [
+                    ColorDot(
+                      color: p.background,
+                      selected: active,
+                      onTap: () => notifier.update(
+                        (s) => s.copyWith(
+                          background: p.background,
+                          text: p.text,
+                          accent: p.accent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(p.name, style: Theme.of(context).textTheme.labelSmall),
+                  ],
+                );
               },
             ),
           ),
         ),
         Section(
           title: 'Background',
-          child: Column(children: [
-            SwatchRow(
-              colors: [for (final p in presets) p.background],
-              selected: style.background,
-              onSelected: (c) => notifier.update((s) => s.copyWith(background: c)),
-            ),
-            const SizedBox(height: 8),
-            LabeledSlider(
-              label: 'Opacity',
-              value: style.opacity,
-              min: 0,
-              max: 1,
-              display: '${(style.opacity * 100).round()}%',
-              onChanged: (v) => notifier.update((s) => s.copyWith(opacity: v)),
-            ),
-            LabeledSlider(
-              label: 'Corners',
-              value: style.radius,
-              min: WidgetStyle.minRadius,
-              max: WidgetStyle.maxRadius,
-              display: '${style.radius.round()}',
-              onChanged: (v) => notifier.update((s) => s.copyWith(radius: v)),
-            ),
-          ]),
+          child: Column(
+            children: [
+              SwatchRow(
+                colors: [for (final p in presets) p.background],
+                selected: style.background,
+                onSelected: (c) =>
+                    notifier.update((s) => s.copyWith(background: c)),
+              ),
+              const SizedBox(height: 8),
+              LabeledSlider(
+                label: 'Opacity',
+                value: style.opacity,
+                min: 0,
+                max: 1,
+                display: '${(style.opacity * 100).round()}%',
+                onChanged: (v) =>
+                    notifier.update((s) => s.copyWith(opacity: v)),
+              ),
+              LabeledSlider(
+                label: 'Corners',
+                value: style.radius,
+                min: WidgetStyle.minRadius,
+                max: WidgetStyle.maxRadius,
+                display: '${style.radius.round()}',
+                onChanged: (v) => notifier.update((s) => s.copyWith(radius: v)),
+              ),
+            ],
+          ),
         ),
         Section(
           title: 'Text',
@@ -141,31 +165,42 @@ class _StyleControls extends ConsumerWidget {
         ),
         Section(
           title: 'Type',
-          child: Column(children: [
-            SizedBox(
-              width: double.infinity,
-              child: SegmentedButton<TextWeight>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: TextWeight.light, label: Text('Light')),
-                  ButtonSegment(value: TextWeight.regular, label: Text('Regular')),
-                  ButtonSegment(value: TextWeight.medium, label: Text('Medium')),
-                ],
-                selected: {style.weight},
-                onSelectionChanged: (v) =>
-                    notifier.update((s) => s.copyWith(weight: v.single)),
+          child: Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<TextWeight>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(
+                      value: TextWeight.light,
+                      label: Text('Light'),
+                    ),
+                    ButtonSegment(
+                      value: TextWeight.regular,
+                      label: Text('Regular'),
+                    ),
+                    ButtonSegment(
+                      value: TextWeight.medium,
+                      label: Text('Medium'),
+                    ),
+                  ],
+                  selected: {style.weight},
+                  onSelectionChanged: (v) =>
+                      notifier.update((s) => s.copyWith(weight: v.single)),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            LabeledSlider(
-              label: 'Size',
-              value: style.scale,
-              min: WidgetStyle.minScale,
-              max: WidgetStyle.maxScale,
-              display: '${(style.scale * 100).round()}%',
-              onChanged: (v) => notifier.update((s) => s.copyWith(scale: v)),
-            ),
-          ]),
+              const SizedBox(height: 8),
+              LabeledSlider(
+                label: 'Size',
+                value: style.scale,
+                min: WidgetStyle.minScale,
+                max: WidgetStyle.maxScale,
+                display: '${(style.scale * 100).round()}%',
+                onChanged: (v) => notifier.update((s) => s.copyWith(scale: v)),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -187,7 +222,8 @@ class _PinButton extends ConsumerWidget {
             'Long-press your home screen, choose Widgets, then Tessera.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           );
         }
         return SizedBox(
@@ -212,21 +248,25 @@ class _NoteControls extends ConsumerWidget {
     final notifier = ref.read(contentProvider.notifier);
     return Section(
       title: 'Note',
-      child: Column(children: [
-        TextFormField(
-          initialValue: content.note,
-          minLines: 1,
-          maxLines: 3,
-          maxLength: 120,
-          decoration: const InputDecoration(labelText: 'Text'),
-          onChanged: (v) => notifier.update((c) => c.copyWith(note: v)),
-        ),
-        TextFormField(
-          initialValue: content.noteAuthor,
-          decoration: const InputDecoration(labelText: 'Attribution (optional)'),
-          onChanged: (v) => notifier.update((c) => c.copyWith(noteAuthor: v)),
-        ),
-      ]),
+      child: Column(
+        children: [
+          TextFormField(
+            initialValue: content.note,
+            minLines: 1,
+            maxLines: 3,
+            maxLength: 120,
+            decoration: const InputDecoration(labelText: 'Text'),
+            onChanged: (v) => notifier.update((c) => c.copyWith(note: v)),
+          ),
+          TextFormField(
+            initialValue: content.noteAuthor,
+            decoration: const InputDecoration(
+              labelText: 'Attribution (optional)',
+            ),
+            onChanged: (v) => notifier.update((c) => c.copyWith(noteAuthor: v)),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -242,30 +282,33 @@ class _CountdownControls extends ConsumerWidget {
     final target = content.effectiveCountdownDate(now);
     return Section(
       title: 'Countdown',
-      child: Column(children: [
-        TextFormField(
-          initialValue: content.countdownTitle,
-          maxLength: 32,
-          decoration: const InputDecoration(labelText: 'Title'),
-          onChanged: (v) => notifier.update((c) => c.copyWith(countdownTitle: v)),
-        ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: const Text('Date'),
-          trailing: Text(DateFormat('d MMM y').format(target)),
-          onTap: () async {
-            final picked = await showDatePicker(
-              context: context,
-              initialDate: target,
-              firstDate: DateTime(now.year - 5),
-              lastDate: DateTime(now.year + 50),
-            );
-            if (picked != null) {
-              notifier.update((c) => c.copyWith(countdownDate: picked));
-            }
-          },
-        ),
-      ]),
+      child: Column(
+        children: [
+          TextFormField(
+            initialValue: content.countdownTitle,
+            maxLength: 32,
+            decoration: const InputDecoration(labelText: 'Title'),
+            onChanged: (v) =>
+                notifier.update((c) => c.copyWith(countdownTitle: v)),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Date'),
+            trailing: Text(DateFormat('d MMM y').format(target)),
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: target,
+                firstDate: DateTime(now.year - 5),
+                lastDate: DateTime(now.year + 50),
+              );
+              if (picked != null) {
+                notifier.update((c) => c.copyWith(countdownDate: picked));
+              }
+            },
+          ),
+        ],
+      ),
     );
   }
 }
@@ -296,8 +339,9 @@ class _WeatherControlsState extends ConsumerState<_WeatherControls> {
     }
     _debounce = Timer(const Duration(milliseconds: 400), () async {
       try {
-        final found =
-            await ref.read(weatherServiceProvider).searchCities(query.trim());
+        final found = await ref
+            .read(weatherServiceProvider)
+            .searchCities(query.trim());
         if (!mounted) return;
         setState(() {
           _results = found;
@@ -327,43 +371,49 @@ class _WeatherControlsState extends ConsumerState<_WeatherControls> {
                   ? const Padding(
                       padding: EdgeInsets.all(14),
                       child: SizedBox.square(
-                          dimension: 16,
-                          child: CircularProgressIndicator(strokeWidth: 1.5)),
+                        dimension: 16,
+                        child: CircularProgressIndicator(strokeWidth: 1.5),
+                      ),
                     )
                   : city == null
-                      ? null
-                      : IconButton(
-                          tooltip: 'Refresh',
-                          icon: const Icon(Icons.refresh, size: 20),
-                          onPressed: () =>
-                              ref.read(weatherProvider.notifier).refresh(),
-                        ),
+                  ? null
+                  : IconButton(
+                      tooltip: 'Refresh',
+                      icon: const Icon(Icons.refresh, size: 20),
+                      onPressed: () =>
+                          ref.read(weatherProvider.notifier).refresh(),
+                    ),
             ),
             onChanged: _search,
           ),
           if (_error != null || weather.hasError)
             Padding(
               padding: const EdgeInsets.only(top: 8),
-              child: Text(_error ?? '${weather.error}',
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.error)),
+              child: Text(
+                _error ?? '${weather.error}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: theme.colorScheme.error,
+                ),
+              ),
             ),
           AnimatedSize(
             duration: const Duration(milliseconds: 280),
             curve: Curves.easeOutCubic,
-            child: Column(children: [
-              for (final c in _results)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(c.name),
-                  subtitle: Text(c.region),
-                  onTap: () {
-                    FocusScope.of(context).unfocus();
-                    setState(() => _results = const []);
-                    ref.read(contentProvider.notifier).setCity(c);
-                  },
-                ),
-            ]),
+            child: Column(
+              children: [
+                for (final c in _results)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(c.name),
+                    subtitle: Text(c.region),
+                    onTap: () {
+                      FocusScope.of(context).unfocus();
+                      setState(() => _results = const []);
+                      ref.read(contentProvider.notifier).setCity(c);
+                    },
+                  ),
+              ],
+            ),
           ),
         ],
       ),

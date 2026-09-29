@@ -56,37 +56,35 @@ class WidgetStyle {
     Color? accent,
     double? scale,
     TextWeight? weight,
-  }) =>
-      WidgetStyle(
-        background: background ?? this.background,
-        opacity: opacity ?? this.opacity,
-        radius: radius ?? this.radius,
-        text: text ?? this.text,
-        accent: accent ?? this.accent,
-        scale: scale ?? this.scale,
-        weight: weight ?? this.weight,
-      );
+  }) => WidgetStyle(
+    background: background ?? this.background,
+    opacity: opacity ?? this.opacity,
+    radius: radius ?? this.radius,
+    text: text ?? this.text,
+    accent: accent ?? this.accent,
+    scale: scale ?? this.scale,
+    weight: weight ?? this.weight,
+  );
 
   Map<String, Object> toJson() => {
-        'background': background.toARGB32(),
-        'opacity': opacity,
-        'radius': radius,
-        'text': text.toARGB32(),
-        'accent': accent.toARGB32(),
-        'scale': scale,
-        'weight': weight.name,
-      };
+    'background': background.toARGB32(),
+    'opacity': opacity,
+    'radius': radius,
+    'text': text.toARGB32(),
+    'accent': accent.toARGB32(),
+    'scale': scale,
+    'weight': weight.name,
+  };
 
   factory WidgetStyle.fromJson(Map<String, dynamic> json) => WidgetStyle(
-        background: Color(json['background'] as int),
-        opacity: (json['opacity'] as num).toDouble().clamp(0, 1),
-        radius:
-            (json['radius'] as num).toDouble().clamp(minRadius, maxRadius),
-        text: Color(json['text'] as int),
-        accent: Color(json['accent'] as int),
-        scale: (json['scale'] as num).toDouble().clamp(minScale, maxScale),
-        weight: TextWeight.values.byName(json['weight'] as String),
-      );
+    background: Color(json['background'] as int),
+    opacity: (json['opacity'] as num).toDouble().clamp(0, 1),
+    radius: (json['radius'] as num).toDouble().clamp(minRadius, maxRadius),
+    text: Color(json['text'] as int),
+    accent: Color(json['accent'] as int),
+    scale: (json['scale'] as num).toDouble().clamp(minScale, maxScale),
+    weight: TextWeight.values.byName(json['weight'] as String),
+  );
 
   @override
   bool operator ==(Object other) =>

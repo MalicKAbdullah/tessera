@@ -13,16 +13,19 @@ import '../services/widget_sync.dart';
 
 /// Overridden in main() with the instance loaded before runApp.
 final sharedPreferencesProvider = Provider<SharedPreferences>(
-    (ref) => throw StateError('sharedPreferencesProvider not overridden'));
+  (ref) => throw StateError('sharedPreferencesProvider not overridden'),
+);
 
-final storeProvider =
-    Provider((ref) => TesseraStore(ref.watch(sharedPreferencesProvider)));
+final storeProvider = Provider(
+  (ref) => TesseraStore(ref.watch(sharedPreferencesProvider)),
+);
 final widgetSyncProvider = Provider((ref) => const WidgetSync());
 final weatherServiceProvider = Provider((ref) => WeatherService());
 
 final styleProvider =
     NotifierProvider.family<StyleNotifier, WidgetStyle, WidgetKind>(
-        StyleNotifier.new);
+      StyleNotifier.new,
+    );
 
 class StyleNotifier extends FamilyNotifier<WidgetStyle, WidgetKind> {
   Timer? _push;
@@ -39,13 +42,16 @@ class StyleNotifier extends FamilyNotifier<WidgetStyle, WidgetKind> {
     // Sliders emit many values per second; the native widget only needs the
     // one the user settles on.
     _push?.cancel();
-    _push = Timer(const Duration(milliseconds: 350),
-        () => ref.read(widgetSyncProvider).pushStyle(arg, state));
+    _push = Timer(
+      const Duration(milliseconds: 350),
+      () => ref.read(widgetSyncProvider).pushStyle(arg, state),
+    );
   }
 }
 
-final contentProvider =
-    NotifierProvider<ContentNotifier, WidgetContent>(ContentNotifier.new);
+final contentProvider = NotifierProvider<ContentNotifier, WidgetContent>(
+  ContentNotifier.new,
+);
 
 class ContentNotifier extends Notifier<WidgetContent> {
   Timer? _push;
@@ -60,8 +66,10 @@ class ContentNotifier extends Notifier<WidgetContent> {
     state = change(state);
     ref.read(storeProvider).saveContent(state);
     _push?.cancel();
-    _push = Timer(const Duration(milliseconds: 350),
-        () => ref.read(widgetSyncProvider).pushContent(state));
+    _push = Timer(
+      const Duration(milliseconds: 350),
+      () => ref.read(widgetSyncProvider).pushContent(state),
+    );
   }
 
   Future<void> setCity(City city) async {
@@ -72,7 +80,8 @@ class ContentNotifier extends Notifier<WidgetContent> {
 
 final weatherProvider =
     AsyncNotifierProvider<WeatherNotifier, WeatherSnapshot?>(
-        WeatherNotifier.new);
+      WeatherNotifier.new,
+    );
 
 class WeatherNotifier extends AsyncNotifier<WeatherSnapshot?> {
   static const _staleAfter = Duration(minutes: 30);
@@ -80,7 +89,8 @@ class WeatherNotifier extends AsyncNotifier<WeatherSnapshot?> {
   @override
   Future<WeatherSnapshot?> build() async {
     final cached = ref.read(storeProvider).weather();
-    final fresh = cached != null &&
+    final fresh =
+        cached != null &&
         DateTime.now().difference(cached.fetchedAt) < _staleAfter;
     if (fresh || ref.read(contentProvider).city == null) return cached;
     return _fetch();
@@ -111,8 +121,10 @@ final batteryProvider = StreamProvider<BatteryReading>((ref) async* {
   final battery = Battery();
   Future<BatteryReading> read() async {
     final state = await battery.batteryState;
-    return BatteryReading(await battery.batteryLevel,
-        state == BatteryState.charging || state == BatteryState.full);
+    return BatteryReading(
+      await battery.batteryLevel,
+      state == BatteryState.charging || state == BatteryState.full,
+    );
   }
 
   yield await read();
@@ -128,6 +140,7 @@ final nowProvider = StreamProvider<DateTime>((ref) async* {
     final now = DateTime.now();
     yield now;
     await Future<void>.delayed(
-        Duration(seconds: 60 - now.second, milliseconds: -now.millisecond));
+      Duration(seconds: 60 - now.second, milliseconds: -now.millisecond),
+    );
   }
 });
