@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_clock">Time and date, always live</string>
+    <string name="widget_calendar">Today at a glance</string>
+    <string name="widget_battery">Charge level and state</string>
+    <string name="widget_weather">Current conditions for your city</string>
+    <string name="widget_countdown">Days until what matters</string>
+    <string name="widget_note">A line worth keeping in view</string>
+</resources>
