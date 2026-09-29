@@ -4,55 +4,47 @@
 
 ### Widgets, quietly yours.
 
-Six calm home-screen widgets — clock, calendar, battery, weather, countdown, and a note — each styled exactly the way you like, with a live preview as you tune it.
-
-![License](https://img.shields.io/badge/License-MIT-C9A77C?style=flat-square)
-![Platform](https://img.shields.io/badge/Platform-Android-C9A77C?style=flat-square&logo=android)
-![Built with Flutter](https://img.shields.io/badge/Built%20with-Flutter-027DFD?style=flat-square&logo=flutter)
-![Permissions](https://img.shields.io/badge/Location%20permission-None-8FA8D8?style=flat-square)
-![Trackers](https://img.shields.io/badge/Trackers-0-8FA8D8?style=flat-square)
+A growing library of home-screen widgets — dot-matrix and analog clocks, word and world time, live battery gauges and history — each drawn natively, alive where Android allows, and styled exactly the way you like.
 
 </div>
 
 > ### ◼️ Simple, but effective
 > No accounts, no ads, no tracking. Tessera stores your styles on your phone and only talks to the network for one thing: the weather for the city **you** type in.
 
-Most widget apps drown you in skins. Tessera gives you a small set of widgets that look finished out of the box, and just enough controls to make them yours.
+Every widget is drawn by a native Kotlin engine at the widget's real size, and the app's previews are that same rendering — what you tune is what lands on your home screen.
 
 ## ✨ Features
 
-**The widgets**
-- **Clock** — time and date, driven by Android's own `TextClock`, so it's always on the minute with zero background work
-- **Calendar** — month, day, and weekday at a glance, also native and always current
-- **Battery** — charge level with a hairline meter, and whether you're plugged in
-- **Weather** — current temperature and condition for a city you pick, via [Open-Meteo](https://open-meteo.com) (free, no API key)
-- **Countdown** — days until a date that matters, recomputed on every redraw
-- **Note** — a line you want to keep in view, with optional attribution
+**Clock** — Dot Matrix · Bold Stack · Chronograph (live analog hands) · Word Clock · Dual Time · Minimal with next alarm
+
+**Battery** — Dot Cell · Ring Gauge with time to full · Segments with temperature, health and voltage · Big Numeric · 24-hour History
+
+**Also** — Calendar, Weather, Countdown and Note tiles
+
+**Live, without draining you**
+- Time and dates are Android `TextClock`s in Tessera's own typefaces — always on the minute, no alarms
+- Battery reads the system's state at every draw and refreshes the moment you plug in and as soon as the screen wakes
+- Subtle motion where Android supports it: pulsing LEDs, charging fills, a rippling level
+- Weather from [Open-Meteo](https://open-meteo.com), with how fresh the reading is
 
 **Make it yours**
-- **Nine curated presets** (Ink, Paper, Sand, Sage, Mist, Clay, Midnight, Moss, Plum) — each a background, text, and accent that belong together
-- Per-widget **background colour**, **opacity**, and **corner radius**
-- **Text** and **accent** colours from a curated palette, or any custom colour
-- **Light / Regular / Medium** type weight and a **size** scale
-- A **live preview** that glides between settings as you change them
+- Six bundled families — Doto (dot matrix), Space Grotesk, Inter Tight, JetBrains Mono, Instrument Serif, Oswald — with a weight slider from 100 to 900
+- Size, letter spacing, text and accent colours
+- Solid, gradient, dot-grid, grain or clear surfaces; opacity, corners and padding
+- Per-design options: 12/24-hour, seconds, numerals, second city, and more
+- Every widget on your home screen keeps its own design and style; tap one to edit it in place
 
 **Place it**
-- **Add to home screen** straight from the editor on launchers that support pinning; otherwise long-press your home screen → Widgets → Tessera
-- Widgets resize freely; the background is redrawn to fit every size
+- **Add to home screen** from the editor at the size you picked, or long-press your home screen → Widgets → Tessera
 
-## 🧠 How it works
-
-1. The Flutter app keeps each widget's style and your content (note, countdown, city) in local storage.
-2. On every change, it pushes a copy into [`home_widget`](https://pub.dev/packages/home_widget)'s shared preferences and asks the widget to redraw.
-3. The Kotlin widget providers read that copy and build `RemoteViews`. The rounded, translucent surface is drawn as a bitmap sized to the widget; text colour, size and weight are applied directly so type stays crisp.
-4. Clock and Calendar use `TextClock` and tick on their own. Battery reads the system's battery state at draw time. Countdown recomputes days at draw time.
-5. A [`workmanager`](https://pub.dev/packages/workmanager) job runs every 30 minutes to refresh the weather and nudge every widget to redraw.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for how the engine works and how to add a design.
 
 ## 🔑 Permissions — and why
 
 | Permission | Why |
 | --- | --- |
-| **Internet** | City search and current weather from Open-Meteo. Nothing else is sent. |
+| **Internet** | City search and weather from Open-Meteo. Nothing else is sent. |
+| **Run at startup** | Redraws your widgets and restarts their refresh after the phone reboots. |
 
 That's it. Weather uses the city you type, not your location — **no location permission**.
 
@@ -83,9 +75,10 @@ flutter test
 
 ## 🧱 Built With
 
-- **Flutter** & **Dart** — the gallery, the editor, and the live previews
-- **Kotlin** — the six `AppWidgetProvider`s and the surface renderer
-- **Riverpod** (state) · **go_router** (navigation) · **home_widget** (app ↔ widget bridge) · **workmanager** (periodic refresh) · **battery_plus** · **Open-Meteo** (weather & geocoding)
+- **Kotlin** — the widget engine: Canvas rendering, RemoteViews overlays, WorkManager refresh
+- **Flutter** & **Dart** — the gallery and editor
+- **Riverpod** (state) · **go_router** (navigation) · **Open-Meteo** (weather & geocoding)
+- Fonts under the SIL Open Font License — see `android/app/src/main/assets/licenses/`
 
 ## 📄 License
 

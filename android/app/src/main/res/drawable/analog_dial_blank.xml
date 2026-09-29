@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Transparent: the dial is drawn in the widget bitmap. Its intrinsic size
+     matches the hands so AnalogClock scales both to fit the view. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <size android:width="400dp" android:height="400dp" />
+    <solid android:color="#00000000" />
+</shape>

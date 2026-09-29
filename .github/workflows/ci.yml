@@ -47,3 +47,5 @@ jobs:
         run: |
           flutter pub get
           flutter build apk --debug
+      - name: Engine unit tests
+        run: cd android && ./gradlew :app:testDebugUnitTest
