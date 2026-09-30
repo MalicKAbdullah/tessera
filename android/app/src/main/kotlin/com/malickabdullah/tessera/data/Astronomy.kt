@@ -159,11 +159,6 @@ object Astronomy {
         val rise = at(SunAltitude.HORIZON, true)
         val set = at(SunAltitude.HORIZON, false)
         val noonAltitude = sunPosition(noon, latitude, longitude).altitude
-        val length = when {
-            rise != null && set != null -> (set.toEpochMilli() - rise.toEpochMilli()) / 60_000.0
-            noonAltitude > SunAltitude.HORIZON -> 1440.0
-            else -> 0.0
-        }
         return SunDay(
             date = date,
             blueStart = at(SunAltitude.CIVIL, true),
@@ -175,15 +170,28 @@ object Astronomy {
             sunset = set,
             goldenEveningEnd = at(SunAltitude.GOLDEN_BOTTOM, false),
             blueEnd = at(SunAltitude.CIVIL, false),
-            dayLengthMinutes = length,
+            dayLengthMinutes = dayLength(rise, set, noonAltitude),
             noonAltitude = noonAltitude,
         )
+    }
+
+    private fun dayLength(rise: Instant?, set: Instant?, noonAltitude: Double): Double = when {
+        rise != null && set != null -> (set.toEpochMilli() - rise.toEpochMilli()) / 60_000.0
+        noonAltitude > SunAltitude.HORIZON -> 1440.0
+        else -> 0.0
     }
 
     /** Day length in minutes for each day of [year], for the yearly curve. */
     fun dayLengths(year: Int, latitude: Double, longitude: Double): List<Double> {
         val first = LocalDate.of(year, 1, 1)
-        return (0 until first.lengthOfYear()).map { sunDay(first.plusDays(it.toLong()), latitude, longitude).dayLengthMinutes }
+        return (0 until first.lengthOfYear()).map {
+            val date = first.plusDays(it.toLong())
+            dayLength(
+                crossing(date, latitude, longitude, SunAltitude.HORIZON, rising = true),
+                crossing(date, latitude, longitude, SunAltitude.HORIZON, rising = false),
+                sunPosition(noon(date, longitude), latitude, longitude).altitude,
+            )
+        }
     }
 
     fun moonPhase(t: Instant): MoonPhase {
