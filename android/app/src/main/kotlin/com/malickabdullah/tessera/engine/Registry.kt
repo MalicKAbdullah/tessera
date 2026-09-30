@@ -4,8 +4,10 @@ import com.malickabdullah.tessera.designs.battery.batteryDesigns
 import com.malickabdullah.tessera.designs.calendar.calendarDesigns
 import com.malickabdullah.tessera.designs.clock.clockDesigns
 import com.malickabdullah.tessera.designs.countdown.countdownDesigns
+import com.malickabdullah.tessera.designs.device.deviceDesigns
 import com.malickabdullah.tessera.designs.note.noteDesigns
 import com.malickabdullah.tessera.designs.photo.photoDesigns
+import com.malickabdullah.tessera.designs.sky.skyDesigns
 import com.malickabdullah.tessera.designs.weather.weatherDesigns
 import org.json.JSONArray
 import org.json.JSONObject
@@ -17,7 +19,7 @@ import org.json.JSONObject
 object Registry {
     val designs: List<WidgetDesign> =
         clockDesigns + batteryDesigns + calendarDesigns + weatherDesigns + countdownDesigns + noteDesigns +
-            photoDesigns
+            photoDesigns + skyDesigns + deviceDesigns
 
     init {
         check(designs.map { it.id }.toSet().size == designs.size) { "Duplicate design id" }

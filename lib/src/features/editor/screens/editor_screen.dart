@@ -198,7 +198,7 @@ class _EditorState extends ConsumerState<_Editor> {
 
   List<Widget> _contentControls(String category) => switch (category) {
     'calendar' => const [CalendarAccessControls()],
-    'weather' => const [_WeatherControls()],
+    'weather' || 'sky' => const [_WeatherControls()],
     'countdown' => const [_CountdownControls(), EventsControls()],
     'note' => const [_NoteControls(), ChecklistControls()],
     'photo' => const [PhotoControls()],

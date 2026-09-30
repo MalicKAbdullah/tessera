@@ -12,6 +12,8 @@ enum class Category(val id: String, val label: String) {
     COUNTDOWN("countdown", "Countdown"),
     NOTE("note", "Note"),
     PHOTO("photo", "Photo"),
+    SKY("sky", "Sun & Moon"),
+    DEVICE("device", "Device"),
 }
 
 /** Launcher footprint a provider is registered at; designs adapt to any resize from there. */

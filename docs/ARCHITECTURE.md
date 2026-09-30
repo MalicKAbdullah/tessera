@@ -13,7 +13,7 @@ Gallery / Editor ── MethodChannel ──▶  EngineChannel ─▶ Registry (
                                         Engine ─▶ Renderer ─▶ RemoteViews ─▶ launcher
                                           ▲         │ Scene (Canvas in dp + overlays)
                      providers, ticker,   │         ▼
-                     workers, receivers ──┘      data/ (battery, weather, alarm, content)
+                     workers, receivers ──┘      data/ (battery, weather, alarm, content, sky, device)
 ```
 
 ## Engine (`engine/`)
@@ -101,6 +101,17 @@ section: a rationale sheet first, then the system dialog (`requestCalendar`),
 or system settings once it is denied for good (`calendarAccess` reports
 `granted`, `ask` or `blocked`). Without it every calendar design draws its
 date-only state with a small "connect calendar" hint.
+
+Sun & Moon is computed offline in `data/Astronomy.kt` (NOAA solar equations;
+Meeus ch. 48–49 for lunar illumination and phase instants), tested against
+PyEphem references in `AstronomyTest`. `SkyPlaceSource` uses the weather
+city, else the last coarse fix only if the user already granted coarse
+location in Settings (the app never requests it), else designs draw "set a
+place". Device data (`data/Device.kt`) uses only permission-free APIs:
+`StatFs` on the data partition, `ActivityManager.MemoryInfo`,
+`SystemClock.elapsedRealtime`, and `NetworkCapabilities` (normal
+`ACCESS_NETWORK_STATE`; Wi-Fi RSSI from API 29). Both categories refresh
+through their live keys on the existing ticker.
 
 ### Photos
 
@@ -302,3 +313,13 @@ Changes outside a category folder (shared files, one owner at a time):
 | Photo | Shuffle `photo.shuffle` | 2×2 4×2 4×4 | Stack of prints; the top one cross-fades through the album (flipper, memory-planned) or rotates hourly/daily |
 | Photo | Dot Matrix `photo.dots` | 2×2 4×2 4×4 | Photo sampled to an LED grid or 45° halftone in Kotlin |
 | Photo | Duotone `photo.duotone` | 2×2 4×2 4×4 | Luminance mapped from the surface colour to the accent; poster caption, grain |
+| Sun & Moon | Moon Phase `sky.moon` | 2×2 4×2 4×4 | Shaded disc with soft terminator and earthshine; next full/new; week strip on 4×4; redrawn every 2 h |
+| Sun & Moon | Sun Arc `sky.arc` | 4×2 2×2 | Today's altitude curve, sun marker moves every 10 min; sunrise/noon/sunset |
+| Sun & Moon | Sky Clock `sky.dial` | 2×2 4×4 | 24h dial coloured night/blue/golden/day, sun marker every 5 min; TextClock time; moon phase |
+| Sun & Moon | Golden Hour `sky.golden` | 4×2 4×4 | Next golden hour; day timeline with a now marker every 5 min; blue/golden windows |
+| Sun & Moon | Day Length `sky.year` | 4×2 4×4 | Year curve of daylight, today marked daily; change vs yesterday; longest/shortest day |
+| Device | System `device.system` | 4×2 4×4 | Battery, storage, memory segment gauges; network/disk/RAM/health on 4×4; charging breathe |
+| Device | Storage `device.storage` | 2×2 4×2 | 10×10 dot field (2×2) or 24-segment bar (4×2); redrawn per 0.2 GB change |
+| Device | Memory `device.memory` | 2×2 4×2 | RAM ring with low-memory threshold notch; redrawn per 2% change |
+| Device | Network `device.network` | 2×2 4×2 | Transport, Wi-Fi arcs from RSSI, internet reachability, metered, bandwidth estimates |
+| Device | Uptime `device.uptime` | 2×2 4×2 | Time since boot, boot timestamp, day strip; redrawn when the shown value changes |

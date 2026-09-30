@@ -2,6 +2,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <!-- Never requested: sky designs use a last coarse fix only if the user already granted it in Settings. -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <application
         android:label="Tessera"
         android:name="${applicationName}"
@@ -293,6 +296,78 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_photo_large" />
+        </receiver>
+        <receiver
+            android:name=".widgets.SkySmallWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Sun &amp; Moon · 2×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_sky_small" />
+        </receiver>
+        <receiver
+            android:name=".widgets.SkyWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Sun &amp; Moon · 4×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_sky_wide" />
+        </receiver>
+        <receiver
+            android:name=".widgets.SkyLargeWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Sun &amp; Moon · 4×4">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_sky_large" />
+        </receiver>
+        <receiver
+            android:name=".widgets.DeviceSmallWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Device · 2×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_device_small" />
+        </receiver>
+        <receiver
+            android:name=".widgets.DeviceWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Device · 4×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_device_wide" />
+        </receiver>
+        <receiver
+            android:name=".widgets.DeviceLargeWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Device · 4×4">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_device_large" />
         </receiver>
 
         <receiver android:name=".engine.TickReceiver" android:exported="false" />

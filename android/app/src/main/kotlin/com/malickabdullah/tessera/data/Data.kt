@@ -20,4 +20,9 @@ class Data(private val context: Context) {
     val content: Content by lazy { ContentSource.read(context) }
     val photos: PhotoAlbum by lazy { PhotoStore.read(context) }
     val calendar: CalendarState by lazy { CalendarSource.read(context) }
+    val skyPlace: SkyPlace? by lazy { SkyPlaceSource.read(context) }
+    val storage: StorageState by lazy { StorageSource.read(context) }
+    val memory: MemoryState by lazy { MemorySource.read(context) }
+    val network: NetworkState by lazy { NetworkSource.read(context) }
+    val uptimeMs: Long by lazy { UptimeSource.read(context) }
 }
