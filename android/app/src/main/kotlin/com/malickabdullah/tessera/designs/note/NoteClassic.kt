@@ -25,8 +25,9 @@ object NoteClassic : WidgetDesign {
         val b = s.box
         val author = content.noteAuthor
         val bottom = if (author.isEmpty()) b.bottom else b.bottom - 20f * s.k
-        val paint = TextPaint(s.paint(20f * s.k))
-        val layout = StaticLayout.Builder.obtain(content.note, 0, content.note.length, paint, b.width().toInt())
+        val note = content.note.ifBlank { "Write something." }
+        val paint = TextPaint(s.paint(20f * s.k, if (content.note.isBlank()) s.ink(0.45f) else s.text))
+        val layout = StaticLayout.Builder.obtain(note, 0, note.length, paint, b.width().toInt())
             .setAlignment(Layout.Alignment.ALIGN_NORMAL)
             .setLineSpacing(0f, 1.15f)
             .setMaxLines(((bottom - b.top) / (paint.fontSpacing * 1.15f)).toInt().coerceAtLeast(1))
