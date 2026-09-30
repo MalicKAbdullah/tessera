@@ -10,6 +10,7 @@ import '../../widgets/models/widget_content.dart';
 import '../../widgets/models/widget_style.dart';
 import '../../widgets/providers/widget_providers.dart';
 import '../../widgets/widgets/native_preview.dart';
+import '../widgets/content_controls.dart';
 import '../widgets/controls.dart';
 
 /// Editing a design before adding it to the home screen.
@@ -195,8 +196,8 @@ class _EditorState extends ConsumerState<_Editor> {
 
   List<Widget> _contentControls(String category) => switch (category) {
     'weather' => const [_WeatherControls()],
-    'countdown' => const [_CountdownControls()],
-    'note' => const [_NoteControls()],
+    'countdown' => const [_CountdownControls(), EventsControls()],
+    'note' => const [_NoteControls(), ChecklistControls()],
     _ => const [],
   };
 }
@@ -615,7 +616,7 @@ class _CountdownControls extends ConsumerWidget {
                 lastDate: DateTime(now.year + 50),
               );
               if (picked != null) {
-                notifier.update((c) => c.copyWith(countdownDate: picked));
+                notifier.update((c) => c.withCountdownDate(picked, now));
               }
             },
           ),

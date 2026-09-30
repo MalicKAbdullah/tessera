@@ -221,6 +221,7 @@ Changes outside a category folder (shared files, one owner at a time):
   `Engine.refresh(context, signal)` from whatever observes the change.
   Runtime permissions (e.g. calendar) are requested from Flutter; the design
   draws a "grant access" state when denied.
+- **Content shape**: `WidgetContent` (Dart) and `Content` (`data/Content.kt`) carry the countdown date and its start day, extra countdown events and checklist items; the editor's list controls live in `editor/widgets/content_controls.dart`.
 - **Content controls** for a category's user content go in the editor's
   `_contentControls` switch (`editor_screen.dart`). Everything else on the
   Dart side (gallery, style controls, toggles, previews) comes from the
@@ -246,4 +247,14 @@ Changes outside a category folder (shared files, one owner at a time):
 | Battery | Segments `battery.segments` | 4×2 4×4 | 10 segments, temp/health/volts/source, history on 4×4; charging breathe |
 | Battery | Big Numeric `battery.numeric` | 2×2 4×2 | Condensed numerals over a liquid fill; charging ripple |
 | Battery | 24h History `battery.history` | 4×2 4×4 | Area chart of sampled history, drain rate |
+| Countdown | Progress Ring `countdown.ring` | 2×2 4×2 4×4 | Bitmap ring from creation date to target; ring-tip pulse flipper; count-up mode |
+| Countdown | Dot Matrix `countdown.matrix` | 2×2 4×2 4×4 | Doto days/hours readout, redrawn hourly; blinking separator flipper |
+| Countdown | Day Dots `countdown.dots` | 2×2 4×2 4×4 | One dot per day (scaled past the grid capacity); today's dot breathes |
+| Countdown | Boarding Pass `countdown.ticket` | 4×2 4×4 | Ticket with real transparent notches, route line, barcode stub; no motion |
+| Countdown | Up Next `countdown.list` | 2×2 4×2 4×4 | Next events soonest first from the countdown plus the editor's event list; 90-day timeline on 4×4 |
+| Note | Sticky Note `note.sticky` | 2×2 4×2 4×4 | Grain surface, tape, ruled lines, skewed serif with per-line wobble; no motion |
+| Note | Big Quote `note.quote` | 2×2 4×2 4×4 | Serif with hanging quotation mark; no motion |
+| Note | Checklist `note.checklist` | 2×2 4×2 4×4 | Editor items with checked state and progress bar; ticked in the app, not on the widget |
+| Note | Dot Matrix Message `note.marquee` | 2×2 4×2 4×4 | Text paged into ViewFlipper frames (page count bounded by a bitmap budget), 4 s per page |
+| Note | Daily Quote `note.daily` | 2×2 4×2 4×4 | Bundled public-domain set (`Quotes.kt`, each cited), one per calendar day, redrawn at midnight |
 | Calendar, Weather, Countdown, Note | `*.classic` | 4×2 | The v0.1 tile on the engine |
