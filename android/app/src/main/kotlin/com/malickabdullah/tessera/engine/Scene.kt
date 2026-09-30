@@ -148,16 +148,20 @@ class Scene(
         overlays += Overlay.Analog(RectF(rect), hour, minute)
     }
 
-    /** A looping ViewFlipper of [count] frames over [rect]; each frame draws in widget dp. */
-    fun flipper(rect: RectF, intervalMs: Int, count: Int, drawFrame: Canvas.(Int) -> Unit) {
+    /**
+     * A looping ViewFlipper of [count] frames over [rect]; each frame draws in
+     * widget dp. [pxPerDp] is the frames' pixels per dp; large flippers pass a
+     * lower one to stay inside the RemoteViews bitmap budget.
+     */
+    fun flipper(rect: RectF, intervalMs: Int, count: Int, pxPerDp: Float = bitmapScale, drawFrame: Canvas.(Int) -> Unit) {
         val frames = (0 until count).map { i ->
             val bmp = Bitmap.createBitmap(
-                ceil(rect.width() * bitmapScale).toInt().coerceAtLeast(1),
-                ceil(rect.height() * bitmapScale).toInt().coerceAtLeast(1),
+                ceil(rect.width() * pxPerDp).toInt().coerceAtLeast(1),
+                ceil(rect.height() * pxPerDp).toInt().coerceAtLeast(1),
                 Bitmap.Config.ARGB_8888,
             )
             Canvas(bmp).apply {
-                scale(bitmapScale, bitmapScale)
+                scale(pxPerDp, pxPerDp)
                 translate(-rect.left, -rect.top)
                 drawFrame(i)
             }

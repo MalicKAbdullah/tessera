@@ -92,6 +92,21 @@ plug type, temperature, voltage, health, `computeChargeTimeRemaining` on API
 28+). `BatteryHistory` samples the level on each render/tick for 24-hour
 charts and drain estimates.
 
+### Photos
+
+The editor's photo controls open the system photo picker (`ACTION_PICK_IMAGES`,
+or the document picker before it), so no storage permission is requested.
+`PhotoStore` (`data/Photos.kt`) decodes each pick once, rotates it upright
+from EXIF, downscales it so its short side is at most the screen's short side
+(`PhotoMath.storedSize`) and writes a private JPEG to `files/photos` with an
+index. The album (up to 12 photos and a caption) is shared by every photo
+widget; changing it refreshes `Signal.CONTENT`. At render time a design
+decodes one photo at a time with an `inSampleSize` just large enough for its
+region and recycles it after drawing. A RemoteViews may carry at most 1.5
+screens of ARGB bitmap memory (`PhotoMath.remoteViewsBudget`);
+`PhotoMath.flipperPlan` fits the Shuffle flipper's frames into what the main
+bitmap leaves, lowering frame resolution first and frame count second.
+
 ### Previews are the widget
 
 `EngineChannel.render` builds the exact `RemoteViews` the launcher receives,
@@ -265,3 +280,9 @@ Changes outside a category folder (shared files, one owner at a time):
 | Note | Dot Matrix Message `note.marquee` | 2×2 4×2 4×4 | Text paged into ViewFlipper frames (page count bounded by a bitmap budget), 4 s per page |
 | Note | Daily Quote `note.daily` | 2×2 4×2 4×4 | Bundled public-domain set (`Quotes.kt`, each cited), one per calendar day, redrawn at midnight |
 | Calendar, Weather, Countdown, Note | `*.classic` | 4×2 | The v0.1 tile on the engine |
+| Photo | Full Bleed `photo.full` | 2×2 4×2 4×4 | Photo edge to edge or inset, caption on a scrim; optional hourly/daily rotation (live key) |
+| Photo | Cutout `photo.shape` | 2×2 4×2 4×4 | Arch, circle, squircle or pebble mask with an accent echo; caption beside it on 4×2 |
+| Photo | Polaroid `photo.polaroid` | 2×2 4×2 4×4 | Instant-film prints with a dated chin; 4×2 fans three |
+| Photo | Shuffle `photo.shuffle` | 2×2 4×2 4×4 | Stack of prints; the top one cross-fades through the album (flipper, memory-planned) or rotates hourly/daily |
+| Photo | Dot Matrix `photo.dots` | 2×2 4×2 4×4 | Photo sampled to an LED grid or 45° halftone in Kotlin |
+| Photo | Duotone `photo.duotone` | 2×2 4×2 4×4 | Luminance mapped from the surface colour to the accent; poster caption, grain |

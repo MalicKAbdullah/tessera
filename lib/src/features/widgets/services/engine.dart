@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 import '../models/catalog.dart';
+import '../models/photo_album.dart';
 import '../models/widget_content.dart';
 import '../models/widget_style.dart';
 
@@ -114,6 +115,22 @@ class Engine {
     'setContent',
     {'json': jsonEncode(content.toJson())},
   );
+
+  Future<PhotoAlbum> photos() => _album(_channel.invokeMethod('photos'));
+
+  /// Opens the system photo picker for the album's free places and imports
+  /// the picks; a cancelled pick returns the album unchanged.
+  Future<PhotoAlbum> pickPhotos() =>
+      _album(_channel.invokeMethod('pickPhotos'));
+
+  Future<PhotoAlbum> removePhoto(String id) =>
+      _album(_channel.invokeMethod('removePhoto', {'id': id}));
+
+  Future<PhotoAlbum> setPhotoCaption(String caption) =>
+      _album(_channel.invokeMethod('setPhotoCaption', {'caption': caption}));
+
+  static Future<PhotoAlbum> _album(Future<String?> json) async =>
+      PhotoAlbum.fromJson(jsonDecode((await json)!) as Map<String, dynamic>);
 
   Future<void> refreshWeather() => _channel.invokeMethod('refreshWeather');
 

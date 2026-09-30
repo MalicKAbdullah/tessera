@@ -12,6 +12,7 @@ import '../../widgets/providers/widget_providers.dart';
 import '../../widgets/widgets/native_preview.dart';
 import '../widgets/content_controls.dart';
 import '../widgets/controls.dart';
+import '../widgets/photo_controls.dart';
 
 /// Editing a design before adding it to the home screen.
 class DraftEditorScreen extends StatelessWidget {
@@ -198,6 +199,7 @@ class _EditorState extends ConsumerState<_Editor> {
     'weather' => const [_WeatherControls()],
     'countdown' => const [_CountdownControls(), EventsControls()],
     'note' => const [_NoteControls(), ChecklistControls()],
+    'photo' => const [PhotoControls()],
     _ => const [],
   };
 }
