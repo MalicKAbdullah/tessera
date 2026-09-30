@@ -81,7 +81,7 @@ The engine stores the key per instance and redraws only when it changes.
 | **Live ticker** (`LiveTicker`, ~1 min, `AlarmManager.RTC`) | Non-wakeup: never wakes the device, fires as soon as it wakes. Runs only while some placed widget has a live key. Replaces `ACTION_SCREEN_ON`, which manifest receivers cannot get. |
 | **Charging trigger** (WorkManager, `requiresCharging`) | Armed whenever a battery design renders unplugged; runs the moment power connects. `ACTION_POWER_CONNECTED`/`DISCONNECTED`/`BATTERY_LOW`/`OKAY` are not delivered to manifest receivers since Android 8. |
 | **Periodic refresh** (WorkManager, 15 min) | `Engine.tick`: redraws anything whose key moved. |
-| **Weather** (WorkManager, 60 min, network) | Fetches Open-Meteo into the cache, then redraws `Signal.WEATHER` designs. Also runs once when the city changes and when the app opens with a stale cache (>30 min). |
+| **Weather** (WorkManager, 60 min, network) | Fetches Open-Meteo into the cache, then redraws `Signal.WEATHER` designs. Also runs once when the city changes, when the app opens, and from the live ticker and 15-minute refresh whenever a weather widget is placed and the cache is stale (>30 min, another city, or an older `CACHE_VERSION`). A failed fetch (network, non-200, unparseable body) retries and keeps the last good forecast. |
 | **App foreground** (`MainActivity.onResume`) | Redraws everything; a runtime battery receiver redraws on every level/plug change while the app is open. |
 | **System events** (`SystemEventsReceiver`) | Boot, package update, time set, time zone and locale changes redraw everything. |
 
@@ -247,6 +247,13 @@ Changes outside a category folder (shared files, one owner at a time):
 | Battery | Segments `battery.segments` | 4×2 4×4 | 10 segments, temp/health/volts/source, history on 4×4; charging breathe |
 | Battery | Big Numeric `battery.numeric` | 2×2 4×2 | Condensed numerals over a liquid fill; charging ripple |
 | Battery | 24h History `battery.history` | 4×2 4×4 | Area chart of sampled history, drain rate |
+| Weather | Conditions `weather.now` | 2×2 4×2 4×4 | Big temperature, drawn glyph, feels-like, next hours; glyph flipper (rain, snow, rays, lightning, fog) |
+| Weather | Hourly Curve `weather.hourly` | 4×2 4×4 | 12/24-hour temperature curve over rain-chance bars, high/low marked |
+| Weather | Five Days `weather.week` | 4×2 4×4 | Day columns with shared-scale range bars; 7-day rows on 4×4 |
+| Weather | Sky `weather.sky` | 2×2 4×2 4×4 | Gradient from condition × dawn/day/dusk/night, stars, rain streaks; glyph flipper |
+| Weather | Dot Matrix `weather.matrix` | 2×2 4×2 | 3×5 LED temperature; 24-dot rain-chance track |
+| Weather | Sun Arc `weather.sun` | 2×2 4×2 | Sun position on the day's arc, below the horizon at night; redrawn every 10 min |
+| Weather | Instruments `weather.gauges` | 4×2 4×4 | Wind compass, UV dial, humidity ring; pressure, gusts, feels-like on 4×4 |
 | Countdown | Progress Ring `countdown.ring` | 2×2 4×2 4×4 | Bitmap ring from creation date to target; ring-tip pulse flipper; count-up mode |
 | Countdown | Dot Matrix `countdown.matrix` | 2×2 4×2 4×4 | Doto days/hours readout, redrawn hourly; blinking separator flipper |
 | Countdown | Day Dots `countdown.dots` | 2×2 4×2 4×4 | One dot per day (scaled past the grid capacity); today's dot breathes |
