@@ -27,7 +27,7 @@ import kotlin.math.sin
 internal enum class Light { NIGHT, BLUE, GOLDEN, DAY }
 
 internal object SkyKit {
-    const val GOLD = 0xFFFFB25C.toInt()
+    const val GOLD = 0xFFF3D36A.toInt()
     const val BLUE = 0xFF5C7FE6.toInt()
     private const val MOON = 0xFFEDE9DF.toInt()
 
@@ -93,8 +93,8 @@ internal object SkyKit {
         val cx = b.centerX()
         s.canvas.save()
         s.canvas.clipRect(b.left, b.top, b.right, horizon)
-        s.canvas.drawCircle(cx, horizon, r, s.fill(s.ink(0.9f, GOLD)))
-        s.canvas.drawCircle(cx, horizon, r * 1.6f, s.fill(s.ink(0.14f, GOLD)))
+        s.canvas.drawCircle(cx, horizon, r, s.fill(s.accent))
+        s.canvas.drawCircle(cx, horizon, r * 1.6f, s.fill(s.ink(0.14f, s.accent)))
         s.canvas.restore()
         var x = b.left
         while (x < b.right) {

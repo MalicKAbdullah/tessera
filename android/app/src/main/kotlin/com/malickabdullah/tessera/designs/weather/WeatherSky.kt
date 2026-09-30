@@ -15,6 +15,7 @@ import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.WidgetDesign
 import com.malickabdullah.tessera.engine.hourFormatToggle
+import com.malickabdullah.tessera.engine.luminance
 import com.malickabdullah.tessera.engine.withAlpha
 import kotlin.math.min
 import kotlin.random.Random
@@ -44,7 +45,8 @@ object WeatherSky : WidgetDesign {
     override fun draw(s: Scene) {
         val w = WeatherKit.usable(s)
         if (w == null) {
-            paintSky(s, Sky.CLOUDY, Phase.DAY)
+            // An overcast sky dark enough for light text, or pale enough for dark text.
+            paintSky(s, Sky.CLOUDY, if (luminance(s.text) > 0.5f) Phase.NIGHT else Phase.DAY)
             WeatherKit.ready(s)
             return
         }
