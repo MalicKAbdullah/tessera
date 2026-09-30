@@ -46,7 +46,7 @@ object SkyYear : WidgetDesign {
         val deltaSeconds = ((now - yesterday) * 60).roundToInt()
         val large = s.h >= 300f
 
-        s.canvas.drawText("DAYLIGHT · ${SkyKit.placeName(s)}", b.left, b.top + 9f, SkyKit.label(s, 9f))
+        s.canvas.drawText("DAYLIGHT · ${SkyKit.placeName(place)}", b.left, b.top + 9f, SkyKit.label(s, 9f))
         val heroH = if (large) b.height() * 0.2f else b.height() * 0.34f
         val heroSize = s.fit("88h 88m", b.width() * 0.6f, heroH) * s.hero
         val hero = s.paint(heroSize, s.text)

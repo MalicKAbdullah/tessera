@@ -39,7 +39,7 @@ object SkyArc : WidgetDesign {
         val b = s.box
         val day = Astronomy.sunDay(s.now.toLocalDate(), place.latitude, place.longitude)
         val small = s.w < s.h * 1.4f
-        s.canvas.drawText(SkyKit.placeName(s), b.left, b.top + 9f, SkyKit.label(s, 9f))
+        s.canvas.drawText(SkyKit.placeName(place), b.left, b.top + 9f, SkyKit.label(s, 9f))
         s.canvas.drawText(
             if (small) SkyKit.hm(day.dayLengthMinutes).uppercase() else "${SkyKit.hm(day.dayLengthMinutes).uppercase()} OF DAYLIGHT",
             b.right,

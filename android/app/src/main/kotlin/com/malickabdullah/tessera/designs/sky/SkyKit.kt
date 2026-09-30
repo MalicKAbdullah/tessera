@@ -77,14 +77,14 @@ internal object SkyKit {
     fun label(s: Scene, size: Float = 9.5f, color: Int = s.ink(0.55f), align: Paint.Align = Paint.Align.LEFT) =
         s.paint(size * s.k, color, font = "mono", weight = 500, align = align, tracking = 0.14f)
 
-    fun placeName(s: Scene): String = s.data.skyPlace?.name?.uppercase() ?: "HERE"
+    fun placeName(place: SkyPlace): String = place.name.uppercase()
 
     /** Hours and minutes, "11h 52m". */
     fun hm(minutes: Double): String = "${(minutes / 60).toInt()}h ${"%02d".format((minutes % 60).toInt())}m"
 
     /**
-     * Drawn when there is neither a weather city nor an already-granted coarse
-     * location: a quiet horizon with the sun resting on it, and what to do.
+     * Drawn before a weather city is set: a quiet horizon with the sun resting
+     * on it, and what to do.
      */
     fun noPlace(s: Scene) {
         val b = s.box

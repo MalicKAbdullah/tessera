@@ -3,8 +3,6 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <!-- Never requested: sky designs use a last coarse fix only if the user already granted it in Settings. -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <application
         android:label="Tessera"
         android:name="${applicationName}"

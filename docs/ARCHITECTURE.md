@@ -105,9 +105,8 @@ date-only state with a small "connect calendar" hint.
 Sun & Moon is computed offline in `data/Astronomy.kt` (NOAA solar equations;
 Meeus ch. 48–49 for lunar illumination and phase instants), tested against
 PyEphem references in `AstronomyTest`. `SkyPlaceSource` uses the weather
-city, else the last coarse fix only if the user already granted coarse
-location in Settings (the app never requests it), else designs draw "set a
-place". Device data (`data/Device.kt`) uses only permission-free APIs:
+city; before one is set, sky designs draw "set a place". Tessera declares no
+location permission. Device data (`data/Device.kt`) uses only permission-free APIs:
 `StatFs` on the data partition, `ActivityManager.MemoryInfo`,
 `SystemClock.elapsedRealtime`, and `NetworkCapabilities` (normal
 `ACCESS_NETWORK_STATE`; Wi-Fi RSSI from API 29). Both categories refresh
