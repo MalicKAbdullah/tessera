@@ -16,7 +16,7 @@ object BatterySegments : WidgetDesign {
     override val name = "Segments"
     override val blurb = "Ten-segment bar with temperature, health, voltage and power source."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("mono", 500, text = 0xFFE9EDE4, accent = 0xFFC3D08E, background = 0xFF1A1D1A, radius = 26f, padding = 16f)
+    override val defaults = Style.of("mono", 500, text = 0xFFE9EDE4, accent = 0xFFD4FF3A, background = 0xFF121412, radius = 26f, padding = 16f)
     override val signals = setOf(Signal.BATTERY)
     override val motion = "While charging, the next segment breathes."
 
@@ -59,7 +59,7 @@ object BatterySegments : WidgetDesign {
         val partial = (bat.level % 10) / 10f
         for (i in 0 until 10) {
             val seg = RectF(bar.left + i * (segW + gap), bar.top, bar.left + i * (segW + gap) + segW, bar.bottom)
-            s.canvas.drawRoundRect(seg, 3f, 3f, s.fill(s.ink(0.08f)))
+            s.canvas.drawRoundRect(seg, 3f, 3f, s.fill(s.ink(0.1f)))
             when {
                 i < full -> s.canvas.drawRoundRect(seg, 3f, 3f, s.fill(color))
                 i == full && partial > 0f -> s.canvas.drawRoundRect(RectF(seg.left, seg.top, seg.left + segW * partial, seg.bottom), 3f, 3f, s.fill(color))

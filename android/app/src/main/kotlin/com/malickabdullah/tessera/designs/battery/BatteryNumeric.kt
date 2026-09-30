@@ -11,6 +11,7 @@ import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.WidgetDesign
 import com.malickabdullah.tessera.engine.luminance
+import com.malickabdullah.tessera.engine.withAlpha
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -27,33 +28,49 @@ object BatteryNumeric : WidgetDesign {
     override fun liveKey(scene: SceneInputs) = BatteryKit.key(scene)
 
     override fun draw(s: Scene) {
-        val b = s.box
         val bat = s.data.battery
         val color = BatteryKit.levelColor(s)
         val surface = s.h - s.h * bat.level / 100f
         // The wave phase follows the render minute so each refresh looks freshly poured.
         val phase = s.now.minute / 60f * 2f * PI.toFloat()
-        s.canvas.drawPath(wave(s, surface, phase, closed = true), s.fill(s.ink(0.18f, color)))
-        s.canvas.drawPath(wave(s, surface, phase, closed = false), s.stroke(s.ink(0.55f, color), 1.4f))
+        val fill = wave(s, surface, phase, closed = true)
+        s.canvas.drawPath(fill, s.fill(color))
         if (bat.charging) {
             val band = RectF(0f, surface - 7f, s.w, surface + 7f)
             s.flipper(band, 400, 3) { i ->
-                drawPath(wave(s, surface, phase + (i + 1) * 0.9f, closed = false), s.stroke(color, 1.8f))
+                drawPath(wave(s, surface, phase + (i + 1) * 0.9f, closed = false), s.stroke(s.ink(0.5f, onFill(color)), 1.8f))
             }
         }
 
+        // Text is drawn twice: in the ink above the surface and in a contrasting ink where the fill covers it.
+        s.canvas.save()
+        s.canvas.clipOutPath(fill)
+        texts(s, s.text, if (luminance(s.style.bg.color) > 0.55f) s.ink(0.6f) else color)
+        s.canvas.restore()
+        s.canvas.save()
+        s.canvas.clipPath(fill)
+        texts(s, onFill(color), withAlpha(onFill(color), 0.7f))
+        s.canvas.restore()
+    }
+
+    /** Ink that reads on the solid [fill]. */
+    private fun onFill(fill: Int): Int = if (luminance(fill) > 0.5f) 0xFF111111.toInt() else 0xFFFFFFFF.toInt()
+
+    /** The percentage, its sign in [signColor] and the status line, in [ink]. */
+    private fun texts(s: Scene, ink: Int, signColor: Int) {
+        val b = s.box
+        val bat = s.data.battery
         val statusH = 14f * s.k
         val numArea = RectF(b.left, b.top, b.right, b.bottom - statusH - 4f)
         val size = s.fit("100", numArea.width() * 0.8f, numArea.height() * 1.18f) * s.hero
-        val num = s.paint(size, s.text, tracking = -0.02f)
+        val num = s.paint(size, ink, tracking = -0.02f)
         val cap = s.capHeight(num)
         val baseline = numArea.centerY() + cap / 2f
         s.canvas.drawText("${bat.level}", numArea.left - size * 0.02f, baseline, num)
-        // A bright accent vanishes on a light surface; the sign then takes the ink.
-        val pct = s.paint(size * 0.28f, if (luminance(s.style.bg.color) > 0.55f) s.ink(0.6f) else color)
+        val pct = s.paint(size * 0.28f, signColor)
         s.canvas.drawText("%", numArea.left + num.measureText("${bat.level}") + 3f, baseline - cap + s.capHeight(pct), pct)
 
-        val line = s.paint(10f * s.k, s.ink(0.7f), font = "mono", weight = 500, tracking = 0.1f)
+        val line = s.paint(10f * s.k, withAlpha(ink, 0.75f), font = "mono", weight = 500, tracking = 0.1f)
         val full = if (bat.charging || bat.full) BatteryKit.status(s) + " · " + BatteryKit.estimate(s) else BatteryKit.estimate(s)
         // Narrow widgets drop the charger type before anything is cut off.
         val status = if (line.measureText(full.uppercase()) <= b.width()) full else BatteryKit.estimate(s)
