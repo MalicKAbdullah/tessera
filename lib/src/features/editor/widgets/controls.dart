@@ -108,7 +108,7 @@ class _LabeledSliderState extends State<LabeledSlider> {
               child: AnimatedDefaultTextStyle(
                 duration: Motion.of(context, Motion.quick),
                 style: theme.textTheme.labelMedium!.copyWith(
-                  color: _dragging ? p.accent : p.muted,
+                  color: _dragging ? p.accentInk : p.muted,
                   fontFeatures: const [FontFeature.tabularFigures()],
                 ),
                 child: Text(widget.display, textAlign: TextAlign.end),

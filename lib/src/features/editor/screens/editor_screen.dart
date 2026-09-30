@@ -217,7 +217,7 @@ class _EditorState extends ConsumerState<_Editor>
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: p.accent,
+                    color: p.accentInk,
                     shape: BoxShape.circle,
                   ),
                 ),

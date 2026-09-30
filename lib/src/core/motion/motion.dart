@@ -71,7 +71,7 @@ class _PressableState extends State<Pressable>
 
 /// Staggered entrance with depth: rises, un-tilts and fades in along
 /// [animation], offset by [index] (capped so long lists do not queue up).
-class Entrance extends StatelessWidget {
+class Entrance extends StatefulWidget {
   const Entrance({
     super.key,
     required this.animation,
@@ -87,38 +87,63 @@ class Entrance extends StatelessWidget {
   /// Adds a perspective tilt that flattens as the child lands.
   final bool depth;
 
+  @override
+  State<Entrance> createState() => _EntranceState();
+}
+
+class _EntranceState extends State<Entrance> {
   static const _step = 0.07;
   static const _span = 0.55;
   static const _maxStaggered = 6;
 
-  @override
-  Widget build(BuildContext context) {
-    final start = (index.clamp(0, _maxStaggered) * _step).toDouble();
-    final t = CurvedAnimation(
-      parent: animation,
+  // CurvedAnimation subscribes to its parent on construction, so it is
+  // created once per parent and index, never per build.
+  late CurvedAnimation _t = _curve();
+
+  CurvedAnimation _curve() {
+    final start = (widget.index.clamp(0, _maxStaggered) * _step).toDouble();
+    return CurvedAnimation(
+      parent: widget.animation,
       curve: Interval(start, (start + _span).clamp(0, 1), curve: Motion.enter),
     );
-    return FadeTransition(
-      opacity: t,
-      child: AnimatedBuilder(
-        animation: t,
-        child: child,
-        builder: (context, child) {
-          final r = 1 - t.value;
-          final m = Matrix4.identity()
-            ..setEntry(3, 2, 0.0012)
-            ..translateByDouble(0, 28 * r, 0, 1);
-          if (depth) m.rotateX(0.22 * r);
-          m.scaleByDouble(0.94 + 0.06 * t.value, 0.94 + 0.06 * t.value, 1, 1);
-          return Transform(
-            alignment: Alignment.center,
-            transform: m,
-            child: child,
-          );
-        },
-      ),
-    );
   }
+
+  @override
+  void didUpdateWidget(Entrance old) {
+    super.didUpdateWidget(old);
+    if (old.animation != widget.animation || old.index != widget.index) {
+      _t.dispose();
+      _t = _curve();
+    }
+  }
+
+  @override
+  void dispose() {
+    _t.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => FadeTransition(
+    opacity: _t,
+    child: AnimatedBuilder(
+      animation: _t,
+      child: widget.child,
+      builder: (context, child) {
+        final r = 1 - _t.value;
+        final m = Matrix4.identity()
+          ..setEntry(3, 2, 0.0012)
+          ..translateByDouble(0, 28 * r, 0, 1);
+        if (widget.depth) m.rotateX(0.22 * r);
+        m.scaleByDouble(0.94 + 0.06 * _t.value, 0.94 + 0.06 * _t.value, 1, 1);
+        return Transform(
+          alignment: Alignment.center,
+          transform: m,
+          child: child,
+        );
+      },
+    ),
+  );
 }
 
 /// Tilts and shifts [child] by where it sits in the enclosing scroll view:

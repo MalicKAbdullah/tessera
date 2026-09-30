@@ -57,8 +57,8 @@ class TesseraTheme {
       onPrimary: p.canvas,
       secondary: p.accent,
       onSecondary: p.onAccent,
-      error: p.accent,
-      onError: p.onAccent,
+      error: p.accentInk,
+      onError: p.canvas,
       surface: p.canvas,
       onSurface: p.ink,
       onSurfaceVariant: p.muted,
@@ -86,9 +86,9 @@ class TesseraTheme {
       hoverColor: Colors.transparent,
       dividerColor: p.hairline,
       textSelectionTheme: TextSelectionThemeData(
-        cursorColor: p.accent,
-        selectionColor: p.accent.withValues(alpha: 0.25),
-        selectionHandleColor: p.accent,
+        cursorColor: p.ink,
+        selectionColor: p.accent.withValues(alpha: 0.45),
+        selectionHandleColor: p.ink,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

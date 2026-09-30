@@ -195,7 +195,7 @@ class _WeatherControlsState extends ConsumerState<WeatherControls> {
               padding: const EdgeInsets.only(top: Gap.s),
               child: Text(
                 _error!,
-                style: theme.textTheme.bodySmall?.copyWith(color: p.accent),
+                style: theme.textTheme.bodySmall?.copyWith(color: p.accentInk),
               ),
             ),
           AnimatedSize(

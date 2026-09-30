@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// The app's colour roles. Chrome stays monochrome so the widgets carry the
-/// colour; [accent] marks the one thing on screen that is active or live.
+/// The app's colour roles. Chrome is cool monochrome (true black, off-white,
+/// blue-leaning greys) so the widgets carry the colour; [accent], an
+/// electric lime that reads like a lit LED against dot-matrix type, marks
+/// the one thing on screen that is active or live.
 @immutable
 class Palette extends ThemeExtension<Palette> {
   const Palette({
@@ -13,6 +15,7 @@ class Palette extends ThemeExtension<Palette> {
     required this.faint,
     required this.hairline,
     required this.accent,
+    required this.accentInk,
     required this.onAccent,
     required this.stage,
   });
@@ -29,36 +32,43 @@ class Palette extends ThemeExtension<Palette> {
   final Color muted;
   final Color faint;
   final Color hairline;
+
+  /// Fills: dots, tiles, the placed button.
   final Color accent;
+
+  /// Accent for text and thin strokes, legible on [canvas].
+  final Color accentInk;
   final Color onAccent;
 
   /// Wallpaper stand-in behind previews, top-left to bottom-right.
   final List<Color> stage;
 
   static const light = Palette(
-    canvas: Color(0xFFF3F2EE),
+    canvas: Color(0xFFF4F5F7),
     surface: Color(0xFFFFFFFF),
-    raised: Color(0xFFE7E5DF),
-    ink: Color(0xFF111113),
-    muted: Color(0xFF6C6B67),
-    faint: Color(0xFFB9B7B1),
-    hairline: Color(0x14111113),
-    accent: Color(0xFFFF5A36),
-    onAccent: Color(0xFFFFFFFF),
-    stage: [Color(0xFFDCD7CE), Color(0xFFCBCFD7), Color(0xFFD9D1C8)],
+    raised: Color(0xFFE6E8EC),
+    ink: Color(0xFF0A0B0D),
+    muted: Color(0xFF686D76),
+    faint: Color(0xFFB4B9C2),
+    hairline: Color(0x140A0B0D),
+    accent: Color(0xFFC6F21E),
+    accentInk: Color(0xFF4F7300),
+    onAccent: Color(0xFF0A0B0D),
+    stage: [Color(0xFFD7DBE1), Color(0xFFC6CCD5), Color(0xFFDDE0E5)],
   );
 
   static const dark = Palette(
-    canvas: Color(0xFF0A0A0B),
-    surface: Color(0xFF151517),
-    raised: Color(0xFF232326),
-    ink: Color(0xFFF2F1EC),
-    muted: Color(0xFF8E8D89),
-    faint: Color(0xFF45454A),
-    hairline: Color(0x1AF2F1EC),
-    accent: Color(0xFFFF6A47),
-    onAccent: Color(0xFF0A0A0B),
-    stage: [Color(0xFF1F2229), Color(0xFF34303B), Color(0xFF27302D)],
+    canvas: Color(0xFF000000),
+    surface: Color(0xFF0E0F11),
+    raised: Color(0xFF1B1D21),
+    ink: Color(0xFFF2F3F5),
+    muted: Color(0xFF878C95),
+    faint: Color(0xFF383B42),
+    hairline: Color(0x1AF2F3F5),
+    accent: Color(0xFFD4FF3A),
+    accentInk: Color(0xFFD4FF3A),
+    onAccent: Color(0xFF0A0B0D),
+    stage: [Color(0xFF16181D), Color(0xFF22262E), Color(0xFF191C21)],
   );
 
   /// The theme always installs a palette (see TesseraTheme).
@@ -81,6 +91,7 @@ class Palette extends ThemeExtension<Palette> {
       faint: c(faint, other.faint),
       hairline: c(hairline, other.hairline),
       accent: c(accent, other.accent),
+      accentInk: c(accentInk, other.accentInk),
       onAccent: c(onAccent, other.onAccent),
       stage: [for (var i = 0; i < 3; i++) c(stage[i], other.stage[i])],
     );

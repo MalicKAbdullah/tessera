@@ -84,7 +84,7 @@ class _AppliedNoteState extends ConsumerState<_AppliedNote> {
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _applying ? p.accent : p.ink,
+                  color: _applying ? p.accentInk : p.ink,
                 ),
               ),
               const SizedBox(width: Gap.s),
@@ -231,7 +231,7 @@ class PinActionState extends ConsumerState<PinAction> {
                     key: ValueKey(note),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall!.copyWith(
-                      color: state == PinState.declined ? p.accent : p.muted,
+                      color: state == PinState.declined ? p.ink : p.muted,
                     ),
                   ),
                 ),

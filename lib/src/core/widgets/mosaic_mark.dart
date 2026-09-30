@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 
 import '../design/tokens.dart';
 
-/// The Tessera mark: a 3×3 mosaic with one accent tile and one open tile.
+/// The Tessera mark, as on the launcher icon: a 2×2 mosaic with a light
+/// tile, two dark tiles and the accent tile opposite the light one.
 ///
 /// [assemble] runs 0→1 as tiles fly in from scattered positions and settle
 /// into the grid, one after another. [spread] pushes the settled tiles apart
@@ -46,15 +47,11 @@ class MosaicMark extends StatelessWidget {
 
 enum _Tone { ink, accent, open }
 
-const _tones = [
-  _Tone.ink, _Tone.ink, _Tone.accent, //
-  _Tone.ink, _Tone.open, _Tone.ink, //
-  _Tone.ink, _Tone.ink, _Tone.ink, //
-];
+const _tones = [_Tone.ink, _Tone.open, _Tone.open, _Tone.accent];
 
-/// Arrival order: a spiral from the accent tile, so the mark reads as being
-/// laid by hand rather than appearing row by row.
-const _order = [2, 1, 0, 3, 6, 7, 8, 5, 4];
+/// Arrival order: clockwise from the light tile, so the mark reads as being
+/// laid by hand.
+const _order = [0, 1, 3, 2];
 
 class _MosaicPainter extends CustomPainter {
   _MosaicPainter({
@@ -75,23 +72,23 @@ class _MosaicPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final cell = size.width / 3;
-    final gap = cell * 0.14;
+    final cell = size.width / 2;
+    final gap = cell * 0.12;
     final tile = cell - gap;
     final centre = size.center(Offset.zero);
     final paint = Paint()..isAntiAlias = true;
-    for (var i = 0; i < 9; i++) {
+    for (var i = 0; i < 4; i++) {
       final rank = _order.indexOf(i);
-      final start = rank * 0.07;
+      final start = rank * 0.14;
       final local = ((assemble - start) / 0.44).clamp(0.0, 1.0);
       if (local == 0) continue;
       final t = Curves.easeOutBack.transform(local);
       final home = Offset(
-        (i % 3) * cell + gap / 2 + tile / 2,
-        (i ~/ 3) * cell + gap / 2 + tile / 2,
+        (i % 2) * cell + gap / 2 + tile / 2,
+        (i ~/ 2) * cell + gap / 2 + tile / 2,
       );
       final outward = home - centre;
-      final settled = home + outward * (spread * 0.35);
+      final settled = home + outward * (spread * 0.3);
       // Deterministic scatter: each tile starts off to its own side.
       final angle = i * 2.39996 + 0.6;
       final from =
@@ -101,7 +98,7 @@ class _MosaicPainter extends CustomPainter {
           ? 1.0
           : 0.55 +
                 0.45 *
-                    (0.5 + 0.5 * math.cos((breathe - rank / 9) * math.pi * 2));
+                    (0.5 + 0.5 * math.cos((breathe - rank / 4) * math.pi * 2));
       final colour = switch (_tones[i]) {
         _Tone.ink => ink,
         _Tone.accent => accent,
@@ -120,7 +117,7 @@ class _MosaicPainter extends CustomPainter {
       );
       canvas
         ..drawRRect(
-          RRect.fromRectAndRadius(rect, Radius.circular(tile * 0.24)),
+          RRect.fromRectAndRadius(rect, Radius.circular(tile * 0.23)),
           paint,
         )
         ..restore();

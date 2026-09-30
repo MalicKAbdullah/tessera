@@ -472,7 +472,7 @@ class _DesignCard extends ConsumerWidget {
                       width: 6,
                       height: 6,
                       decoration: BoxDecoration(
-                        color: p.accent,
+                        color: p.accentInk,
                         shape: BoxShape.circle,
                       ),
                     ),
