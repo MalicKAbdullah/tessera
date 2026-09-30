@@ -177,7 +177,7 @@ internal object PhotoKit {
      * [clip], and an invitation when there is room. Tapping any widget opens
      * its editor, where photos are chosen.
      */
-    fun empty(s: Scene, rect: RectF, clip: Path, label: Boolean = true, c: Canvas = s.canvas) {
+    fun empty(s: Scene, rect: RectF, clip: Path, label: Boolean = true, centred: Boolean = false, c: Canvas = s.canvas) {
         c.save()
         c.clipPath(clip)
         c.drawRect(rect, s.fill(s.ink(0.05f)))
@@ -213,12 +213,14 @@ internal object PhotoKit {
         }
         if (label && rect.height() >= 64f && rect.width() >= 90f) {
             val size = s.fit("Choose a photo", rect.width() * 0.62f, rect.height() * 0.12f).coerceAtMost(17f * s.k)
-            val title = s.paint(size, s.text)
-            val left = rect.left + min(14f, rect.width() * 0.08f)
-            val top = rect.top + min(14f, rect.height() * 0.08f)
+            // Rounded masks (arch, circle) cut the corners, so their label is centred.
+            val align = if (centred) Paint.Align.CENTER else Paint.Align.LEFT
+            val title = s.paint(size, s.text, align = align)
+            val left = if (centred) rect.centerX() else rect.left + min(14f, rect.width() * 0.08f)
+            val top = rect.top + if (centred) rect.height() * 0.12f else min(14f, rect.height() * 0.08f)
             val fm = title.fontMetrics
             c.drawText("Choose a photo", left, top - fm.ascent, title)
-            val hint = s.paint(max(7f, size * 0.52f), s.ink(0.55f), font = "mono", weight = 500, tracking = 0.1f)
+            val hint = s.paint(max(7f, size * 0.52f), s.ink(0.55f), font = "mono", weight = 500, align = align, tracking = 0.1f)
             c.drawText("TAP TO ADD", left, top - fm.ascent + fm.descent + hint.textSize * 1.3f, hint)
         }
         c.restore()
