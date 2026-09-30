@@ -36,9 +36,6 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_riverpod: ^2.6.1
   go_router: ^17.5.0
-  home_widget: ^0.10.0
-  battery_plus: ^7.1.1
-  workmanager: ^0.10.10
   shared_preferences: ^2.5.5
   http: ^1.6.0
   intl: ^0.20.3

@@ -1,52 +1,126 @@
 import 'dart:async';
+import 'dart:typed_data';
 
-import 'package:battery_plus/battery_plus.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../data/tessera_store.dart';
+import '../models/catalog.dart';
 import '../models/widget_content.dart';
-import '../models/widget_kind.dart';
 import '../models/widget_style.dart';
+import '../services/engine.dart';
 import '../services/weather_service.dart';
-import '../services/widget_sync.dart';
 
 /// Overridden in main() with the instance loaded before runApp.
 final sharedPreferencesProvider = Provider<SharedPreferences>(
   (ref) => throw StateError('sharedPreferencesProvider not overridden'),
 );
 
+/// Overridden in main() so the channel handlers exist before the first frame.
+final engineProvider = Provider<Engine>(
+  (ref) => throw StateError('engineProvider not overridden'),
+);
+
+/// Overridden in main() with the catalog read before runApp.
+final catalogProvider = Provider<Catalog>(
+  (ref) => throw StateError('catalogProvider not overridden'),
+);
+
 final storeProvider = Provider(
   (ref) => TesseraStore(ref.watch(sharedPreferencesProvider)),
 );
-final widgetSyncProvider = Provider((ref) => const WidgetSync());
 final weatherServiceProvider = Provider((ref) => WeatherService());
 
+/// Bumped whenever native live data (battery, weather) changes, so previews
+/// redraw with it.
+final dataRevisionProvider = StateProvider<int>((ref) => 0);
+
+/// Ticks on each minute boundary so previews show the time the home-screen
+/// TextClocks show.
+final minuteProvider = StreamProvider<DateTime>((ref) async* {
+  while (true) {
+    final now = DateTime.now();
+    yield now;
+    await Future<void>.delayed(
+      Duration(seconds: 60 - now.second, milliseconds: -now.millisecond),
+    );
+  }
+});
+
+/// What an editor is editing: a design's draft, or a placed widget.
+sealed class EditTarget {
+  const EditTarget(this.design);
+  final String design;
+}
+
+class DraftTarget extends EditTarget {
+  const DraftTarget(super.design);
+  @override
+  bool operator ==(Object other) =>
+      other is DraftTarget && other.design == design;
+  @override
+  int get hashCode => design.hashCode;
+}
+
+class PlacedTarget extends EditTarget {
+  const PlacedTarget(super.design, this.widgetId, {required this.configuring});
+  final int widgetId;
+
+  /// True when the launcher opened Tessera to configure this widget.
+  final bool configuring;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlacedTarget &&
+      other.design == design &&
+      other.widgetId == widgetId &&
+      other.configuring == configuring;
+  @override
+  int get hashCode => Object.hash(design, widgetId, configuring);
+}
+
 final styleProvider =
-    NotifierProvider.family<StyleNotifier, WidgetStyle, WidgetKind>(
+    NotifierProvider.family<StyleNotifier, WidgetStyle, EditTarget>(
       StyleNotifier.new,
     );
 
-class StyleNotifier extends FamilyNotifier<WidgetStyle, WidgetKind> {
+class StyleNotifier extends FamilyNotifier<WidgetStyle, EditTarget> {
   Timer? _push;
 
   @override
-  WidgetStyle build(WidgetKind kind) {
+  WidgetStyle build(EditTarget target) {
     ref.onDispose(() => _push?.cancel());
-    return ref.read(storeProvider).style(kind);
+    final defaults = ref.read(catalogProvider).design(target.design).defaults;
+    return switch (target) {
+      DraftTarget() => ref.read(storeProvider).draft(target.design) ?? defaults,
+      PlacedTarget() => defaults,
+    };
   }
+
+  /// Starts a placed widget's editor from its current binding.
+  void load(WidgetStyle style) => state = style;
 
   void update(WidgetStyle Function(WidgetStyle) change) {
     state = change(state);
-    ref.read(storeProvider).saveStyle(arg, state);
-    // Sliders emit many values per second; the native widget only needs the
-    // one the user settles on.
-    _push?.cancel();
-    _push = Timer(
-      const Duration(milliseconds: 350),
-      () => ref.read(widgetSyncProvider).pushStyle(arg, state),
-    );
+    switch (arg) {
+      case DraftTarget(:final design):
+        ref.read(storeProvider).saveDraft(design, state);
+      case PlacedTarget(:final widgetId, :final design, configuring: false):
+        // Sliders emit many values per second; the widget only needs the
+        // one the user settles on.
+        _push?.cancel();
+        _push = Timer(
+          const Duration(milliseconds: 350),
+          () => ref.read(engineProvider).bind(widgetId, design, state),
+        );
+      case PlacedTarget(configuring: true):
+        break;
+    }
   }
+
+  void reset() =>
+      update((_) => ref.read(catalogProvider).design(arg.design).defaults);
 }
 
 final contentProvider = NotifierProvider<ContentNotifier, WidgetContent>(
@@ -68,79 +142,62 @@ class ContentNotifier extends Notifier<WidgetContent> {
     _push?.cancel();
     _push = Timer(
       const Duration(milliseconds: 350),
-      () => ref.read(widgetSyncProvider).pushContent(state),
+      () => ref.read(engineProvider).setContent(state),
     );
-  }
-
-  Future<void> setCity(City city) async {
-    update((c) => c.copyWith(city: city));
-    await ref.read(weatherProvider.notifier).refresh();
   }
 }
 
-final weatherProvider =
-    AsyncNotifierProvider<WeatherNotifier, WeatherSnapshot?>(
-      WeatherNotifier.new,
-    );
+final placedProvider = FutureProvider<List<PlacedWidget>>((ref) {
+  ref.watch(dataRevisionProvider);
+  return ref.read(engineProvider).placed();
+});
 
-class WeatherNotifier extends AsyncNotifier<WeatherSnapshot?> {
-  static const _staleAfter = Duration(minutes: 30);
+class PreviewRequest {
+  const PreviewRequest(this.design, this.style, this.size);
+  final String design;
+  final WidgetStyle style;
+  final SizeInfo size;
 
   @override
-  Future<WeatherSnapshot?> build() async {
-    final cached = ref.read(storeProvider).weather();
-    final fresh =
-        cached != null &&
-        DateTime.now().difference(cached.fetchedAt) < _staleAfter;
-    if (fresh || ref.read(contentProvider).city == null) return cached;
-    return _fetch();
-  }
+  bool operator ==(Object other) =>
+      other is PreviewRequest &&
+      other.design == design &&
+      other.style == style &&
+      other.size.id == size.id;
 
-  Future<void> refresh() async {
-    state = const AsyncLoading<WeatherSnapshot?>().copyWithPrevious(state);
-    state = await AsyncValue.guard(_fetch);
-  }
-
-  Future<WeatherSnapshot?> _fetch() async {
-    final city = ref.read(contentProvider).city;
-    if (city == null) return null;
-    final snapshot = await ref.read(weatherServiceProvider).current(city);
-    await ref.read(storeProvider).saveWeather(snapshot);
-    await ref.read(widgetSyncProvider).pushWeather(snapshot);
-    return snapshot;
-  }
+  @override
+  int get hashCode => Object.hash(design, style, size.id);
 }
 
-class BatteryReading {
-  const BatteryReading(this.level, this.charging);
-  final int level;
-  final bool charging;
+/// A PNG of the exact RemoteViews the launcher would draw.
+final previewProvider = FutureProvider.autoDispose
+    .family<Uint8List, PreviewRequest>((ref, request) {
+      ref.watch(minuteProvider);
+      ref.watch(dataRevisionProvider);
+      return ref
+          .read(engineProvider)
+          .render(request.design, request.style, request.size);
+    });
+
+class SpecimenRequest {
+  const SpecimenRequest(this.font, this.weight, this.argb);
+  final String font;
+  final int weight;
+  final int argb;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SpecimenRequest &&
+      other.font == font &&
+      other.weight == weight &&
+      other.argb == argb;
+
+  @override
+  int get hashCode => Object.hash(font, weight, argb);
 }
 
-final batteryProvider = StreamProvider<BatteryReading>((ref) async* {
-  final battery = Battery();
-  Future<BatteryReading> read() async {
-    final state = await battery.batteryState;
-    return BatteryReading(
-      await battery.batteryLevel,
-      state == BatteryState.charging || state == BatteryState.full,
-    );
-  }
-
-  yield await read();
-  await for (final _ in battery.onBatteryStateChanged) {
-    yield await read();
-  }
-});
-
-/// Ticks on each minute boundary so previews change exactly when the
-/// home-screen TextClock does.
-final nowProvider = StreamProvider<DateTime>((ref) async* {
-  while (true) {
-    final now = DateTime.now();
-    yield now;
-    await Future<void>.delayed(
-      Duration(seconds: 60 - now.second, milliseconds: -now.millisecond),
-    );
-  }
-});
+final specimenProvider = FutureProvider.family<Uint8List, SpecimenRequest>(
+  (ref, r) => ref
+      .read(engineProvider)
+      .specimen(r.font, r.weight, 'Aa 12:45', 22, Color(r.argb)),
+);
