@@ -48,6 +48,7 @@ object LiveTicker {
 
 class TickReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        Work.fetchWeatherIfStale(context)
         Engine.tick(context)
     }
 }
@@ -108,6 +109,22 @@ object Work {
         )
     }
 
+    /**
+     * The hourly job can be deferred for hours by Doze and app standby; the
+     * live ticker (screen on) and the 15-minute refresh also request a fetch
+     * once the cache is older than [WeatherFetch.isStale] allows. KEEP means
+     * a fetch already waiting for the network is not restarted.
+     */
+    fun fetchWeatherIfStale(context: Context) {
+        val weatherPlaced = Slots.placed(context).any { (_, slot) -> slot.category == Category.WEATHER }
+        if (!weatherPlaced || !WeatherFetch.isStale(context)) return
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            WEATHER_NOW,
+            ExistingWorkPolicy.KEEP,
+            OneTimeWorkRequestBuilder<WeatherWorker>().setConstraints(online).build(),
+        )
+    }
+
     fun fetchWeatherNow(context: Context) {
         WorkManager.getInstance(context).enqueueUniqueWork(
             WEATHER_NOW,
@@ -134,6 +151,7 @@ object Work {
 
 class RefreshWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
     override fun doWork(): Result {
+        Work.fetchWeatherIfStale(applicationContext)
         Engine.tick(applicationContext)
         return Result.success()
     }
