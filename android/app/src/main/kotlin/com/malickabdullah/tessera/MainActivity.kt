@@ -5,6 +5,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
@@ -64,6 +65,13 @@ open class MainActivity : FlutterActivity() {
         unregisterReceiver(batteryReceiver)
         lastBattery = null
         super.onPause()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == EngineChannel.CALENDAR_REQUEST) {
+            channel?.onCalendarPermission(grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
