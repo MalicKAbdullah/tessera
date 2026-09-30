@@ -1,17 +1,23 @@
 package com.malickabdullah.tessera
 
+import android.Manifest
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import androidx.work.ExistingWorkPolicy
+import com.malickabdullah.tessera.data.CalendarSource
 import com.malickabdullah.tessera.data.ContentSource
 import com.malickabdullah.tessera.data.PhotoStore
 import com.malickabdullah.tessera.data.WeatherFetch
@@ -37,6 +43,12 @@ import kotlin.math.roundToInt
 
 /** The app's only bridge to the widget engine (Dart side: lib/src/features/widgets/services/engine.dart). */
 class EngineChannel(private val activity: MainActivity, messenger: BinaryMessenger) : MethodChannel.MethodCallHandler {
+    companion object {
+        const val CALENDAR_REQUEST = 41
+        private const val PERMISSIONS = "tessera.permissions"
+        private const val ASKED_CALENDAR = "asked.calendar"
+    }
+
     private val channel = MethodChannel(messenger, "tessera/engine")
     private val main = Handler(Looper.getMainLooper())
     private val encoder = Executors.newSingleThreadExecutor()
@@ -93,6 +105,14 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
                 Engine.refresh(activity, Signal.CONTENT)
                 result.success(album.toJson().toString())
             }
+            "calendarAccess" -> result.success(calendarAccess())
+            "requestCalendar" -> requestCalendar(result)
+            "openAppSettings" -> {
+                activity.startActivity(
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", activity.packageName, null)),
+                )
+                result.success(null)
+            }
             "launchTarget" -> result.success(activity.launchTarget())
             "finishConfigure" -> {
                 val configure = activity as ConfigureActivity
@@ -126,6 +146,32 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
                 }
             }
         }
+    }
+
+    /** "granted", "ask" (the system dialog will show) or "blocked" (only Settings can grant it). */
+    private fun calendarAccess(): String = when {
+        CalendarSource.granted(activity) -> "granted"
+        !activity.getSharedPreferences(PERMISSIONS, Context.MODE_PRIVATE).getBoolean(ASKED_CALENDAR, false) -> "ask"
+        activity.shouldShowRequestPermissionRationale(Manifest.permission.READ_CALENDAR) -> "ask"
+        else -> "blocked"
+    }
+
+    private var pendingCalendar: MethodChannel.Result? = null
+
+    private fun requestCalendar(result: MethodChannel.Result) {
+        check(pendingCalendar == null) { "Calendar permission already being requested" }
+        pendingCalendar = result
+        activity.getSharedPreferences(PERMISSIONS, Context.MODE_PRIVATE).edit().putBoolean(ASKED_CALENDAR, true).apply()
+        activity.requestPermissions(arrayOf(Manifest.permission.READ_CALENDAR), CALENDAR_REQUEST)
+    }
+
+    fun onCalendarPermission(granted: Boolean) {
+        if (granted) {
+            Work.armCalendarTrigger(activity, ExistingWorkPolicy.KEEP)
+            Engine.refresh(activity, Signal.CALENDAR)
+        }
+        pendingCalendar?.success(calendarAccess())
+        pendingCalendar = null
     }
 
     private fun style(call: MethodCall) = Style.parse(JSONObject(call.argument<String>("style")!!))

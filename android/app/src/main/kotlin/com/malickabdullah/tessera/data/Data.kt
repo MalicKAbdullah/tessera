@@ -19,4 +19,5 @@ class Data(private val context: Context) {
     val nextAlarm: NextAlarm? by lazy { AlarmSource.read(context) }
     val content: Content by lazy { ContentSource.read(context) }
     val photos: PhotoAlbum by lazy { PhotoStore.read(context) }
+    val calendar: CalendarState by lazy { CalendarSource.read(context) }
 }

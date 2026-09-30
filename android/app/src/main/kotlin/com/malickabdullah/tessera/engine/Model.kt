@@ -22,7 +22,7 @@ enum class SizeClass(val id: String, val cols: Int, val rows: Int, val widthDp: 
 }
 
 /** Data changes that make a design redraw. */
-enum class Signal { BATTERY, WEATHER, CONTENT, ALARM }
+enum class Signal { BATTERY, WEATHER, CONTENT, ALARM, CALENDAR }
 
 sealed class Toggle(val key: String, val label: String) {
     abstract fun toJson(): JSONObject

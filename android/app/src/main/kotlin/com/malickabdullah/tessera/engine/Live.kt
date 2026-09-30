@@ -6,6 +6,7 @@ import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.provider.CalendarContract
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.ExistingWorkPolicy
@@ -15,6 +16,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.malickabdullah.tessera.data.CalendarSource
 import com.malickabdullah.tessera.data.WeatherFetch
 import org.json.JSONObject
 import java.io.IOException
@@ -91,6 +93,7 @@ object Work {
     private const val WEATHER = "tessera.weather"
     private const val WEATHER_NOW = "tessera.weather.now"
     private const val CHARGING = "tessera.charging"
+    private const val CALENDAR = "tessera.calendar"
 
     private val online = Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()
 
@@ -106,6 +109,29 @@ object Work {
             WEATHER,
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<WeatherWorker>(60, TimeUnit.MINUTES).setConstraints(online).build(),
+        )
+        armCalendarTrigger(context, ExistingWorkPolicy.KEEP)
+    }
+
+    /**
+     * A job with a content-URI trigger on the calendar provider runs when any
+     * event changes, even with the app closed. Triggers are one-shot, so
+     * [CalendarWorker] re-arms after each run (APPEND_OR_REPLACE queues the
+     * next trigger behind the running one). Only armed with READ_CALENDAR.
+     */
+    fun armCalendarTrigger(context: Context, policy: ExistingWorkPolicy) {
+        if (!CalendarSource.granted(context)) return
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            CALENDAR,
+            policy,
+            OneTimeWorkRequestBuilder<CalendarWorker>()
+                .setConstraints(
+                    Constraints.Builder()
+                        .addContentUriTrigger(CalendarContract.CONTENT_URI, true)
+                        .setTriggerContentUpdateDelay(5, TimeUnit.SECONDS)
+                        .build(),
+                )
+                .build(),
         )
     }
 
@@ -153,6 +179,14 @@ class RefreshWorker(context: Context, params: WorkerParameters) : Worker(context
     override fun doWork(): Result {
         Work.fetchWeatherIfStale(applicationContext)
         Engine.tick(applicationContext)
+        return Result.success()
+    }
+}
+
+class CalendarWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
+    override fun doWork(): Result {
+        Engine.refresh(applicationContext, Signal.CALENDAR)
+        Work.armCalendarTrigger(applicationContext, ExistingWorkPolicy.APPEND_OR_REPLACE)
         return Result.success()
     }
 }
