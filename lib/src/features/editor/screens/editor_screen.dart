@@ -10,6 +10,7 @@ import '../../widgets/models/widget_content.dart';
 import '../../widgets/models/widget_style.dart';
 import '../../widgets/providers/widget_providers.dart';
 import '../../widgets/widgets/native_preview.dart';
+import '../widgets/calendar_access.dart';
 import '../widgets/content_controls.dart';
 import '../widgets/controls.dart';
 import '../widgets/photo_controls.dart';
@@ -196,6 +197,7 @@ class _EditorState extends ConsumerState<_Editor> {
   }
 
   List<Widget> _contentControls(String category) => switch (category) {
+    'calendar' => const [CalendarAccessControls()],
     'weather' => const [_WeatherControls()],
     'countdown' => const [_CountdownControls(), EventsControls()],
     'note' => const [_NoteControls(), ChecklistControls()],

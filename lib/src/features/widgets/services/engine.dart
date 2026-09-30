@@ -30,6 +30,17 @@ class LaunchConfigure extends LaunchTarget {
   const LaunchConfigure(super.widgetId);
 }
 
+/// Whether widgets can read the device calendar (READ_CALENDAR).
+enum CalendarAccess {
+  granted,
+
+  /// The system permission dialog will show when requested.
+  ask,
+
+  /// Denied for good; only the app's system settings can grant it.
+  blocked,
+}
+
 /// The single bridge to the Kotlin widget engine (android/.../EngineChannel.kt).
 class Engine {
   Engine({this.onDataChanged, this.onLaunchTarget}) {
@@ -133,6 +144,16 @@ class Engine {
       PhotoAlbum.fromJson(jsonDecode((await json)!) as Map<String, dynamic>);
 
   Future<void> refreshWeather() => _channel.invokeMethod('refreshWeather');
+
+  Future<CalendarAccess> calendarAccess() async => CalendarAccess.values.byName(
+    (await _channel.invokeMethod<String>('calendarAccess'))!,
+  );
+
+  /// Shows the system dialog; resolves to the access after the user answers.
+  Future<CalendarAccess> requestCalendar() async => CalendarAccess.values
+      .byName((await _channel.invokeMethod<String>('requestCalendar'))!);
+
+  Future<void> openAppSettings() => _channel.invokeMethod('openAppSettings');
 
   Future<LaunchTarget?> launchTarget() async => LaunchTarget.fromMap(
     await _channel.invokeMethod<Map<Object?, Object?>>('launchTarget'),
