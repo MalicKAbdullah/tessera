@@ -10,6 +10,7 @@ import android.os.Bundle
 import com.malickabdullah.tessera.data.WeatherFetch
 import com.malickabdullah.tessera.engine.Engine
 import com.malickabdullah.tessera.engine.Instances
+import com.malickabdullah.tessera.engine.Slots
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.Work
 import io.flutter.embedding.android.FlutterActivity
@@ -43,6 +44,7 @@ open class MainActivity : FlutterActivity() {
 
     override fun onResume() {
         super.onResume()
+        Slots.syncEnabled(this)
         Work.ensureScheduled(this)
         if (WeatherFetch.isStale(this)) Work.fetchWeatherNow(this)
         Engine.renderAll(this)

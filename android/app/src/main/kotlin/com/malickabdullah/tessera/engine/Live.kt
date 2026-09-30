@@ -55,6 +55,7 @@ class TickReceiver : BroadcastReceiver() {
 /** System events after which bitmap-drawn dates, zones and labels are stale. */
 class SystemEventsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
+        Slots.syncEnabled(context)
         Work.ensureScheduled(context)
         Engine.renderAll(context)
     }

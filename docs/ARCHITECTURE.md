@@ -21,8 +21,8 @@ Gallery / Editor ── MethodChannel ──▶  EngineChannel ─▶ Registry (
 | File | Role |
 | --- | --- |
 | `Model.kt` | `Category`, `SizeClass`, `Signal`, `Toggle`, and the `WidgetDesign` interface. |
-| `Registry.kt` | The single list of designs, in gallery order, plus the catalog JSON for Dart. |
-| `Slots.kt` | One `AppWidgetProvider` per category × size (`Slot`). |
+| `Registry.kt` | Concatenates the per-category design lists (gallery order), checks them against the slots, and builds the catalog JSON for Dart. |
+| `Slots.kt` | One `AppWidgetProvider` per category × size (`Slot`); enables only slots some design fills. |
 | `Instances.kt` | Per-`appWidgetId` binding: design id + `Style`, and the last live key. |
 | `Engine.kt` | Resolves an id to its binding, measures it, renders, and decides what to redraw. |
 | `Renderer.kt` | Draws the surface and design into a bitmap, attaches overlays, returns `RemoteViews`. |
@@ -150,43 +150,86 @@ Static, Latin-subset instances under `res/font/`, SIL OFL 1.1 (licences in
 `assets/licenses/`). To add a face: drop `<family>_<weight>.ttf` into
 `res/font/`, add it to `tool/gen_font_layouts.sh`, run the script.
 
-## Adding a design
+## Designs are self-contained per category
 
-1. **Create** `designs/<category>/<Name>.kt` with an `object` implementing
-   `WidgetDesign`:
-   - `id` — `"<category>.<name>"`; stored per placed widget, never rename.
-   - `category`, `name`, `blurb`, `sizes` (each needs a slot, see below).
-   - `defaults` — `Style.of(font, weight, text, accent, background, …)`.
-   - `toggles` — `Toggle.Switch` / `Toggle.Choice`; reuse `hourFormatToggle`
-     for clocks. Read them with `s.flag(key)` / `s.choice(key)`.
-   - `signals` — data it depends on (`BATTERY`, `WEATHER`, `CONTENT`, `ALARM`).
-   - `liveKey` — only if the bitmap shows something time- or data-varying
-     that no TextClock covers.
-   - `motion` — one sentence if it uses a flipper; shown in the gallery.
-   - `draw(s: Scene)` — draw in dp inside `s.box` (padding applied). Use
-     `s.paint(...)` (style font, weight, tracking), `s.fit(...) * s.hero` for
-     hero text, `size * s.k` for secondary text, `s.textClock` for anything
-     showing the time or date, `s.flipper` for loops. Never leave a region
-     empty: every state (no data, no permission, first run) must draw
-     something meaningful.
-2. **Register** it in `Registry.designs` (gallery order; the first design of a
-   category that fits a slot is that slot's default).
-3. **New data?** Add a `DataSource<T>` in `data/`, expose it lazily on
-   `Data`, add a `Signal` if something outside a render changes it, and call
-   `Engine.refresh(context, signal)` from whatever observes the change.
-   Runtime permissions (e.g. calendar) are requested from Flutter; the
-   source must draw a "grant access" state when denied.
-4. **New category or size?** Add the `Category` entry, a provider class in
-   `widgets/Providers.kt`, its `Slot` in `Slots.all`, an
-   `res/xml/widget_<category>_<size>.xml` (copy an existing one), and a
-   `<receiver>` in `AndroidManifest.xml`. `Registry` checks at start-up that
-   every design size has a slot.
-5. **Content controls** for a new category go in the editor's
-   `_contentControls` switch (`editor_screen.dart`). Nothing else on the Dart
-   side changes: the gallery, editor controls, toggles and previews all come
-   from the catalog.
-6. Pure layout or text logic gets a JVM test in `android/app/src/test`
-   (see `EngineMathTest`).
+```
+designs/
+  Kit.kt                    shared drawing helpers (read-only for design work)
+  classic/ClassicTile.kt    the v0.1 tile shared by the *.classic designs
+  <category>/
+    <Category>Designs.kt    val <category>Designs = listOf(...)   ← the category's registry
+    <Name>.kt               one object per design
+    <Category>Kit.kt        optional helpers private to the category (internal)
+```
+
+`Registry.designs` is `clockDesigns + batteryDesigns + …` and never changes
+when a design is added. Every category has a provider at all three sizes
+(2×2, 4×2, 4×4); receivers of slots no design fills yet ship
+`android:enabled="false"`, and `Slots.syncEnabled` (app start, package update)
+enables a slot once a design supports its size. Adding a design to an existing
+category therefore touches only `designs/<category>/` and tests.
+
+## How to add a design
+
+Work only inside `designs/<category>/` (plus a test file). Steps:
+
+1. **Create** `designs/<category>/<Category><Name>.kt`, package
+   `com.malickabdullah.tessera.designs.<category>`, with an `object`
+   implementing `WidgetDesign`:
+   - `id` = `"<category>.<name>"` (lowercase). Stored per placed widget:
+     never rename or remove one. `Registry` rejects a missing category prefix
+     and duplicates at start-up.
+   - `category`, `name` (gallery title), `blurb` (one sentence).
+   - `sizes`: any of `SizeClass.SMALL` (2×2, 170×170 dp), `WIDE` (4×2,
+     350×170 dp), `LARGE` (4×4, 350×350 dp). These are the preview sizes; on
+     the home screen the design is drawn at the widget's real size, so lay
+     out relative to `s.box`, never at fixed coordinates.
+   - `defaults` = `Style.of(font, weight, text, accent, background, …)`;
+     fonts are the keys in the Fonts table below.
+   - `toggles`: `Toggle.Switch` / `Toggle.Choice` (reuse `hourFormatToggle`
+     for clocks); read with `s.flag(key)` / `s.choice(key)`. The editor shows
+     them automatically.
+   - `signals`: data it depends on (`BATTERY`, `WEATHER`, `CONTENT`, `ALARM`).
+   - `liveKey`: only if the bitmap shows something time- or data-varying that
+     no TextClock covers.
+   - `motion`: one sentence if it uses `s.flipper`; shown in the gallery.
+   - `draw(s: Scene)`: draw in dp inside `s.box`. Use `s.paint(...)` (style
+     font, weight, tracking), `s.fit(...) * s.hero` for hero text,
+     `size * s.k` for secondary text, `s.textClock` for anything showing the
+     time or date, `s.flipper` for short loops. Every state (no data, no
+     permission, first run) must draw something meaningful.
+2. **Register** it: add the object to `<category>Designs` in
+   `designs/<category>/<Category>Designs.kt`, in gallery order. The first
+   design that fits a size is that slot's default for widgets placed from the
+   launcher picker.
+3. **Preview**: nothing to do. The gallery and editor render the catalog
+   through `EngineChannel.render`; check the design at every size it lists in
+   the gallery and after resizing on a home screen.
+4. **Tests**: pure layout or text logic (fitting, word grids, time maths)
+   goes in a JVM test, `android/app/src/test/kotlin/com/malickabdullah/tessera/<Category><Name>Test.kt`
+   (see `EngineMathTest`). Android framework types (`Canvas`, `Paint`,
+   `JSONObject`) are stubs there, so keep the tested logic in plain functions.
+5. **Gates**: `dart format --output=none --set-exit-if-changed .`,
+   `dart analyze --fatal-infos`, `flutter test`, `flutter build apk --debug`,
+   `cd android && ./gradlew :app:testDebugUnitTest`.
+6. **Document** it: add its row to the Designs table below.
+
+Changes outside a category folder (shared files, one owner at a time):
+
+- **New data**: a `DataSource<T>` in `data/`, exposed lazily on `Data`, a
+  `Signal` if something outside a render changes it, and
+  `Engine.refresh(context, signal)` from whatever observes the change.
+  Runtime permissions (e.g. calendar) are requested from Flutter; the design
+  draws a "grant access" state when denied.
+- **Content controls** for a category's user content go in the editor's
+  `_contentControls` switch (`editor_screen.dart`). Everything else on the
+  Dart side (gallery, style controls, toggles, previews) comes from the
+  catalog.
+- **New category**: a `Category` entry, three provider classes in
+  `widgets/Providers.kt`, three `Slot`s, `res/xml/widget_<category>_{small,wide,large}.xml`,
+  three `<receiver>`s in `AndroidManifest.xml` (`enabled="false"`), a
+  description string, the `designs/<category>/` folder with its list, and one
+  term in `Registry.designs`.
 
 ## Designs
 

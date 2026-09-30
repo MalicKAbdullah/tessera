@@ -118,9 +118,21 @@
                 android:resource="@xml/widget_battery_large" />
         </receiver>
         <receiver
+            android:name=".widgets.CalendarSmallWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Calendar · 2×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_calendar_small" />
+        </receiver>
+        <receiver
             android:name=".widgets.CalendarWidget"
             android:exported="false"
-            android:label="Calendar">
+            android:label="Calendar · 4×2">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -129,9 +141,33 @@
                 android:resource="@xml/widget_calendar_wide" />
         </receiver>
         <receiver
+            android:name=".widgets.CalendarLargeWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Calendar · 4×4">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_calendar_large" />
+        </receiver>
+        <receiver
+            android:name=".widgets.WeatherSmallWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Weather · 2×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_weather_small" />
+        </receiver>
+        <receiver
             android:name=".widgets.WeatherWidget"
             android:exported="false"
-            android:label="Weather">
+            android:label="Weather · 4×2">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -140,9 +176,33 @@
                 android:resource="@xml/widget_weather_wide" />
         </receiver>
         <receiver
+            android:name=".widgets.WeatherLargeWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Weather · 4×4">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_weather_large" />
+        </receiver>
+        <receiver
+            android:name=".widgets.CountdownSmallWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Countdown · 2×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_countdown_small" />
+        </receiver>
+        <receiver
             android:name=".widgets.CountdownWidget"
             android:exported="false"
-            android:label="Countdown">
+            android:label="Countdown · 4×2">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -151,15 +211,51 @@
                 android:resource="@xml/widget_countdown_wide" />
         </receiver>
         <receiver
+            android:name=".widgets.CountdownLargeWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Countdown · 4×4">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_countdown_large" />
+        </receiver>
+        <receiver
+            android:name=".widgets.NoteSmallWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Note · 2×2">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_note_small" />
+        </receiver>
+        <receiver
             android:name=".widgets.NoteWidget"
             android:exported="false"
-            android:label="Note">
+            android:label="Note · 4×2">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/widget_note_wide" />
+        </receiver>
+        <receiver
+            android:name=".widgets.NoteLargeWidget"
+            android:enabled="false"
+            android:exported="false"
+            android:label="Note · 4×4">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_note_large" />
         </receiver>
 
         <receiver android:name=".engine.TickReceiver" android:exported="false" />
