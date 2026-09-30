@@ -19,7 +19,7 @@ object WeatherNow : WidgetDesign {
     override val name = "Conditions"
     override val blurb = "A big temperature beside a drawn sky glyph, with feels-like, the day's range and the hours ahead."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFF4F2EE, accent = 0xFFFFB23F, background = 0xFF121315, radius = 30f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF121315, radius = 30f)
     override val toggles = listOf(WeatherKit.unitsToggle, hourFormatToggle, WeatherKit.motionToggle)
     override val signals = setOf(Signal.WEATHER, Signal.CONTENT)
     override val motion = WeatherKit.MOTION

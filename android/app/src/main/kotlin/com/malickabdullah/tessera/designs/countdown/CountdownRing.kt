@@ -21,7 +21,7 @@ object CountdownRing : WidgetDesign {
     override val name = "Progress Ring"
     override val blurb = "A big day count inside a ring that fills from the day you set the countdown to the target date."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFF3F1EC, accent = 0xFFFF6B3D, background = 0xFF141416, radius = 30f, padding = 14f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFF2F3F5, accent = 0xFF8F7BFF, background = 0xFF141416, radius = 30f, padding = 14f)
     override val toggles = listOf(countModeToggle, Toggle.Switch("pulse", "Pulsing ring tip", true))
     override val signals = setOf(Signal.CONTENT)
     override val motion = "The tip of the ring glows in a slow pulse."

@@ -21,7 +21,7 @@ object CalendarMatrix : WidgetDesign {
     override val name = "Dot Date"
     override val blurb = "Today's date lit on a 5×7 LED matrix, with the next events beside it."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("dot", 700, text = 0xFFF2F0EB, accent = 0xFFFF3B30, background = 0xFF0C0C0D, radius = 30f, padding = 16f)
+    override val defaults = Style.of("dot", 700, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF0C0C0D, radius = 30f, padding = 16f)
     override val toggles = listOf(hourFormatToggle)
     override val signals = setOf(Signal.CALENDAR)
 

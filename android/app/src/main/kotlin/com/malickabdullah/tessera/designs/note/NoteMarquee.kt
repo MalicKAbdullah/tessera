@@ -16,7 +16,7 @@ object NoteMarquee : WidgetDesign {
     override val name = "Dot Matrix Message"
     override val blurb = "Your message in LED dot-matrix type, paged automatically when it is too long to show at once."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("dot", 700, text = 0xFFFFB020, accent = 0xFFF2F0EB, background = 0xFF0B0B0C, radius = 30f, padding = 16f)
+    override val defaults = Style.of("dot", 700, text = 0xFFD4FF3A, accent = 0xFFF2F3F5, background = 0xFF0B0B0C, radius = 30f, padding = 16f)
     override val signals = setOf(Signal.CONTENT)
     override val motion = "Long messages flip to the next page every four seconds; short ones stay still."
 

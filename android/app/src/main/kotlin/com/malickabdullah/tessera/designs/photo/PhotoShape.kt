@@ -20,7 +20,7 @@ object PhotoShape : WidgetDesign {
     override val name = "Cutout"
     override val blurb = "A photo cut into a circle, squircle, arch or pebble, with an accent echo behind it."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("serif", 400, text = 0xFF1B1B1B, accent = 0xFFE8553D, background = 0xFFEFEAE2, radius = 28f, padding = 14f)
+    override val defaults = Style.of("serif", 400, text = 0xFF1B1B1B, accent = 0xFF6C4DFF, background = 0xFFEEF0F3, radius = 28f, padding = 14f)
     override val toggles = listOf(
         Toggle.Choice(
             "mask",

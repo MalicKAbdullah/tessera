@@ -18,7 +18,7 @@ object DeviceSystem : WidgetDesign {
     override val name = "System"
     override val blurb = "Battery, storage and memory as three segmented gauges; uptime and network on 4×4."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("mono", 500, text = 0xFFE9EAEC, accent = 0xFFFF6B3D, background = 0xFF141517, radius = 26f, padding = 16f)
+    override val defaults = Style.of("mono", 500, text = 0xFFE9EAEC, accent = 0xFFD4FF3A, background = 0xFF141517, radius = 26f, padding = 16f)
     override val signals = setOf(Signal.BATTERY)
     override val motion = "While charging, the battery gauge's next segment breathes."
 

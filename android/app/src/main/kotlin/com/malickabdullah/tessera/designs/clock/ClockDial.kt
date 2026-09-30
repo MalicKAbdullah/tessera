@@ -23,7 +23,7 @@ object ClockDial : WidgetDesign {
     override val name = "Chronograph"
     override val blurb = "Live analog hands over a finely ticked dial with a date window."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.LARGE)
-    override val defaults = Style.of("mono", 500, text = 0xFFF3F1EC, accent = 0xFFC9A77C, background = 0xFF141518, radius = 48f, padding = 10f)
+    override val defaults = Style.of("mono", 500, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF141518, radius = 48f, padding = 10f)
     override val toggles = listOf(
         Toggle.Choice("numerals", "Numerals", listOf("none" to "None", "quarters" to "12 · 3 · 6 · 9", "all" to "All"), "quarters"),
         Toggle.Switch("date", "Date window", true),

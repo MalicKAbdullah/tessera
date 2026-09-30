@@ -22,8 +22,8 @@ object ClockMinimal : WidgetDesign {
     override val blurb = "A quiet, large time with the full date and your next alarm."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.SMALL)
     override val defaults = Style.of(
-        "sans", 300, text = 0xFFF6F3EE, accent = 0xFFC9A77C, background = 0xFF1B1C20,
-        kind = BgKind.GRADIENT, background2 = 0xFF2B2723, radius = 28f, padding = 18f, tracking = -0.02f,
+        "sans", 300, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF1B1C20,
+        kind = BgKind.GRADIENT, background2 = 0xFF262A31, radius = 28f, padding = 18f, tracking = -0.02f,
     )
     override val toggles = listOf(hourFormatToggle, Toggle.Switch("seconds", "Seconds", false), Toggle.Switch("alarm", "Next alarm", true))
     override val signals = setOf(Signal.ALARM)

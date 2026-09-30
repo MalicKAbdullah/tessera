@@ -17,7 +17,7 @@ object DeviceUptime : WidgetDesign {
     override val name = "Uptime"
     override val blurb = "How long since the phone last restarted, with the boot time and a 30-day strip."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("condensed", 500, text = 0xFFF2F0EB, accent = 0xFF9BE15D, background = 0xFF161816, radius = 28f, padding = 16f)
+    override val defaults = Style.of("condensed", 500, text = 0xFFF2F3F5, accent = 0xFF9BE15D, background = 0xFF161816, radius = 28f, padding = 16f)
 
     private val since = DateTimeFormatter.ofPattern("EEE d MMM · HH:mm", Locale.getDefault())
 

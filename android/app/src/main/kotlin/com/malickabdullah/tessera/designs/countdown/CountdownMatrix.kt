@@ -18,7 +18,7 @@ object CountdownMatrix : WidgetDesign {
     override val name = "Dot Matrix"
     override val blurb = "Days and hours to go in LED dot-matrix digits over a lattice of unlit dots."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("dot", 700, text = 0xFFF2F0EB, accent = 0xFFFFB020, background = 0xFF0C0C0D, radius = 30f)
+    override val defaults = Style.of("dot", 700, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF0C0C0D, radius = 30f)
     override val toggles = listOf(countModeToggle)
     override val signals = setOf(Signal.CONTENT)
     override val motion = "The two-dot separator between days and hours blinks once a second."

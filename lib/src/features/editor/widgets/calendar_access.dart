@@ -91,11 +91,10 @@ class _CalendarAccessControlsState extends ConsumerState<CalendarAccessControls>
           ),
           if (!granted) ...[
             const SizedBox(width: 12),
-            FilledButton.tonal(
-              onPressed: _connect,
-              child: Text(
-                access == CalendarAccess.blocked ? 'Settings' : 'Connect',
-              ),
+            ChoicePill(
+              label: access == CalendarAccess.blocked ? 'Settings' : 'Connect',
+              selected: true,
+              onTap: _connect,
             ),
           ],
         ],
@@ -151,22 +150,15 @@ class _Rationale extends StatelessWidget {
               'You can turn access off at any time in system settings.',
             ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context, false),
-                    child: const Text('Not now'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: FilledButton(
-                    onPressed: () => Navigator.pop(context, true),
-                    child: const Text('Continue'),
-                  ),
-                ),
-              ],
+            PrimaryButton(
+              onTap: () => Navigator.pop(context, true),
+              child: const Text('Continue'),
+            ),
+            Center(
+              child: QuietButton(
+                label: 'Not now',
+                onTap: () => Navigator.pop(context, false),
+              ),
             ),
           ],
         ),

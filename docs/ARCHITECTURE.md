@@ -149,6 +149,26 @@ screen therefore show the same pixels.
 - **Editing a placed widget:** tapping a widget opens its editor; changes bind
   live (debounced).
 
+## App chrome (`lib/src/core/`)
+
+| Piece | Where | Role |
+| --- | --- | --- |
+| Tokens | `design/tokens.dart` | `Palette` (light/dark colour roles, a `ThemeExtension`), `Gap`, `Radii`, `Fonts`, `Motion` (durations, curves, springs, `Motion.reduced`). |
+| Theme | `theme.dart` | Type scale on the bundled faces (Space Grotesk display, Inter Tight body, JetBrains Mono labels), exposed to Flutter from `res/font/` in `pubspec.yaml`. Ink splashes are off. |
+| Motion | `motion/motion.dart` | `Pressable` (spring press to 0.97 + selection haptic, used for every tap), `Entrance` (staggered rise with depth), `ScrollDepth` (scroll-linked tilt/parallax in the paint phase), `SpringResponse` (stage spring on each edit). |
+| Mark | `widgets/mosaic_mark.dart` | The 3×3 mosaic mark, its assembly animation and the breathing loader. |
+
+- The first-launch intro (`features/intro/intro_overlay.dart`) plays over the
+  gallery once; `TesseraStore.introSeen` records it. The launcher configure
+  flow never shows it.
+- Previews stay native PNGs; motion is applied to the containers around
+  them. `NativePreview` fades each new render over the previous one and
+  drops covered frames once the new one is opaque.
+- The gallery card preview and the editor stage share a hero tag
+  (`designHeroTag` / `placedHeroTag`).
+- Every animation reads `Motion.reduced` (the system "remove animations"
+  setting) and settles instantly when it is on.
+
 ## Customization model (`lib/src/features/widgets/models/widget_style.dart`)
 
 `WidgetStyle` v2, shared verbatim with Kotlin:
@@ -258,10 +278,12 @@ Changes outside a category folder (shared files, one owner at a time):
   Runtime permissions (e.g. calendar) are requested from Flutter; the design
   draws a "grant access" state when denied.
 - **Content shape**: `WidgetContent` (Dart) and `Content` (`data/Content.kt`) carry the countdown date and its start day, extra countdown events and checklist items; the editor's list controls live in `editor/widgets/content_controls.dart`.
-- **Content controls** for a category's user content go in the editor's
-  `_contentControls` switch (`editor_screen.dart`). Everything else on the
-  Dart side (gallery, style controls, toggles, previews) comes from the
-  catalog.
+- **Content controls** for a category's user content (a city, a note, a
+  date) go in `lib/src/features/editor/widgets/content_controls.dart`: one
+  arm in the `contentControls` switch returning the category's widgets, each
+  a `Section` built from the shared controls in `controls.dart`. The editor
+  places them above the style controls. Everything else on the Dart side
+  (gallery, style controls, toggles, previews) comes from the catalog.
 - **New category**: a `Category` entry, three provider classes in
   `widgets/Providers.kt`, three `Slot`s, `res/xml/widget_<category>_{small,wide,large}.xml`,
   three `<receiver>`s in `AndroidManifest.xml` (`enabled="false"`), a

@@ -20,7 +20,7 @@ object SkyGolden : WidgetDesign {
     override val name = "Golden Hour"
     override val blurb = "Today's night, blue hour, golden hour and daylight on one timeline, with the next golden hour."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("serif", 400, text = 0xFFF5EFE6, accent = 0xFFF3E3C3, background = 0xFF1B1714, radius = 28f, padding = 16f)
+    override val defaults = Style.of("serif", 400, text = 0xFFF2F3F5, accent = 0xFFB8C4FF, background = 0xFF14161B, radius = 28f, padding = 16f)
     override val toggles = listOf(hourFormatToggle)
     override val signals = setOf(Signal.CONTENT)
 

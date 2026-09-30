@@ -18,7 +18,7 @@ object CountdownList : WidgetDesign {
     override val name = "Up Next"
     override val blurb = "Your next few events in one list, soonest first, each with days to go; a 90-day timeline on the large size."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFF3F1EC, accent = 0xFF6FB1FF, background = 0xFF121417, radius = 30f, padding = 14f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFF2F3F5, accent = 0xFF6FB1FF, background = 0xFF121417, radius = 30f, padding = 14f)
     override val signals = setOf(Signal.CONTENT)
 
     private const val TIMELINE_DAYS = 90

@@ -22,7 +22,7 @@ object NoteSticky : WidgetDesign {
     override val blurb = "Grainy paper, a strip of tape, ruled lines and slightly uneven handwriting-style serif."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
     override val defaults = Style.of(
-        "serif", 400, text = 0xFF3A2E1C, accent = 0xFFB8452F, background = 0xFFFFE07A,
+        "serif", 400, text = 0xFF23252B, accent = 0xFF2F5BD8, background = 0xFFFFE07A,
         kind = BgKind.GRAIN, radius = 10f, padding = 18f,
     )
     override val signals = setOf(Signal.CONTENT)

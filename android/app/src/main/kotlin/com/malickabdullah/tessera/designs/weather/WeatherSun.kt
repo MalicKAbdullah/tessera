@@ -26,7 +26,7 @@ object WeatherSun : WidgetDesign {
     override val name = "Sun Arc"
     override val blurb = "The sun's path from sunrise to sunset with where it is now, daylight length and the time to the next turn."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFF1D1A16, accent = 0xFFFF7A1A, background = 0xFFF4EEE4, radius = 30f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFF15161A, accent = 0xFF6C4DFF, background = 0xFFEEF0F3, radius = 30f)
     override val toggles = listOf(hourFormatToggle, WeatherKit.unitsToggle)
     override val signals = setOf(Signal.WEATHER, Signal.CONTENT)
 

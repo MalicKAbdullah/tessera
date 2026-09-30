@@ -23,7 +23,7 @@ object PhotoPolaroid : WidgetDesign {
     override val blurb = "Instant-film prints with a dated caption; the wide size fans out three."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
     override val defaults = Style.of(
-        "serif", 400, text = 0xFF2B2A28, accent = 0xFFE8553D, background = 0xFF1F1E1C, kind = BgKind.GRAIN, radius = 28f, padding = 12f,
+        "serif", 400, text = 0xFF1E2024, accent = 0xFF2F5BD8, background = 0xFF1C1D21, kind = BgKind.GRAIN, radius = 28f, padding = 12f,
     )
     override val toggles = listOf(Toggle.Switch("tilt", "Tilt", true), PhotoKit.showToggle, PhotoKit.captionToggle("date"))
     override val signals = setOf(Signal.CONTENT)

@@ -19,7 +19,7 @@ object BatteryNumeric : WidgetDesign {
     override val name = "Big Numeric"
     override val blurb = "A towering condensed percentage over a liquid fill that rises with your charge."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("condensed", 700, text = 0xFF111111, accent = 0xFFFF5A1F, background = 0xFFF2EFE8, radius = 30f, padding = 16f)
+    override val defaults = Style.of("condensed", 700, text = 0xFF111111, accent = 0xFFD4FF3A, background = 0xFFEEF0F3, radius = 30f, padding = 16f)
     override val signals = setOf(Signal.BATTERY)
     override val motion = "While charging, the surface of the fill ripples."
 

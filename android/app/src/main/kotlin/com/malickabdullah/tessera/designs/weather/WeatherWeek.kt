@@ -24,7 +24,7 @@ object WeatherWeek : WidgetDesign {
     override val name = "Five Days"
     override val blurb = "The days ahead with glyphs, rain chance and low-to-high bars on one shared scale; a full week on 4×4."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFEDEBE6, accent = 0xFFFF8A3D, background = 0xFF1A1B1E, radius = 30f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF1A1B1E, radius = 30f)
     override val toggles = listOf(WeatherKit.unitsToggle)
     override val signals = setOf(Signal.WEATHER, Signal.CONTENT)
 

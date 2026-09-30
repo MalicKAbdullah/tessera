@@ -20,7 +20,7 @@ object BatteryRing : WidgetDesign {
     override val name = "Ring Gauge"
     override val blurb = "A 270° gauge with a tick scale, charging bolt and time to full or time left."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFF16171A, accent = 0xFF2F6BFF, background = 0xFFF4F1EA, radius = 30f, padding = 12f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFF16171A, accent = 0xFF2F6BFF, background = 0xFFEEF0F3, radius = 30f, padding = 12f)
     override val signals = setOf(Signal.BATTERY)
     override val motion = "While charging, the tip of the gauge glows in a slow pulse."
 

@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/design/tokens.dart';
+import '../../../core/motion/motion.dart';
+import '../../../core/widgets/mosaic_mark.dart';
 import '../../widgets/models/photo_album.dart';
 import '../../widgets/providers/widget_providers.dart';
 import 'controls.dart';
@@ -76,6 +79,7 @@ class _PhotoControlsState extends ConsumerState<PhotoControls> {
                   height: 72,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
                     children: [
                       if (!album.isFull)
                         _AddTile(
@@ -100,10 +104,9 @@ class _PhotoControlsState extends ConsumerState<PhotoControls> {
                             'phone is read.'
                       : '${album.photos.length} of ${album.max} · shared by '
                             'every photo widget',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
+                  style: theme.textTheme.bodySmall,
                 ),
+                const SizedBox(height: Gap.m),
                 TextFormField(
                   initialValue: album.caption,
                   maxLength: 40,
@@ -127,28 +130,23 @@ class _AddTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final p = Palette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: Material(
-        color: scheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(14),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(14),
-          onTap: busy ? null : onTap,
-          child: SizedBox(
-            width: 72,
-            child: Center(
-              child: busy
-                  ? const SizedBox.square(
-                      dimension: 20,
-                      child: CircularProgressIndicator(strokeWidth: 1.5),
-                    )
-                  : Icon(
-                      Icons.add_photo_alternate_outlined,
-                      color: scheme.primary,
-                    ),
-            ),
+      padding: const EdgeInsets.only(right: Gap.s),
+      child: Pressable(
+        semanticLabel: 'Add photos',
+        onTap: busy ? null : onTap,
+        child: Container(
+          width: 72,
+          decoration: BoxDecoration(
+            color: p.surface,
+            borderRadius: BorderRadius.circular(Radii.s + 2),
+            border: Border.all(color: p.hairline),
+          ),
+          child: Center(
+            child: busy
+                ? const MosaicLoader(size: 22)
+                : Icon(Icons.add_photo_alternate_outlined, color: p.ink),
           ),
         ),
       ),
@@ -164,12 +162,13 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dpr = MediaQuery.devicePixelRatioOf(context);
+    final p = Palette.of(context);
     return Padding(
-      padding: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.only(right: Gap.s),
       child: Stack(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(Radii.s + 2),
             child: Image.file(
               File(photo.path),
               width: 72,
@@ -179,14 +178,21 @@ class _Thumb extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 2,
-            right: 2,
-            child: IconButton.filledTonal(
-              visualDensity: VisualDensity.compact,
-              iconSize: 14,
-              tooltip: 'Remove',
-              onPressed: onRemove,
-              icon: const Icon(Icons.close),
+            top: 4,
+            right: 4,
+            child: Pressable(
+              scale: 0.85,
+              semanticLabel: 'Remove',
+              onTap: onRemove,
+              child: Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: p.canvas.withValues(alpha: 0.85),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.close, size: 13, color: p.ink),
+              ),
             ),
           ),
         ],

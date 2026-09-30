@@ -19,7 +19,7 @@ object CountdownDots : WidgetDesign {
     override val name = "Day Dots"
     override val blurb = "One dot for every day between the day you set the countdown and the target: elapsed days filled, today lit."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFF3F1EC, accent = 0xFF7CF29C, background = 0xFF111413, radius = 30f, padding = 14f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFF2F3F5, accent = 0xFF7CF29C, background = 0xFF111413, radius = 30f, padding = 14f)
     override val toggles = listOf(countModeToggle)
     override val signals = setOf(Signal.CONTENT)
     override val motion = "Today's dot breathes slowly."
