@@ -5,6 +5,9 @@ class WidgetContent {
     this.noteAuthor = 'Dieter Rams',
     this.countdownTitle = 'New Year',
     this.countdownDate,
+    this.countdownStart,
+    this.events = const [],
+    this.checklist = const [],
     this.city,
   });
 
@@ -12,6 +15,13 @@ class WidgetContent {
   final String noteAuthor;
   final String countdownTitle;
   final DateTime? countdownDate;
+
+  /// The day [countdownDate] was chosen: where a progress ring starts.
+  final DateTime? countdownStart;
+
+  /// Further events for the multi-countdown list.
+  final List<CountdownEvent> events;
+  final List<ChecklistItem> checklist;
   final City? city;
 
   /// Countdown target when the user has not picked one: next January 1st.
@@ -23,13 +33,25 @@ class WidgetContent {
     String? noteAuthor,
     String? countdownTitle,
     DateTime? countdownDate,
+    DateTime? countdownStart,
+    List<CountdownEvent>? events,
+    List<ChecklistItem>? checklist,
     City? city,
   }) => WidgetContent(
     note: note ?? this.note,
     noteAuthor: noteAuthor ?? this.noteAuthor,
     countdownTitle: countdownTitle ?? this.countdownTitle,
     countdownDate: countdownDate ?? this.countdownDate,
+    countdownStart: countdownStart ?? this.countdownStart,
+    events: events ?? this.events,
+    checklist: checklist ?? this.checklist,
     city: city ?? this.city,
+  );
+
+  /// Picks the target and restarts the progress ring from [today].
+  WidgetContent withCountdownDate(DateTime picked, DateTime today) => copyWith(
+    countdownDate: picked,
+    countdownStart: DateTime(today.year, today.month, today.day),
   );
 
   Map<String, Object?> toJson() => {
@@ -37,6 +59,9 @@ class WidgetContent {
     'noteAuthor': noteAuthor,
     'countdownTitle': countdownTitle,
     'countdownDate': countdownDate?.toIso8601String(),
+    'countdownStart': countdownStart?.toIso8601String(),
+    'events': [for (final e in events) e.toJson()],
+    'checklist': [for (final i in checklist) i.toJson()],
     'city': city?.toJson(),
   };
 
@@ -48,11 +73,53 @@ class WidgetContent {
       final String s => DateTime.parse(s),
       _ => null,
     },
+    // Content saved before these fields existed has none of them.
+    countdownStart: switch (json['countdownStart']) {
+      final String s => DateTime.parse(s),
+      _ => null,
+    },
+    events: [
+      for (final e in (json['events'] as List<dynamic>? ?? const []))
+        CountdownEvent.fromJson(e as Map<String, dynamic>),
+    ],
+    checklist: [
+      for (final i in (json['checklist'] as List<dynamic>? ?? const []))
+        ChecklistItem.fromJson(i as Map<String, dynamic>),
+    ],
     city: switch (json['city']) {
       final Map<String, dynamic> m => City.fromJson(m),
       _ => null,
     },
   );
+}
+
+class CountdownEvent {
+  const CountdownEvent({required this.title, required this.date});
+  final String title;
+  final DateTime date;
+
+  Map<String, Object> toJson() => {
+    'title': title,
+    'date': date.toIso8601String(),
+  };
+
+  factory CountdownEvent.fromJson(Map<String, dynamic> json) => CountdownEvent(
+    title: json['title'] as String,
+    date: DateTime.parse(json['date'] as String),
+  );
+}
+
+class ChecklistItem {
+  const ChecklistItem({required this.text, this.done = false});
+  final String text;
+  final bool done;
+
+  ChecklistItem toggled() => ChecklistItem(text: text, done: !done);
+
+  Map<String, Object> toJson() => {'text': text, 'done': done};
+
+  factory ChecklistItem.fromJson(Map<String, dynamic> json) =>
+      ChecklistItem(text: json['text'] as String, done: json['done'] as bool);
 }
 
 class City {
