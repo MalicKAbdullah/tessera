@@ -19,6 +19,10 @@ Every widget is drawn by a native Kotlin engine at the widget's real size, and t
 
 **Battery** — Dot Cell · Ring Gauge with time to full · Segments with temperature, health and voltage · Big Numeric · 24-hour History
 
+**Sun & Moon** — Moon Phase with a true terminator · Sun Arc · Sky Clock (24-hour day/night dial) · Golden Hour timeline · Day Length through the year — computed on the phone, no network
+
+**Device** — System dashboard · Storage · Memory · Network with Wi-Fi signal · Uptime — no permissions to grant
+
 **Also** — Calendar, Weather, Countdown and Note tiles
 
 **Live, without draining you**
