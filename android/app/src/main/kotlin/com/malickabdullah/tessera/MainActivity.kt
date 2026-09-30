@@ -5,8 +5,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.net.Uri
 import android.os.BatteryManager
+import android.os.Build
 import android.os.Bundle
+import android.os.ext.SdkExtensions
+import android.provider.MediaStore
 import com.malickabdullah.tessera.data.WeatherFetch
 import com.malickabdullah.tessera.engine.Engine
 import com.malickabdullah.tessera.engine.Instances
@@ -17,8 +21,13 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 
 open class MainActivity : FlutterActivity() {
+    private companion object {
+        const val REQUEST_PHOTOS = 0x7E55
+    }
+
     private var channel: EngineChannel? = null
     private var lastBattery: String? = null
+    private var onPhotosPicked: ((List<Uri>) -> Unit)? = null
 
     /** While the app is open, battery changes redraw live widgets and previews immediately. */
     private val batteryReceiver = object : BroadcastReceiver() {
@@ -61,6 +70,44 @@ open class MainActivity : FlutterActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         channel?.pushLaunchTarget()
+    }
+
+    /**
+     * The system photo picker (Android 11+ with the SDK extension, 13+
+     * natively) or, before it, the document picker: both grant read access
+     * to the chosen images only, so no storage permission is requested.
+     */
+    fun pickPhotos(max: Int, onPicked: (List<Uri>) -> Unit) {
+        onPhotosPicked = onPicked
+        val photoPicker = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ||
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && SdkExtensions.getExtensionVersion(Build.VERSION_CODES.R) >= 2)
+        val intent = if (photoPicker) {
+            Intent(MediaStore.ACTION_PICK_IMAGES).apply {
+                type = "image/*"
+                if (max > 1) putExtra(MediaStore.EXTRA_PICK_IMAGES_MAX, minOf(max, MediaStore.getPickImagesMaxLimit()))
+            }
+        } else {
+            Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "image/*"
+                putExtra(Intent.EXTRA_ALLOW_MULTIPLE, max > 1)
+            }
+        }
+        startActivityForResult(intent, REQUEST_PHOTOS)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode != REQUEST_PHOTOS) return
+        // A process recreated while the picker was open has no caller left to answer.
+        val picked = onPhotosPicked ?: return
+        onPhotosPicked = null
+        val uris = when {
+            resultCode != RESULT_OK || data == null -> emptyList()
+            data.clipData != null -> data.clipData!!.let { clip -> (0 until clip.itemCount).map { clip.getItemAt(it).uri } }
+            else -> listOfNotNull(data.data)
+        }
+        picked(uris)
     }
 
     /** What the app should open on: a tapped widget's editor, or null for the gallery. */

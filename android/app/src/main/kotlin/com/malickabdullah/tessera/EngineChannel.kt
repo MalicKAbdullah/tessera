@@ -13,6 +13,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import com.malickabdullah.tessera.data.ContentSource
+import com.malickabdullah.tessera.data.PhotoStore
 import com.malickabdullah.tessera.data.WeatherFetch
 import com.malickabdullah.tessera.engine.Engine
 import com.malickabdullah.tessera.engine.Fonts
@@ -39,6 +40,7 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
     private val channel = MethodChannel(messenger, "tessera/engine")
     private val main = Handler(Looper.getMainLooper())
     private val encoder = Executors.newSingleThreadExecutor()
+    private val photoImport = Executors.newSingleThreadExecutor()
 
     init {
         channel.setMethodCallHandler(this)
@@ -49,6 +51,7 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
         channel.setMethodCallHandler(null)
         Engine.onDataChanged = null
         encoder.shutdown()
+        photoImport.shutdown()
     }
 
     fun pushLaunchTarget() = channel.invokeMethod("launchTarget", activity.launchTarget())
@@ -78,6 +81,18 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
                 Work.fetchWeatherNow(activity)
                 result.success(null)
             }
+            "photos" -> result.success(PhotoStore.read(activity).toJson().toString())
+            "pickPhotos" -> pickPhotos(result)
+            "removePhoto" -> {
+                val album = PhotoStore.remove(activity, call.argument<String>("id")!!)
+                Engine.refresh(activity, Signal.CONTENT)
+                result.success(album.toJson().toString())
+            }
+            "setPhotoCaption" -> {
+                val album = PhotoStore.setCaption(activity, call.argument<String>("caption")!!)
+                Engine.refresh(activity, Signal.CONTENT)
+                result.success(album.toJson().toString())
+            }
             "launchTarget" -> result.success(activity.launchTarget())
             "finishConfigure" -> {
                 val configure = activity as ConfigureActivity
@@ -85,6 +100,31 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
                 result.success(null)
             }
             else -> result.notImplemented()
+        }
+    }
+
+    /**
+     * Opens the system photo picker for the album's free places, then
+     * imports the picks off the main thread. Replies with the album JSON;
+     * a cancelled pick replies with the album unchanged.
+     */
+    private fun pickPhotos(result: MethodChannel.Result) {
+        val free = PhotoStore.MAX - PhotoStore.read(activity).photos.size
+        require(free > 0) { "The album is full" }
+        activity.pickPhotos(free) { uris ->
+            if (uris.isEmpty()) {
+                result.success(PhotoStore.read(activity).toJson().toString())
+                return@pickPhotos
+            }
+            photoImport.execute {
+                try {
+                    val album = PhotoStore.import(activity, uris)
+                    Engine.refresh(activity, Signal.CONTENT)
+                    main.post { result.success(album.toJson().toString()) }
+                } catch (e: Exception) {
+                    main.post { result.error("import", e.message, null) }
+                }
+            }
         }
     }
 
