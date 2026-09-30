@@ -21,7 +21,7 @@ const style = WidgetStyle(
   scale: 1,
   tracking: 0,
   text: Color(0xFFFFFFFF),
-  accent: Color(0xFFFF5A1F),
+  accent: Color(0xFFD4FF3A),
   background: Background(
     kind: BgKind.solid,
     color: Color(0xFF0C0C0D),
@@ -69,9 +69,15 @@ class FakeEngine extends Engine {
   bool pinAccepted = true;
   final List<PlacedWidget> placedWidgets = [];
 
+  /// Preview PNG per size id; sizes without one render [pixel].
+  final Map<String, Uint8List> previews = {};
+
+  /// Specimen PNG per font key; fonts without one render [pixel].
+  final Map<String, Uint8List> specimens = {};
+
   @override
   Future<Uint8List> render(String design, WidgetStyle style, SizeInfo size) =>
-      Future.value(pixel);
+      Future.value(previews[size.id] ?? pixel);
 
   @override
   Future<Uint8List> specimen(
@@ -80,7 +86,7 @@ class FakeEngine extends Engine {
     String text,
     double size,
     Color color,
-  ) => Future.value(pixel);
+  ) => Future.value(specimens[font] ?? pixel);
 
   @override
   Future<List<PlacedWidget>> placed() => Future.value(List.of(placedWidgets));
@@ -109,8 +115,8 @@ Future<ProviderContainer> fakeContainer(
   );
 }
 
-Widget themed(ProviderContainer container, Widget child) =>
+Widget themed(ProviderContainer container, Widget child, {ThemeData? theme}) =>
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(theme: TesseraTheme.light(), home: child),
+      child: MaterialApp(theme: theme ?? TesseraTheme.light(), home: child),
     );
