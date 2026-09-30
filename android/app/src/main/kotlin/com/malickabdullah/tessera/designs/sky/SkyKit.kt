@@ -27,7 +27,7 @@ import kotlin.math.sin
 internal enum class Light { NIGHT, BLUE, GOLDEN, DAY }
 
 internal object SkyKit {
-    const val GOLD = 0xFFFFB25C.toInt()
+    const val GOLD = 0xFFF3D36A.toInt()
     const val BLUE = 0xFF5C7FE6.toInt()
     private const val MOON = 0xFFEDE9DF.toInt()
 
@@ -77,14 +77,14 @@ internal object SkyKit {
     fun label(s: Scene, size: Float = 9.5f, color: Int = s.ink(0.55f), align: Paint.Align = Paint.Align.LEFT) =
         s.paint(size * s.k, color, font = "mono", weight = 500, align = align, tracking = 0.14f)
 
-    fun placeName(s: Scene): String = s.data.skyPlace?.name?.uppercase() ?: "HERE"
+    fun placeName(place: SkyPlace): String = place.name.uppercase()
 
     /** Hours and minutes, "11h 52m". */
     fun hm(minutes: Double): String = "${(minutes / 60).toInt()}h ${"%02d".format((minutes % 60).toInt())}m"
 
     /**
-     * Drawn when there is neither a weather city nor an already-granted coarse
-     * location: a quiet horizon with the sun resting on it, and what to do.
+     * Drawn before a weather city is set: a quiet horizon with the sun resting
+     * on it, and what to do.
      */
     fun noPlace(s: Scene) {
         val b = s.box
@@ -93,8 +93,8 @@ internal object SkyKit {
         val cx = b.centerX()
         s.canvas.save()
         s.canvas.clipRect(b.left, b.top, b.right, horizon)
-        s.canvas.drawCircle(cx, horizon, r, s.fill(s.ink(0.9f, GOLD)))
-        s.canvas.drawCircle(cx, horizon, r * 1.6f, s.fill(s.ink(0.14f, GOLD)))
+        s.canvas.drawCircle(cx, horizon, r, s.fill(s.accent))
+        s.canvas.drawCircle(cx, horizon, r * 1.6f, s.fill(s.ink(0.14f, s.accent)))
         s.canvas.restore()
         var x = b.left
         while (x < b.right) {

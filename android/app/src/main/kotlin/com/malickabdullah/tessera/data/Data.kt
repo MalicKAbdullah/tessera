@@ -11,18 +11,21 @@ interface DataSource<T> {
     fun read(context: Context): T
 }
 
-/** Per-render view of every source, each read at most once and only if a design asks. */
-class Data(private val context: Context) {
-    val battery: BatteryState by lazy { BatterySource.read(context) }
-    val batteryHistory: List<BatterySample> by lazy { BatteryHistory.read(context) }
-    val weather: WeatherState? by lazy { WeatherSource.read(context) }
-    val nextAlarm: NextAlarm? by lazy { AlarmSource.read(context) }
-    val content: Content by lazy { ContentSource.read(context) }
-    val photos: PhotoAlbum by lazy { PhotoStore.read(context) }
-    val calendar: CalendarState by lazy { CalendarSource.read(context) }
-    val skyPlace: SkyPlace? by lazy { SkyPlaceSource.read(context) }
-    val storage: StorageState by lazy { StorageSource.read(context) }
-    val memory: MemoryState by lazy { MemorySource.read(context) }
-    val network: NetworkState by lazy { NetworkSource.read(context) }
-    val uptimeMs: Long by lazy { UptimeSource.read(context) }
+/**
+ * Per-render view of every source, each read at most once and only if a design asks.
+ * Open so the screenshot tests can substitute fixed data for every source.
+ */
+open class Data(private val context: Context) {
+    open val battery: BatteryState by lazy { BatterySource.read(context) }
+    open val batteryHistory: List<BatterySample> by lazy { BatteryHistory.read(context) }
+    open val weather: WeatherState? by lazy { WeatherSource.read(context) }
+    open val nextAlarm: NextAlarm? by lazy { AlarmSource.read(context) }
+    open val content: Content by lazy { ContentSource.read(context) }
+    open val photos: PhotoAlbum by lazy { PhotoStore.read(context) }
+    open val calendar: CalendarState by lazy { CalendarSource.read(context) }
+    open val skyPlace: SkyPlace? by lazy { SkyPlaceSource.read(context) }
+    open val storage: StorageState by lazy { StorageSource.read(context) }
+    open val memory: MemoryState by lazy { MemorySource.read(context) }
+    open val network: NetworkState by lazy { NetworkSource.read(context) }
+    open val uptimeMs: Long by lazy { UptimeSource.read(context) }
 }

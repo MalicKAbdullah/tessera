@@ -48,13 +48,7 @@ object Renderer {
         data: Data = Data(context),
     ): RemoteViews {
         val density = context.resources.displayMetrics.density
-        val scale = bitmapScale(wDp, hDp, density)
-        val bitmap = Bitmap.createBitmap(ceil(wDp * scale).toInt(), ceil(hDp * scale).toInt(), Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        canvas.scale(scale, scale)
-        val scene = Scene(SceneInputs(context, design, style, data, now), canvas, wDp, hDp, scale)
-        drawSurface(scene)
-        design.draw(scene)
+        val (bitmap, scene) = draw(context, design, style, wDp, hDp, bitmapScale(wDp, hDp, density), now, data)
 
         val views = RemoteViews(context.packageName, R.layout.widget_frame)
         views.setImageViewBitmap(R.id.bg, bitmap)
@@ -63,6 +57,26 @@ object Renderer {
         scene.overlays.forEach { views.addView(R.id.overlay, overlay(context, it, wDp, hDp, density)) }
         if (click != null) views.setOnClickPendingIntent(R.id.root, click)
         return views
+    }
+
+    /** The widget's bitmap at [scale] px per dp, and the scene holding the overlays it declared. */
+    fun draw(
+        context: Context,
+        design: WidgetDesign,
+        style: Style,
+        wDp: Float,
+        hDp: Float,
+        scale: Float,
+        now: ZonedDateTime,
+        data: Data,
+    ): Pair<Bitmap, Scene> {
+        val bitmap = Bitmap.createBitmap(ceil(wDp * scale).toInt(), ceil(hDp * scale).toInt(), Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.scale(scale, scale)
+        val scene = Scene(SceneInputs(context, design, style, data, now), canvas, wDp, hDp, scale)
+        drawSurface(scene)
+        design.draw(scene)
+        return bitmap to scene
     }
 
     private fun overlay(context: Context, o: Overlay, wDp: Float, hDp: Float, density: Float): RemoteViews {

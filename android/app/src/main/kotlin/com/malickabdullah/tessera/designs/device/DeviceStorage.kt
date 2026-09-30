@@ -17,7 +17,7 @@ object DeviceStorage : WidgetDesign {
     override val name = "Storage"
     override val blurb = "Free space on the phone, as a dot field on 2×2 and a segmented bar on 4×2."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("dot", 700, text = 0xFFECEDEE, accent = 0xFFE8402F, background = 0xFF121212, radius = 28f, padding = 16f)
+    override val defaults = Style.of("dot", 700, text = 0xFFECEDEE, accent = 0xFFD4FF3A, background = 0xFF121212, radius = 28f, padding = 16f)
 
     override fun liveKey(scene: SceneInputs) = DeviceKit.storageKey(scene)
 

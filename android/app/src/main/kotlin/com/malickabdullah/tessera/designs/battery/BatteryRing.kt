@@ -11,6 +11,7 @@ import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.WidgetDesign
 import kotlin.math.cos
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sin
 
@@ -66,12 +67,15 @@ object BatteryRing : WidgetDesign {
         s.canvas.drawText("%", cx + w / 2f + 1.5f, cy - r * 0.05f - s.capHeight(num) / 2f + s.capHeight(pct), pct)
 
         val lineY = cy + r * 0.42f
-        val caption = s.paint(r * 0.13f * s.k, s.ink(0.62f), font = "mono", weight = 500, align = Paint.Align.CENTER, tracking = 0.04f)
+        val caption = s.paint(max(8.5f, r * 0.13f) * s.k, s.ink(0.62f), font = "mono", weight = 500, align = Paint.Align.CENTER, tracking = 0.04f)
         if (bat.charging) {
             Kit.bolt(s.canvas, cx, cy - r * 0.58f, r * 0.26f, s.fill(color))
         }
         s.textMid(BatteryKit.estimate(s), cx, lineY, caption)
-        s.textMid(BatteryKit.status(s).uppercase(), cx, cy + r * 0.86f, s.paint(r * 0.1f * s.k, s.ink(0.45f), font = "mono", weight = 500, align = Paint.Align.CENTER, tracking = 0.12f))
+        // Below 7dp the status is unreadable; small rings leave it to the caption.
+        if (r * 0.1f >= 7f) {
+            s.textMid(BatteryKit.status(s).uppercase(), cx, cy + r * 0.86f, s.paint(r * 0.1f * s.k, s.ink(0.45f), font = "mono", weight = 500, align = Paint.Align.CENTER, tracking = 0.12f))
+        }
 
         if (bat.charging) {
             val a = Math.toRadians((START + sweep).toDouble())

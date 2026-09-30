@@ -6,6 +6,7 @@ plugins {
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+    id("io.github.takahirom.roborazzi")
 }
 
 val keystoreProperties = Properties()
@@ -61,7 +62,20 @@ android {
             }
         }
     }
+
+    testOptions {
+        unitTests {
+            // Robolectric screenshot tests load the real fonts and layouts.
+            isIncludeAndroidResources = true
+            all {
+                it.maxHeapSize = "4g"
+                // Optional folder for the per-category contact sheets (docs/ARCHITECTURE.md, Visual verification).
+                it.systemProperty("tessera.sheets", (project.findProperty("tessera.sheets") ?: "").toString())
+            }
+        }
+    }
 }
+
 
 flutter {
     source = "../.."
@@ -70,4 +84,7 @@ flutter {
 dependencies {
     implementation("androidx.work:work-runtime-ktx:2.10.1")
     testImplementation("junit:junit:4.13.2")
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("io.github.takahirom.roborazzi:roborazzi:1.76.0")
+    testImplementation("androidx.test:core-ktx:1.6.1")
 }

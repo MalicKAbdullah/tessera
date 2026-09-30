@@ -14,6 +14,7 @@ import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.WidgetDesign
 import kotlin.math.abs
+import kotlin.math.min
 
 object NoteSticky : WidgetDesign {
     override val id = "note.sticky"
@@ -22,7 +23,7 @@ object NoteSticky : WidgetDesign {
     override val blurb = "Grainy paper, a strip of tape, ruled lines and slightly uneven handwriting-style serif."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
     override val defaults = Style.of(
-        "serif", 400, text = 0xFF23252B, accent = 0xFF2F5BD8, background = 0xFFFFE07A,
+        "serif", 400, text = 0xFF1C2010, accent = 0xFF4B5A14, background = 0xFFE3F59A,
         kind = BgKind.GRAIN, radius = 10f, padding = 18f,
     )
     override val signals = setOf(Signal.CONTENT)
@@ -35,7 +36,7 @@ object NoteSticky : WidgetDesign {
         val hasAuthor = content.noteAuthor.isNotBlank()
         val top = b.top + 8f
         val bottom = b.bottom - if (hasAuthor) 22f * s.k else 0f
-        val fit = s.fitText(content.note.ifBlank { "Write something…" }, b.width() - 4f, bottom - top, 1.22f, 12f, 34f)
+        val fit = s.fitText(content.note.ifBlank { "Write something." }, b.width() - 4f, bottom - top, 1.22f, 12f, 34f)
         val lh = fit.size * 1.22f
 
         // Ruled lines, one per text line and continuing to the bottom edge.
@@ -56,8 +57,10 @@ object NoteSticky : WidgetDesign {
             s.canvas.restore()
         }
         if (hasAuthor) {
-            val sign = s.paint(fit.size.coerceAtMost(20f * s.k), s.accent, align = Paint.Align.RIGHT).apply { textSkewX = LEAN }
-            s.canvas.drawText(TextFit.ellipsize("— ${content.noteAuthor}", b.width() * 0.7f, sign.measurer()), b.right, b.bottom - 2f, sign)
+            val sign = s.paint(fit.size.coerceAtMost(15f * s.k), s.accent, align = Paint.Align.RIGHT).apply { textSkewX = LEAN }
+            // The signature ends clear of the curled corner.
+            val right = min(b.right, s.w - foldSize(s) - 4f)
+            s.canvas.drawText(TextFit.ellipsize("— ${content.noteAuthor}", right - b.left, sign.measurer()), right, b.bottom - 2f, sign)
         }
         tape(s)
         fold(s)
@@ -75,9 +78,11 @@ object NoteSticky : WidgetDesign {
         s.canvas.restore()
     }
 
+    private fun foldSize(s: Scene) = (s.minSide * 0.13f).coerceIn(14f, 30f)
+
     /** Curled bottom-right corner: a lit triangle over a soft shadow. */
     private fun fold(s: Scene) {
-        val f = (s.minSide * 0.13f).coerceIn(14f, 30f)
+        val f = foldSize(s)
         val shadow = Path().apply {
             moveTo(s.w - f, s.h)
             lineTo(s.w, s.h - f)

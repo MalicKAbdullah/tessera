@@ -28,7 +28,7 @@ object PhotoPolaroid : WidgetDesign {
     override val toggles = listOf(Toggle.Switch("tilt", "Tilt", true), PhotoKit.showToggle, PhotoKit.captionToggle("date"))
     override val signals = setOf(Signal.CONTENT)
 
-    private const val PAPER = 0xFFF6F3EC.toInt()
+    private const val PAPER = 0xFFF3F4F6.toInt()
 
     /** Print proportions: photo window is square, the chin 3.4x the side margin. */
     private const val ASPECT = 0.84f

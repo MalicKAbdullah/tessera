@@ -49,7 +49,7 @@ object SkyGolden : WidgetDesign {
             b.top + 9f,
             SkyKit.label(s, 9f, if (live) SkyKit.GOLD else s.ink(0.55f)),
         )
-        s.canvas.drawText(SkyKit.placeName(s), b.right, b.top + 9f, SkyKit.label(s, 9f, align = Paint.Align.RIGHT))
+        s.canvas.drawText(SkyKit.placeName(place), b.right, b.top + 9f, SkyKit.label(s, 9f, align = Paint.Align.RIGHT))
         val heroText = next?.let { (a, e) -> "${SkyKit.time(s, a)} – ${SkyKit.time(s, e)}" } ?: "Not today"
         val heroH = if (large) b.height() * 0.2f else b.height() * 0.3f
         val hero = s.paint(s.fit(heroText, b.width(), heroH) * s.hero, s.text)

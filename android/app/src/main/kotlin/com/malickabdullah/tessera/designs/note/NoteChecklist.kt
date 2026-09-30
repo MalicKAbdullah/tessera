@@ -18,7 +18,7 @@ object NoteChecklist : WidgetDesign {
     override val name = "Checklist"
     override val blurb = "Your to-do items with checkboxes and a progress bar; tick them off in the app."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFF1D1D1F, accent = 0xFF2F8F5B, background = 0xFFEEF0F3, radius = 28f, padding = 16f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFF1D1D1F, accent = 0xFF16171A, background = 0xFFEEF0F3, radius = 28f, padding = 16f)
     override val signals = setOf(Signal.CONTENT)
 
     override fun draw(s: Scene) {
@@ -37,8 +37,11 @@ object NoteChecklist : WidgetDesign {
         s.canvas.drawRoundRect(bar, 2f, 2f, s.fill(s.ink(0.1f)))
         if (done > 0) s.canvas.drawRoundRect(RectF(bar.left, bar.top, bar.left + bar.width() * done / items.size, bar.bottom), 2f, 2f, s.fill(s.accent))
 
-        val list = RectF(b.left, bar.bottom + 8f, b.right, b.bottom)
         val rowH = 26f * s.k
+        // A tall widget with a short list closes on a large progress figure instead of blank space.
+        val summaryH = 64f * s.k
+        val summary = b.bottom - (bar.bottom + 8f) - items.size * rowH >= summaryH + 12f
+        val list = RectF(b.left, bar.bottom + 8f, b.right, if (summary) b.bottom - summaryH else b.bottom)
         val capacity = (list.height() / rowH).toInt().coerceAtLeast(1)
         val overflow = items.size > capacity
         val shown = if (overflow) capacity - 1 else items.size
@@ -59,6 +62,20 @@ object NoteChecklist : WidgetDesign {
         if (overflow) {
             val more = s.paint(12f * s.k, s.ink(0.5f), font = "mono", weight = 500, tracking = 0.06f)
             s.canvas.drawText("+ ${items.size - shown} more", list.left, list.top + rowH * shown + rowH / 2f + s.capHeight(more) / 2f, more)
+        }
+        if (summary) {
+            s.canvas.drawLine(b.left, b.bottom - summaryH, b.right, b.bottom - summaryH, s.stroke(s.ink(0.1f), 1f, round = false))
+            val pct = if (real.isEmpty()) 0 else done * 100 / items.size
+            val big = s.paint(40f * s.k, s.text, weight = 500, tracking = -0.02f)
+            s.canvas.drawText("$pct%", b.left, b.bottom - 4f, big)
+            val label = s.paint(9.5f * s.k, s.ink(0.5f), font = "mono", weight = 500, align = Paint.Align.RIGHT, tracking = 0.12f)
+            val left = items.size - done
+            val note = when {
+                real.isEmpty() -> "NOTHING YET"
+                left == 0 -> "ALL DONE"
+                else -> "$left LEFT"
+            }
+            s.canvas.drawText(note, b.right, b.bottom - 8f, label)
         }
     }
 

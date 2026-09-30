@@ -10,6 +10,7 @@ import com.malickabdullah.tessera.engine.Signal
 import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.WidgetDesign
+import com.malickabdullah.tessera.engine.luminance
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -48,11 +49,15 @@ object BatteryNumeric : WidgetDesign {
         val cap = s.capHeight(num)
         val baseline = numArea.centerY() + cap / 2f
         s.canvas.drawText("${bat.level}", numArea.left - size * 0.02f, baseline, num)
-        val pct = s.paint(size * 0.28f, color)
+        // A bright accent vanishes on a light surface; the sign then takes the ink.
+        val pct = s.paint(size * 0.28f, if (luminance(s.style.bg.color) > 0.55f) s.ink(0.6f) else color)
         s.canvas.drawText("%", numArea.left + num.measureText("${bat.level}") + 3f, baseline - cap + s.capHeight(pct), pct)
 
-        val status = if (bat.charging || bat.full) BatteryKit.status(s) + " · " + BatteryKit.estimate(s) else BatteryKit.estimate(s)
-        s.canvas.drawText(status.uppercase(), b.left, b.bottom - 2f, s.paint(10f * s.k, s.ink(0.7f), font = "mono", weight = 500, tracking = 0.1f))
+        val line = s.paint(10f * s.k, s.ink(0.7f), font = "mono", weight = 500, tracking = 0.1f)
+        val full = if (bat.charging || bat.full) BatteryKit.status(s) + " · " + BatteryKit.estimate(s) else BatteryKit.estimate(s)
+        // Narrow widgets drop the charger type before anything is cut off.
+        val status = if (line.measureText(full.uppercase()) <= b.width()) full else BatteryKit.estimate(s)
+        s.canvas.drawText(status.uppercase(), b.left, b.bottom - 2f, line)
     }
 
     private fun wave(s: Scene, y: Float, phase: Float, closed: Boolean): Path = Path().apply {

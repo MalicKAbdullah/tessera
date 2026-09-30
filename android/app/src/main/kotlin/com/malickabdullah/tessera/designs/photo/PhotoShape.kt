@@ -11,6 +11,7 @@ import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.Toggle
 import com.malickabdullah.tessera.engine.WidgetDesign
+import com.malickabdullah.tessera.engine.withAlpha
 import kotlin.math.max
 import kotlin.math.min
 
@@ -58,7 +59,13 @@ object PhotoShape : WidgetDesign {
             s.canvas.drawPath(path(mask, RectF(shapeRect).apply { offset(d, d) }), s.fill(s.accent))
         }
         val clip = path(mask, shapeRect)
-        if (photo == null) PhotoKit.empty(s, shapeRect, clip, label = !wide) else PhotoKit.cover(s, photo, shapeRect, clip)
+        if (photo == null) {
+            // The empty landscape is a translucent wash; the opaque surface stops the echo showing through it.
+            s.canvas.drawPath(clip, s.fill(withAlpha(s.style.bg.color, 1f)))
+            PhotoKit.empty(s, shapeRect, clip, label = !wide, centred = true)
+        } else {
+            PhotoKit.cover(s, photo, shapeRect, clip)
+        }
 
         if (wide) {
             val text = RectF(shapeRect.right + 16f, b.top, b.right, b.bottom)

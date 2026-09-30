@@ -260,7 +260,7 @@ const swatches = <Color>[
   Color(0xFFD4FF3A),
   Color(0xFF5CE1E6),
   Color(0xFF8F7BFF),
-  Color(0xFFFF5A1F),
+  Color(0xFFB8C4FF),
   Color(0xFF9AD0C2),
   Color(0xFF8FB3FF),
   Color(0xFF2F6BFF),

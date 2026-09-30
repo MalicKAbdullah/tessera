@@ -97,10 +97,17 @@ object CalendarMatrix : WidgetDesign {
             val e = events.getOrNull(i)
             if (e == null) {
                 s.canvas.drawCircle(r.left + 3f, top + rowH * 0.5f, 2.5f, s.fill(s.ink(0.12f)))
-                s.canvas.drawRoundRect(RectF(r.left + 10f, top + rowH * 0.5f - 1.5f, r.left + r.width() * (0.7f - 0.15f * i), top + rowH * 0.5f + 1.5f), 1.5f, 1.5f, s.fill(s.ink(0.07f)))
-                if (i == events.size) {
-                    val msg = if (s.data.calendar.granted) (if (i == 0) "NOTHING SCHEDULED" else "") else "CONNECT CALENDAR"
-                    if (msg.isNotEmpty()) s.canvas.drawText(msg, r.right, top + rowH * 0.5f + 3f, CalendarKit.mono(s, 7.5f, s.ink(0.4f), Paint.Align.RIGHT))
+                // The first empty row says why the list is empty; the rest are placeholder bars.
+                val msg = when {
+                    i != events.size -> ""
+                    !s.data.calendar.granted -> "CONNECT CALENDAR"
+                    i == 0 -> "NOTHING SCHEDULED"
+                    else -> ""
+                }
+                if (msg.isNotEmpty()) {
+                    s.canvas.drawText(msg, r.left + 10f, top + rowH * 0.5f + 3f, CalendarKit.mono(s, 8f, s.ink(0.5f)))
+                } else {
+                    s.canvas.drawRoundRect(RectF(r.left + 10f, top + rowH * 0.5f - 1.5f, r.left + r.width() * (0.7f - 0.15f * i), top + rowH * 0.5f + 1.5f), 1.5f, 1.5f, s.fill(s.ink(0.07f)))
                 }
                 continue
             }

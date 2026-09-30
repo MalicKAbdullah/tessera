@@ -50,10 +50,11 @@ object PhotoFull : WidgetDesign {
 
         val b = s.box
         val size = s.fit(caption, b.width(), 22f).coerceAtMost(15f * s.k).coerceAtLeast(9f)
-        val title = s.paint(size, s.text)
+        // The caption always sits on the dark scrim, whatever the text colour is.
+        val title = s.paint(size, 0xFFFFFFFF.toInt())
         s.canvas.drawText(caption, b.left, b.bottom - title.fontMetrics.descent, title)
         if (secondary != null) {
-            val meta = s.paint(max(7f, size * 0.58f), s.ink(0.72f), font = "mono", weight = 500, tracking = 0.1f)
+            val meta = s.paint(max(7f, size * 0.58f), 0xB8FFFFFF.toInt(), font = "mono", weight = 500, tracking = 0.1f)
             s.canvas.drawText(secondary, b.left, b.bottom - title.fontMetrics.descent - size * 1.15f, meta)
         }
     }

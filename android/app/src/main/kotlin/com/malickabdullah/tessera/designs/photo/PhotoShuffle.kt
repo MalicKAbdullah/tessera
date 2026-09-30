@@ -12,6 +12,7 @@ import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.Toggle
 import com.malickabdullah.tessera.engine.WidgetDesign
+import com.malickabdullah.tessera.engine.withAlpha
 import kotlin.math.max
 import kotlin.math.min
 
@@ -54,6 +55,8 @@ object PhotoShuffle : WidgetDesign {
             val clip = PhotoKit.rounded(back, radius)
             val photo = PhotoKit.pick(s, choice, depth).takeIf { photos.size > depth }
             if (photo == null) {
+                // Opaque surface under the tint, so the prints stack instead of showing through each other.
+                s.canvas.drawPath(clip, s.fill(withAlpha(s.style.bg.color, 1f)))
                 s.canvas.drawPath(clip, s.fill(s.ink(0.08f + 0.05f * (2 - depth))))
             } else {
                 PhotoKit.cover(s, photo, back, clip)
@@ -64,6 +67,7 @@ object PhotoShuffle : WidgetDesign {
 
         val clip = PhotoKit.rounded(card, radius)
         if (photos.isEmpty()) {
+            s.canvas.drawPath(clip, s.fill(withAlpha(s.style.bg.color, 1f)))
             PhotoKit.empty(s, card, clip)
             return
         }

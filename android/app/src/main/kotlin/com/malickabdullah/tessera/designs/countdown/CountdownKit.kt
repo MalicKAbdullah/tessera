@@ -41,25 +41,29 @@ internal class CountdownView(
     val hero: String get() = if (days == 0L) "Today" else reading.number.toString()
 }
 
-internal fun SceneInputs.countdown(): CountdownView {
+/** The user's countdown title and date; next New Year until a date is picked. */
+private fun SceneInputs.primary(): CountdownMath.Item {
     val content = data.content
-    val today = now.toLocalDate()
-    val target = content.countdownDate ?: LocalDate.of(today.year + 1, 1, 1)
-    return CountdownView(
-        title = content.countdownTitle.ifBlank { "Countdown" },
-        target = target,
-        start = content.countdownStart ?: target.minusYears(1),
-        days = CountdownMath.days(today, target),
-        countUp = choice("mode") == "up",
+    return CountdownMath.Item(
+        content.countdownTitle.ifBlank { "Countdown" },
+        content.countdownDate ?: LocalDate.of(now.toLocalDate().year + 1, 1, 1),
     )
 }
 
-internal fun SceneInputs.countdownItems(): List<CountdownMath.Item> {
-    val content = data.content
-    val primary = countdown()
-    return listOf(CountdownMath.Item(primary.title, primary.target)) +
-        content.events.map { CountdownMath.Item(it.title, it.date) }
+/** The primary countdown with its count mode; only designs declaring [countModeToggle] call it. */
+internal fun SceneInputs.countdown(): CountdownView {
+    val primary = primary()
+    return CountdownView(
+        title = primary.title,
+        target = primary.date,
+        start = data.content.countdownStart ?: primary.date.minusYears(1),
+        days = CountdownMath.days(now.toLocalDate(), primary.date),
+        countUp = choice(countModeToggle.key) == "up",
+    )
 }
+
+internal fun SceneInputs.countdownItems(): List<CountdownMath.Item> =
+    listOf(primary()) + data.content.events.map { CountdownMath.Item(it.title, it.date) }
 
 private val shortDate = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault())
 private val dayMonth = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())

@@ -105,9 +105,8 @@ date-only state with a small "connect calendar" hint.
 Sun & Moon is computed offline in `data/Astronomy.kt` (NOAA solar equations;
 Meeus ch. 48–49 for lunar illumination and phase instants), tested against
 PyEphem references in `AstronomyTest`. `SkyPlaceSource` uses the weather
-city, else the last coarse fix only if the user already granted coarse
-location in Settings (the app never requests it), else designs draw "set a
-place". Device data (`data/Device.kt`) uses only permission-free APIs:
+city; before one is set, sky designs draw "set a place". Tessera declares no
+location permission. Device data (`data/Device.kt`) uses only permission-free APIs:
 `StatFs` on the data partition, `ActivityManager.MemoryInfo`,
 `SystemClock.elapsedRealtime`, and `NetworkCapabilities` (normal
 `ACCESS_NETWORK_STATE`; Wi-Fi RSSI from API 29). Both categories refresh
@@ -169,13 +168,56 @@ screen therefore show the same pixels.
 - Every animation reads `Motion.reduced` (the system "remove animations"
   setting) and settles instantly when it is on.
 
+## Visual verification
+
+Every design is rendered on the JVM by the real engine path
+(`Renderer.draw`, the same call `Renderer.build` makes) with Robolectric's
+native graphics, so text, paths and bitmaps go through real Skia. Nothing
+needs a device or emulator.
+
+| Piece | Role |
+| --- | --- |
+| `visual/Fixtures.kt` | Fixed data: Wednesday 30 Sep 2026 09:41 in Berlin, battery 64 % (82 % charging, 9 % with no history), a Berlin forecast, a day of calendar events, countdown, note, checklist, three procedurally painted JPEG photos, device stats. `FixedData` overrides every `Data` source. |
+| `visual/Shots.kt` | The shot list: design × size × {light, dark} × the category's data states (full, empty, calendar denied, weather waiting/offline, battery charging, device offline). Draws the widget at 420 dpi (2.625 px/dp, capped by `Renderer.bitmapScale`) and composites its overlays. |
+| `WidgetScreenshotTest` | One test per category; records or compares each shot as a golden under `android/app/src/test/snapshots/<category>/` (stored at half resolution). Also fails if a TextClock's text is wider or taller than its box. |
+| `ContactSheetTest` | Writes one PNG per category (rows: design × size, columns: theme × state) when given a folder. |
+
+**Themes.** A design's shipped defaults are used for the theme they belong to
+(light or dark surface); for the other theme the colours are swapped to the
+brand palette (dark: `#F2F3F5` on `#0B0C0E` with lime `#D4FF3A`; light:
+`#16171A` on `#F2F3F5` with `#2F6BFF`), keeping font, surface kind and
+toggles.
+
+**Overlays in screenshots.** TextClock, AnalogClock and ViewFlipper only
+draw inside a launcher, so the test composites them into the bitmap: a
+TextClock's fixed time is formatted with its own pattern and drawn in its
+face, size, colour and gravity using `includeFontPadding=false` line metrics;
+analog hands point at 09:41; a flipper shows its first frame. Real TextClock
+glyph placement can differ from this by a pixel or so.
+
+```sh
+cd android
+./gradlew :app:verifyRoborazziDebug            # compare with the goldens (CI runs this)
+./gradlew :app:recordRoborazziDebug            # rewrite goldens after an intentional change
+./gradlew :app:testDebugUnitTest --tests '*ContactSheetTest' -Ptessera.sheets=/tmp/sheets
+```
+
+A failed comparison leaves `*_compare.png` diffs in
+`build/app/outputs/roborazzi/`. Commit re-recorded goldens with the change
+that caused them.
+
+Flutter chrome has goldens too: `test/goldens/` covers the gallery, editor
+and intro in light and dark at 412×915 with a fake engine
+(`flutter test --update-goldens test/goldens` to rewrite). Their comparator
+tolerates small font rasterisation differences between macOS and Linux.
+
 ## Customization model (`lib/src/features/widgets/models/widget_style.dart`)
 
 `WidgetStyle` v2, shared verbatim with Kotlin:
 
 ```json
 {"v":2,"font":"dot","weight":700,"scale":1.0,"tracking":0.0,
- "text":4294111467,"accent":4294947872,
+ "text":4294111467,"accent":4292149050,
  "bg":{"kind":"solid|gradient|dots|grain|transparent|photo","color":…,"color2":…,"angle":135,"photo":null},
  "opacity":1.0,"radius":30,"padding":16,"toggles":{"hours":"24","pulse":true}}
 ```
@@ -267,7 +309,9 @@ Work only inside `designs/<category>/` (plus a test file). Steps:
    `JSONObject`) are stubs there, so keep the tested logic in plain functions.
 5. **Gates**: `dart format --output=none --set-exit-if-changed .`,
    `dart analyze --fatal-infos`, `flutter test`, `flutter build apk --debug`,
-   `cd android && ./gradlew :app:testDebugUnitTest`.
+   `cd android && ./gradlew :app:testDebugUnitTest :app:verifyRoborazziDebug`.
+   A new design has no goldens yet: record them (see Visual verification)
+   and look at every one before committing.
 6. **Document** it: add its row to the Designs table below.
 
 Changes outside a category folder (shared files, one owner at a time):
