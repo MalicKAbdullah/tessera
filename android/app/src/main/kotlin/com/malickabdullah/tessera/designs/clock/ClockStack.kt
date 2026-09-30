@@ -20,7 +20,7 @@ object ClockStack : WidgetDesign {
     override val name = "Bold Stack"
     override val blurb = "Hours over minutes, set big and heavy, with a ruler of the day along the edge."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 700, text = 0xFF141414, accent = 0xFFFF5A1F, background = 0xFFEDE9E1, radius = 30f, padding = 16f, tracking = -0.02f)
+    override val defaults = Style.of("grotesk", 700, text = 0xFF141414, accent = 0xFF2F6BFF, background = 0xFFEEF0F3, radius = 30f, padding = 16f, tracking = -0.02f)
     override val toggles = listOf(hourFormatToggle, Toggle.Switch("ruler", "Hour ruler", true))
 
     override fun liveKey(scene: SceneInputs) = if (scene.flag("ruler")) "${scene.now.hour}" else null

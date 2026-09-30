@@ -22,7 +22,7 @@ object WeatherHourly : WidgetDesign {
     override val name = "Hourly Curve"
     override val blurb = "The next hours as a smooth temperature curve over bars of rain chance, with the day's high and low marked."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFF15161A, accent = 0xFFFF6A2B, background = 0xFFF3F1EC, radius = 30f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFF15161A, accent = 0xFF2F6BFF, background = 0xFFF2F3F5, radius = 30f)
     override val toggles = listOf(WeatherKit.unitsToggle, hourFormatToggle)
     override val signals = setOf(Signal.WEATHER, Signal.CONTENT)
 

@@ -21,7 +21,7 @@ object CountdownTicket : WidgetDesign {
     override val name = "Boarding Pass"
     override val blurb = "A ticket for the trip ahead: event, date, a route line that fills as the day nears, and a tear-off stub with the days left."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("condensed", 500, text = 0xFF1C1A17, accent = 0xFFD9482B, background = 0xFFF2E9D8, radius = 22f, padding = 16f)
+    override val defaults = Style.of("condensed", 500, text = 0xFF16171A, accent = 0xFF2F5BD8, background = 0xFFEEF0F3, radius = 22f, padding = 16f)
     override val toggles = listOf(countModeToggle)
     override val signals = setOf(Signal.CONTENT)
 

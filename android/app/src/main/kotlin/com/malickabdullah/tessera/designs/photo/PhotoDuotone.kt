@@ -20,7 +20,7 @@ object PhotoDuotone : WidgetDesign {
     override val name = "Duotone"
     override val blurb = "A two-ink poster: shadows in the surface colour, highlights in your accent."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("condensed", 700, text = 0xFFFFF1E6, accent = 0xFFFF6A3D, background = 0xFF1B1035, radius = 28f, padding = 14f)
+    override val defaults = Style.of("condensed", 700, text = 0xFFF3F0FF, accent = 0xFF5CE1E6, background = 0xFF1B1035, radius = 28f, padding = 14f)
     override val toggles = listOf(PhotoKit.showToggle, PhotoKit.captionToggle("date"), Toggle.Switch("grain", "Film grain", true))
     override val signals = setOf(Signal.CONTENT)
 

@@ -18,7 +18,7 @@ object NoteChecklist : WidgetDesign {
     override val name = "Checklist"
     override val blurb = "Your to-do items with checkboxes and a progress bar; tick them off in the app."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFF1D1D1F, accent = 0xFF2F8F5B, background = 0xFFF6F3EC, radius = 28f, padding = 16f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFF1D1D1F, accent = 0xFF2F8F5B, background = 0xFFEEF0F3, radius = 28f, padding = 16f)
     override val signals = setOf(Signal.CONTENT)
 
     override fun draw(s: Scene) {

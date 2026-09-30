@@ -19,7 +19,7 @@ object WeatherMatrix : WidgetDesign {
     override val name = "Dot Matrix"
     override val blurb = "Temperature lit on an LED grid, with a 24-dot track whose brightness is the chance of rain each hour."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("dot", 700, text = 0xFFF2F0EB, accent = 0xFFFF3B30, background = 0xFF0C0C0D, radius = 30f)
+    override val defaults = Style.of("dot", 700, text = 0xFFF2F3F5, accent = 0xFFFF3B30, background = 0xFF0C0C0D, radius = 30f)
     override val toggles = listOf(WeatherKit.unitsToggle)
     override val signals = setOf(Signal.WEATHER, Signal.CONTENT)
 

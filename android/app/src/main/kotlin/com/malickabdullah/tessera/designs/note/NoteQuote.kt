@@ -16,7 +16,7 @@ object NoteQuote : WidgetDesign {
     override val name = "Big Quote"
     override val blurb = "Large serif type with a hanging opening quotation mark and a ruled attribution."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("serif", 400, text = 0xFFF1EDE4, accent = 0xFFE8B04B, background = 0xFF121212, radius = 30f, padding = 18f)
+    override val defaults = Style.of("serif", 400, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF121212, radius = 30f, padding = 18f)
     override val signals = setOf(Signal.CONTENT)
 
     override fun draw(s: Scene) {

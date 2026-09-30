@@ -19,7 +19,7 @@ object ClockMatrix : WidgetDesign {
     override val name = "Dot Matrix"
     override val blurb = "LED-grid time over a lattice of unlit dots, with a 24-dot track of the day."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("dot", 700, text = 0xFFF2F0EB, accent = 0xFFFFB020, background = 0xFF0C0C0D, radius = 30f)
+    override val defaults = Style.of("dot", 700, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF0C0C0D, radius = 30f)
     override val toggles = listOf(
         hourFormatToggle,
         Toggle.Switch("pulse", "Pulsing LED", true),

@@ -25,7 +25,7 @@ object WeatherSky : WidgetDesign {
     override val name = "Sky"
     override val blurb = "A card painted in the colours of the sky outside: blue noon, amber dusk, slate rain, starry night."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("sans", 300, text = 0xFFFFFFFF, accent = 0xFFFFD27A, background = 0xFF2E7BE6, radius = 30f)
+    override val defaults = Style.of("sans", 300, text = 0xFFFFFFFF, accent = 0xFFBFE3FF, background = 0xFF2E7BE6, radius = 30f)
     override val toggles = listOf(WeatherKit.unitsToggle, hourFormatToggle, WeatherKit.motionToggle)
     override val signals = setOf(Signal.WEATHER, Signal.CONTENT)
     override val motion = WeatherKit.MOTION

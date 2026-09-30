@@ -20,7 +20,7 @@ object PhotoFull : WidgetDesign {
     override val name = "Full Bleed"
     override val blurb = "Your photo edge to edge, with a caption resting on a soft scrim."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFFFFFFF, accent = 0xFFFF5A36, background = 0xFF141414, radius = 28f, padding = 14f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFFFFFFF, accent = 0xFFD4FF3A, background = 0xFF141414, radius = 28f, padding = 14f)
     override val toggles = listOf(PhotoKit.showToggle, PhotoKit.captionToggle("text"), Toggle.Switch("inset", "Inset frame", false))
     override val signals = setOf(Signal.CONTENT)
 

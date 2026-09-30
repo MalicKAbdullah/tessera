@@ -18,7 +18,7 @@ object NoteDaily : WidgetDesign {
     override val name = "Daily Quote"
     override val blurb = "A new public-domain quotation every day, with author and source."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("serif", 400, text = 0xFFEFE9DA, accent = 0xFFD6B26A, background = 0xFF14231D, radius = 30f, padding = 18f)
+    override val defaults = Style.of("serif", 400, text = 0xFFE6EEE9, accent = 0xFFA8E6C8, background = 0xFF14231D, radius = 30f, padding = 18f)
     override val motion = null
 
     override fun liveKey(scene: SceneInputs) = scene.now.toLocalDate().toString()
