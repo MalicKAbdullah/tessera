@@ -14,6 +14,7 @@ class TesseraStore {
 
   static const _contentKey = 'content';
   static const _schemaKey = 'schema';
+  static const _introKey = 'introSeen';
   static String _draftKey(String design) => 'draft.$design';
 
   /// v0.1 kept one style per widget kind under `style.<kind>`.
@@ -46,6 +47,11 @@ class TesseraStore {
 
   Future<void> saveContent(WidgetContent content) =>
       _prefs.setString(_contentKey, jsonEncode(content.toJson()));
+
+  /// The first-launch intro plays until it has been watched or skipped once.
+  bool get introSeen => _prefs.getBool(_introKey) ?? false;
+
+  Future<void> markIntroSeen() => _prefs.setBool(_introKey, true);
 
   bool get migrated => _prefs.getInt(_schemaKey) == WidgetStyle.version;
 
