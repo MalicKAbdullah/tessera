@@ -69,7 +69,7 @@ android {
             isIncludeAndroidResources = true
             all {
                 it.maxHeapSize = "4g"
-                // Optional folder for the per-category contact sheets (see docs/VISUAL.md).
+                // Optional folder for the per-category contact sheets (docs/ARCHITECTURE.md, Visual verification).
                 it.systemProperty("tessera.sheets", (project.findProperty("tessera.sheets") ?: "").toString())
             }
         }
