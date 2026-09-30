@@ -16,12 +16,18 @@ import com.malickabdullah.tessera.widgets.ClockWidget
 import com.malickabdullah.tessera.widgets.CountdownLargeWidget
 import com.malickabdullah.tessera.widgets.CountdownSmallWidget
 import com.malickabdullah.tessera.widgets.CountdownWidget
+import com.malickabdullah.tessera.widgets.DeviceLargeWidget
+import com.malickabdullah.tessera.widgets.DeviceSmallWidget
+import com.malickabdullah.tessera.widgets.DeviceWidget
 import com.malickabdullah.tessera.widgets.NoteLargeWidget
 import com.malickabdullah.tessera.widgets.NoteSmallWidget
 import com.malickabdullah.tessera.widgets.NoteWidget
 import com.malickabdullah.tessera.widgets.PhotoLargeWidget
 import com.malickabdullah.tessera.widgets.PhotoSmallWidget
 import com.malickabdullah.tessera.widgets.PhotoWidget
+import com.malickabdullah.tessera.widgets.SkyLargeWidget
+import com.malickabdullah.tessera.widgets.SkySmallWidget
+import com.malickabdullah.tessera.widgets.SkyWidget
 import com.malickabdullah.tessera.widgets.TesseraProvider
 import com.malickabdullah.tessera.widgets.WeatherLargeWidget
 import com.malickabdullah.tessera.widgets.WeatherSmallWidget
@@ -62,6 +68,12 @@ object Slots {
         Slot(Category.PHOTO, SizeClass.SMALL, PhotoSmallWidget::class.java),
         Slot(Category.PHOTO, SizeClass.WIDE, PhotoWidget::class.java),
         Slot(Category.PHOTO, SizeClass.LARGE, PhotoLargeWidget::class.java),
+        Slot(Category.SKY, SizeClass.SMALL, SkySmallWidget::class.java),
+        Slot(Category.SKY, SizeClass.WIDE, SkyWidget::class.java),
+        Slot(Category.SKY, SizeClass.LARGE, SkyLargeWidget::class.java),
+        Slot(Category.DEVICE, SizeClass.SMALL, DeviceSmallWidget::class.java),
+        Slot(Category.DEVICE, SizeClass.WIDE, DeviceWidget::class.java),
+        Slot(Category.DEVICE, SizeClass.LARGE, DeviceLargeWidget::class.java),
     )
 
     fun of(provider: ComponentName): Slot = all.first { it.provider.name == provider.className }

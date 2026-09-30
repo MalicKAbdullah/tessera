@@ -7,4 +7,6 @@
     <string name="widget_countdown">Days until what matters</string>
     <string name="widget_note">A line worth keeping in view</string>
     <string name="widget_photo">Your photos — framed, masked, dotted and shuffled</string>
+    <string name="widget_sky">Sun and moon — daylight, golden hour and phase, offline</string>
+    <string name="widget_device">Storage, memory, network and uptime</string>
 </resources>
