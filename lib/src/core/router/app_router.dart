@@ -4,36 +4,63 @@ import 'package:go_router/go_router.dart';
 import '../../features/editor/screens/editor_screen.dart';
 import '../../features/gallery/screens/gallery_screen.dart';
 import '../../features/widgets/services/engine.dart';
-import '../theme.dart';
+import '../design/tokens.dart';
 
-CustomTransitionPage<void> _fade(GoRouterState state, Widget child) =>
-    CustomTransitionPage(
-      key: state.pageKey,
-      transitionDuration: TesseraTheme.motion,
-      reverseTransitionDuration: const Duration(milliseconds: 320),
-      child: child,
-      transitionsBuilder: (context, animation, _, child) => FadeTransition(
-        opacity: CurvedAnimation(parent: animation, curve: TesseraTheme.ease),
-        child: child,
-      ),
-    );
+/// One transition for every screen: the incoming page fades up from a
+/// slightly smaller scale while the outgoing one recedes. Shared previews
+/// fly between them as heroes.
+Page<void> _page(BuildContext context, GoRouterState state, Widget child) {
+  final reduced = Motion.reduced(context);
+  return CustomTransitionPage(
+    key: state.pageKey,
+    transitionDuration: reduced ? Duration.zero : Motion.page,
+    reverseTransitionDuration: reduced
+        ? Duration.zero
+        : const Duration(milliseconds: 340),
+    child: child,
+    transitionsBuilder: (context, animation, secondary, child) {
+      final inward = CurvedAnimation(
+        parent: animation,
+        curve: Motion.ease,
+        reverseCurve: Motion.ease.flipped,
+      );
+      final outward = CurvedAnimation(parent: secondary, curve: Motion.ease);
+      return FadeTransition(
+        opacity: inward,
+        child: ScaleTransition(
+          scale: Tween(begin: 0.965, end: 1.0).animate(inward),
+          child: FadeTransition(
+            opacity: Tween(begin: 1.0, end: 0.0).animate(outward),
+            child: ScaleTransition(
+              scale: Tween(begin: 1.0, end: 1.03).animate(outward),
+              child: child,
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
 
 final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: '/',
-      builder: (context, state) => const GalleryScreen(),
+      pageBuilder: (context, state) =>
+          _page(context, state, const GalleryScreen()),
       routes: [
         GoRoute(
           path: 'design/:design',
-          pageBuilder: (context, state) => _fade(
+          pageBuilder: (context, state) => _page(
+            context,
             state,
             DraftEditorScreen(design: state.pathParameters['design']!),
           ),
         ),
         GoRoute(
           path: 'widget/:id',
-          pageBuilder: (context, state) => _fade(
+          pageBuilder: (context, state) => _page(
+            context,
             state,
             PlacedEditorScreen(
               widgetId: int.parse(state.pathParameters['id']!),
@@ -42,13 +69,16 @@ final appRouter = GoRouter(
         ),
         GoRoute(
           path: 'configure/:id',
-          builder: (context, state) => GalleryScreen(
-            configuring: int.parse(state.pathParameters['id']!),
+          pageBuilder: (context, state) => _page(
+            context,
+            state,
+            GalleryScreen(configuring: int.parse(state.pathParameters['id']!)),
           ),
           routes: [
             GoRoute(
               path: ':design',
-              pageBuilder: (context, state) => _fade(
+              pageBuilder: (context, state) => _page(
+                context,
                 state,
                 PlacedEditorScreen(
                   widgetId: int.parse(state.pathParameters['id']!),
