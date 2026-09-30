@@ -82,6 +82,7 @@ The engine stores the key per instance and redraws only when it changes.
 | **Charging trigger** (WorkManager, `requiresCharging`) | Armed whenever a battery design renders unplugged; runs the moment power connects. `ACTION_POWER_CONNECTED`/`DISCONNECTED`/`BATTERY_LOW`/`OKAY` are not delivered to manifest receivers since Android 8. |
 | **Periodic refresh** (WorkManager, 15 min) | `Engine.tick`: redraws anything whose key moved. |
 | **Weather** (WorkManager, 60 min, network) | Fetches Open-Meteo into the cache, then redraws `Signal.WEATHER` designs. Also runs once when the city changes, when the app opens, and from the live ticker and 15-minute refresh whenever a weather widget is placed and the cache is stale (>30 min, another city, or an older `CACHE_VERSION`). A failed fetch (network, non-200, unparseable body) retries and keeps the last good forecast. |
+| **Calendar changes** (WorkManager content-URI trigger on `CalendarContract.CONTENT_URI`) | Runs a few seconds after any event is added, edited or removed, even with the app closed; redraws `Signal.CALENDAR` designs and re-arms itself (triggers are one-shot). Armed only while READ_CALENDAR is granted. |
 | **App foreground** (`MainActivity.onResume`) | Redraws everything; a runtime battery receiver redraws on every level/plug change while the app is open. |
 | **System events** (`SystemEventsReceiver`) | Boot, package update, time set, time zone and locale changes redraw everything. |
 
@@ -90,7 +91,16 @@ bitmap is never older than the render that produced it. Battery comes from the
 sticky `ACTION_BATTERY_CHANGED` intent plus `BatteryManager` (level, status,
 plug type, temperature, voltage, health, `computeChargeTimeRemaining` on API
 28+). `BatteryHistory` samples the level on each render/tick for 24-hour
-charts and drain estimates.
+charts and drain estimates. Calendar events come from a `CalendarContract.Instances`
+query over the next 14 days (visible calendars, declined invitations dropped,
+all-day events re-anchored to local midnight); calendar live keys include an
+event fingerprint, so the live ticker also catches changes within a minute.
+
+**Calendar permission.** READ_CALENDAR is requested from the editor's Calendar
+section: a rationale sheet first, then the system dialog (`requestCalendar`),
+or system settings once it is denied for good (`calendarAccess` reports
+`granted`, `ask` or `blocked`). Without it every calendar design draws its
+date-only state with a small "connect calendar" hint.
 
 ### Photos
 
@@ -204,7 +214,7 @@ Work only inside `designs/<category>/` (plus a test file). Steps:
    - `toggles`: `Toggle.Switch` / `Toggle.Choice` (reuse `hourFormatToggle`
      for clocks); read with `s.flag(key)` / `s.choice(key)`. The editor shows
      them automatically.
-   - `signals`: data it depends on (`BATTERY`, `WEATHER`, `CONTENT`, `ALARM`).
+   - `signals`: data it depends on (`BATTERY`, `WEATHER`, `CONTENT`, `ALARM`, `CALENDAR`).
    - `liveKey`: only if the bitmap shows something time- or data-varying that
      no TextClock covers.
    - `motion`: one sentence if it uses `s.flipper`; shown in the gallery.
@@ -262,6 +272,12 @@ Changes outside a category folder (shared files, one owner at a time):
 | Battery | Segments `battery.segments` | 4×2 4×4 | 10 segments, temp/health/volts/source, history on 4×4; charging breathe |
 | Battery | Big Numeric `battery.numeric` | 2×2 4×2 | Condensed numerals over a liquid fill; charging ripple |
 | Battery | 24h History `battery.history` | 4×2 4×4 | Area chart of sampled history, drain rate |
+| Calendar | Month Grid `calendar.month` | 2×2 4×2 4×4 | Month with today ring and per-day event dots; today panel (4×2) or next three events (4×4) |
+| Calendar | Agenda `calendar.agenda` | 4×2 4×4 | Events by day with colour chips, times, locations, a NOW line and "+N more" |
+| Calendar | Next Up `calendar.next` | 2×2 4×2 | Countdown to the next event, redrawn each minute; 4×2 cycles the following events in a flipper (5 s) |
+| Calendar | Dot Date `calendar.matrix` | 2×2 4×2 | 5×7 LED-matrix day number over a dot lattice; next event or up-next list |
+| Calendar | Week Strip `calendar.week` | 4×2 4×4 | Seven columns of hour cells lit by busy time, current-hour marker; booked hours and next event on 4×4 |
+| Calendar | Year in Dots `calendar.year` | 2×2 4×2 4×4 | A dot per day of the year, today lit, upcoming event days ringed, % elapsed |
 | Weather | Conditions `weather.now` | 2×2 4×2 4×4 | Big temperature, drawn glyph, feels-like, next hours; glyph flipper (rain, snow, rays, lightning, fog) |
 | Weather | Hourly Curve `weather.hourly` | 4×2 4×4 | 12/24-hour temperature curve over rain-chance bars, high/low marked |
 | Weather | Five Days `weather.week` | 4×2 4×4 | Day columns with shared-scale range bars; 7-day rows on 4×4 |
