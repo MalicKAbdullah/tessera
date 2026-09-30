@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tessera/src/core/theme.dart';
 import 'package:tessera/src/features/editor/screens/editor_screen.dart';
 import 'package:tessera/src/features/editor/widgets/content_controls.dart';
+import 'package:tessera/src/features/editor/widgets/photo_controls.dart';
 import 'package:tessera/src/features/widgets/models/catalog.dart';
 import 'package:tessera/src/features/widgets/models/widget_style.dart';
 import 'package:tessera/src/features/widgets/providers/widget_providers.dart';
@@ -142,6 +143,7 @@ void main() {
       isA<CountdownControls>(),
       isA<EventsControls>(),
     ]);
+    expect(contentControls('photo').single, isA<PhotoControls>());
     expect(contentControls('clock'), isEmpty);
   });
 }
