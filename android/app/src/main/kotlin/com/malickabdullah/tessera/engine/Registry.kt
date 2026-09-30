@@ -1,46 +1,26 @@
 package com.malickabdullah.tessera.engine
 
-import com.malickabdullah.tessera.designs.battery.BatteryCell
-import com.malickabdullah.tessera.designs.battery.BatteryHistoryChart
-import com.malickabdullah.tessera.designs.battery.BatteryNumeric
-import com.malickabdullah.tessera.designs.battery.BatteryRing
-import com.malickabdullah.tessera.designs.battery.BatterySegments
-import com.malickabdullah.tessera.designs.classic.CalendarClassic
-import com.malickabdullah.tessera.designs.classic.CountdownClassic
-import com.malickabdullah.tessera.designs.classic.NoteClassic
-import com.malickabdullah.tessera.designs.classic.WeatherClassic
-import com.malickabdullah.tessera.designs.clock.ClockDial
-import com.malickabdullah.tessera.designs.clock.ClockDual
-import com.malickabdullah.tessera.designs.clock.ClockMatrix
-import com.malickabdullah.tessera.designs.clock.ClockMinimal
-import com.malickabdullah.tessera.designs.clock.ClockStack
-import com.malickabdullah.tessera.designs.clock.ClockWords
+import com.malickabdullah.tessera.designs.battery.batteryDesigns
+import com.malickabdullah.tessera.designs.calendar.calendarDesigns
+import com.malickabdullah.tessera.designs.clock.clockDesigns
+import com.malickabdullah.tessera.designs.countdown.countdownDesigns
+import com.malickabdullah.tessera.designs.note.noteDesigns
+import com.malickabdullah.tessera.designs.weather.weatherDesigns
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** Every design Tessera ships, in gallery order. The first design of a category that fits a slot is its default. */
+/**
+ * Every design Tessera ships, in gallery order. Each category owns its list
+ * in `designs/<category>/<Category>Designs.kt`; this is the only place they meet.
+ */
 object Registry {
-    val designs: List<WidgetDesign> = listOf(
-        ClockMatrix,
-        ClockStack,
-        ClockDial,
-        ClockWords,
-        ClockDual,
-        ClockMinimal,
-        BatteryCell,
-        BatteryRing,
-        BatterySegments,
-        BatteryNumeric,
-        BatteryHistoryChart,
-        CalendarClassic,
-        WeatherClassic,
-        CountdownClassic,
-        NoteClassic,
-    )
+    val designs: List<WidgetDesign> =
+        clockDesigns + batteryDesigns + calendarDesigns + weatherDesigns + countdownDesigns + noteDesigns
 
     init {
         check(designs.map { it.id }.toSet().size == designs.size) { "Duplicate design id" }
         designs.forEach { d ->
+            check(d.id.startsWith("${d.category.id}.")) { "${d.id} must be prefixed with its category id" }
             d.sizes.forEach { size ->
                 check(Slots.all.any { it.category == d.category && it.size == size }) {
                     "${d.id} supports ${size.id} but no ${d.category.id} provider is registered at that size"
