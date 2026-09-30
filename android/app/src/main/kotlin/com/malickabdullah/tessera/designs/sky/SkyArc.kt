@@ -26,8 +26,8 @@ object SkyArc : WidgetDesign {
     override val blurb = "The sun's real path through today, where it is now, and sunrise and sunset."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.SMALL)
     override val defaults = Style.of(
-        "sans", 500, text = 0xFF1C1A17, accent = 0xFFF08A24, background = 0xFFF6F1E7,
-        kind = BgKind.GRADIENT, background2 = 0xFFEFE4D2, radius = 30f, padding = 16f,
+        "sans", 500, text = 0xFF16171A, accent = 0xFF6C4DFF, background = 0xFFEEF0F3,
+        kind = BgKind.GRADIENT, background2 = 0xFFDCE3EE, radius = 30f, padding = 16f,
     )
     override val toggles = listOf(hourFormatToggle)
     override val signals = setOf(Signal.CONTENT)

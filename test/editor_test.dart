@@ -146,6 +146,7 @@ void main() {
     ]);
     expect(contentControls('photo').single, isA<PhotoControls>());
     expect(contentControls('calendar').single, isA<CalendarAccessControls>());
+    expect(contentControls('sky').single, isA<WeatherControls>());
     expect(contentControls('clock'), isEmpty);
   });
 }

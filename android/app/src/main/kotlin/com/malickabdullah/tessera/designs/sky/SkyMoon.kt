@@ -20,7 +20,7 @@ object SkyMoon : WidgetDesign {
     override val name = "Moon Phase"
     override val blurb = "Tonight's moon with its true terminator, how much is lit, its age and the next full and new moon."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 400, text = 0xFFEDEBE6, accent = 0xFFB8C4FF, background = 0xFF0E0F13, radius = 30f, padding = 16f)
+    override val defaults = Style.of("grotesk", 400, text = 0xFFF2F3F5, accent = 0xFFB8C4FF, background = 0xFF0E0F13, radius = 30f, padding = 16f)
     override val toggles = listOf(hourFormatToggle)
     override val signals = setOf(Signal.CONTENT)
 
