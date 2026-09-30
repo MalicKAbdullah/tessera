@@ -157,7 +157,7 @@ internal object SkyKit {
         val terminator = Path().apply { addOval(RectF(cx - e, cy - r, cx + e, cy + r), Path.Direction.CW) }
         half.op(terminator, if (k >= 0.5f) Path.Op.UNION else Path.Op.DIFFERENCE)
 
-        val layer = c.saveLayer(RectF(disc).apply { inset(-2f, -2f) }, null)
+        val layer = c.saveLayer(RectF(disc).apply { inset(-r * 0.35f, -r * 0.35f) }, null)
         c.drawCircle(cx, cy, r, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = lit })
         surface(c, cx, cy, r, withAlpha(0xFF000000.toInt(), 0.17f))
         c.drawCircle(
@@ -168,10 +168,15 @@ internal object SkyKit {
                 shader = RadialGradient(cx, cy, r, intArrayOf(0, 0, 0x33000000), floatArrayOf(0f, 0.7f, 1f), Shader.TileMode.CLAMP)
             },
         )
+        // Erase the unlit part. A Porter-Duff mode only touches the pixels a shape covers, so
+        // masking with the lit shape (DST_IN) would leave the whole disc lit; the shadow is
+        // erased instead, drawn past the limb so the blur only softens the terminator.
+        val shadowPath = Path().apply { addCircle(cx, cy, r * 1.3f, Path.Direction.CW) }
+        shadowPath.op(half, Path.Op.DIFFERENCE)
         c.drawPath(
-            half,
+            shadowPath,
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_IN)
+                xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
                 maskFilter = BlurMaskFilter((r * 0.05f).coerceAtLeast(0.6f), BlurMaskFilter.Blur.NORMAL)
             },
         )
