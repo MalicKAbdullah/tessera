@@ -133,9 +133,15 @@ void main() {
   });
 
   test('content controls plug in per category', () {
-    expect(contentControls('note').single, isA<NoteControls>());
+    expect(contentControls('note'), [
+      isA<NoteControls>(),
+      isA<ChecklistControls>(),
+    ]);
     expect(contentControls('weather').single, isA<WeatherControls>());
-    expect(contentControls('countdown').single, isA<CountdownControls>());
+    expect(contentControls('countdown'), [
+      isA<CountdownControls>(),
+      isA<EventsControls>(),
+    ]);
     expect(contentControls('clock'), isEmpty);
   });
 }
