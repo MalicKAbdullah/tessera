@@ -20,7 +20,7 @@ object CalendarAgenda : WidgetDesign {
     override val name = "Agenda"
     override val blurb = "Your next events by day, each with its calendar colour, and a line marking now."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("sans", 500, text = 0xFF16171A, accent = 0xFF2F6BFF, background = 0xFFF4F1EA, radius = 30f, padding = 16f)
+    override val defaults = Style.of("sans", 500, text = 0xFF16171A, accent = 0xFF2F6BFF, background = 0xFFEEF0F3, radius = 30f, padding = 16f)
     override val toggles = listOf(hourFormatToggle, Toggle.Switch("location", "Show location", true))
     override val signals = setOf(Signal.CALENDAR)
 

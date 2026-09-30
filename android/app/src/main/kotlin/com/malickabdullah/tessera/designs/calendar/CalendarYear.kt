@@ -19,7 +19,7 @@ object CalendarYear : WidgetDesign {
     override val name = "Year in Dots"
     override val blurb = "Every day of the year as a dot: the past filled, today lit, upcoming event days ringed."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("mono", 500, text = 0xFF141414, accent = 0xFFFF4B3E, background = 0xFFEFEEE9, radius = 30f, padding = 16f)
+    override val defaults = Style.of("mono", 500, text = 0xFF141414, accent = 0xFF2F6BFF, background = 0xFFEEF0F3, radius = 30f, padding = 16f)
     override val toggles = listOf(Toggle.Switch("events", "Ring event days", true))
     override val signals = setOf(Signal.CALENDAR)
 

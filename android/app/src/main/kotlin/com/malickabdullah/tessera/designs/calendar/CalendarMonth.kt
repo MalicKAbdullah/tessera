@@ -22,7 +22,7 @@ object CalendarMonth : WidgetDesign {
     override val name = "Month Grid"
     override val blurb = "The whole month with today ringed and a dot under every day that has events."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFF2F0EB, accent = 0xFFFF4B3E, background = 0xFF111214, radius = 30f, padding = 14f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF111214, radius = 30f, padding = 14f)
     override val toggles = listOf(hourFormatToggle, Toggle.Switch("weekends", "Dim weekends", true))
     override val signals = setOf(Signal.CALENDAR)
 

@@ -23,7 +23,7 @@ object CalendarNext : WidgetDesign {
     override val blurb = "A countdown to your next event, with its time and place; the wide size cycles through what follows."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
     override val defaults = Style.of(
-        "sans", 300, text = 0xFFF4F4F2, accent = 0xFFFFB020, background = 0xFF17191D,
+        "sans", 300, text = 0xFFF4F4F2, accent = 0xFFD4FF3A, background = 0xFF17191D,
         kind = BgKind.GRADIENT, background2 = 0xFF262A31, radius = 30f, padding = 16f,
     )
     override val toggles = listOf(hourFormatToggle)

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tessera/src/core/theme.dart';
 import 'package:tessera/src/features/editor/screens/editor_screen.dart';
+import 'package:tessera/src/features/editor/widgets/calendar_access.dart';
 import 'package:tessera/src/features/editor/widgets/content_controls.dart';
 import 'package:tessera/src/features/editor/widgets/photo_controls.dart';
 import 'package:tessera/src/features/widgets/models/catalog.dart';
@@ -144,6 +145,7 @@ void main() {
       isA<EventsControls>(),
     ]);
     expect(contentControls('photo').single, isA<PhotoControls>());
+    expect(contentControls('calendar').single, isA<CalendarAccessControls>());
     expect(contentControls('clock'), isEmpty);
   });
 }

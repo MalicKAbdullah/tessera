@@ -23,7 +23,7 @@ object PhotoDots : WidgetDesign {
     override val name = "Dot Matrix"
     override val blurb = "Your photo re-drawn as a grid of LEDs or a newsprint halftone."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("dot", 700, text = 0xFFF2F2F2, accent = 0xFFFF3B30, background = 0xFF0B0B0B, radius = 30f, padding = 10f)
+    override val defaults = Style.of("dot", 700, text = 0xFFF2F2F2, accent = 0xFFD4FF3A, background = 0xFF0B0B0B, radius = 30f, padding = 10f)
     override val toggles = listOf(
         Toggle.Choice("render", "Render", listOf("led" to "LED grid", "halftone" to "Halftone"), "led"),
         Toggle.Choice("pitch", "Dots", listOf("fine" to "Fine", "coarse" to "Coarse"), "fine"),
