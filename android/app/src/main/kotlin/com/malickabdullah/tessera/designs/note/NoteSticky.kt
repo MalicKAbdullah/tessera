@@ -36,7 +36,8 @@ object NoteSticky : WidgetDesign {
         val hasAuthor = content.noteAuthor.isNotBlank()
         val top = b.top + 8f
         val bottom = b.bottom - if (hasAuthor) 22f * s.k else 0f
-        val fit = s.fitText(content.note.ifBlank { "Write something." }, b.width() - 4f, bottom - top, 1.22f, 12f, 34f)
+        // The hand grows with the note so a short one fills a large sheet instead of sitting at the top.
+        val fit = s.fitText(content.note.ifBlank { "Write something." }, b.width() - 4f, bottom - top, 1.22f, 12f, (s.minSide * 0.2f).coerceAtLeast(34f))
         val lh = fit.size * 1.22f
 
         // Ruled lines, one per text line and continuing to the bottom edge.

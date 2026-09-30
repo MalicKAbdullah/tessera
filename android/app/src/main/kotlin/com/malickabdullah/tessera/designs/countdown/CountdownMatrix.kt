@@ -2,6 +2,7 @@ package com.malickabdullah.tessera.designs.countdown
 
 import android.graphics.Paint
 import android.graphics.RectF
+import com.malickabdullah.tessera.designs.DotText
 import com.malickabdullah.tessera.designs.TextFit
 import com.malickabdullah.tessera.engine.Category
 import com.malickabdullah.tessera.engine.Scene
@@ -21,7 +22,7 @@ object CountdownMatrix : WidgetDesign {
     override val defaults = Style.of("dot", 700, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF0C0C0D, radius = 30f)
     override val toggles = listOf(countModeToggle)
     override val signals = setOf(Signal.CONTENT)
-    override val motion = "The two-dot separator between days and hours blinks once a second."
+    override val motion = "On 4×2, the two-dot separator between days and hours blinks once a second."
 
     override fun liveKey(scene: SceneInputs) = "${scene.now.toLocalDate()}|${scene.now.hour}"
 
@@ -48,25 +49,21 @@ object CountdownMatrix : WidgetDesign {
             }
         } else if (s.w >= s.h * 1.6f) {
             val half = (area.width() - 18f) / 2f
-            readout(s, RectF(area.left, area.top, area.left + half, area.bottom), split.days.toString(), "D", s.text)
-            val sx = area.left + half + 9f
-            val sep = RectF(sx - 5f, area.centerY() - 14f, sx + 5f, area.centerY() + 14f)
-            s.flipper(sep, 1000, 2) { i ->
-                if (i == 0) {
-                    drawCircle(sx, area.centerY() - 7f, 2.6f, s.fill(s.accent))
-                    drawCircle(sx, area.centerY() + 7f, 2.6f, s.fill(s.accent))
-                }
-            }
+            val days = readout(s, RectF(area.left, area.top, area.left + half, area.bottom), split.days.toString(), "D", s.text)
             readout(s, RectF(area.right - half, area.top, area.right, area.bottom), "%02d".format(split.hours), "H", s.accent)
+            // The separator is a colon on the digits' dot grid (rows 2 and 4), midway between the readouts.
+            val sx = (days.right + area.right - half) / 2f
+            val pitch = DotText.pitch(days.paint)
+            val ys = listOf(2, 4).map { DotText.rowY(days.baseline, pitch, it) }
+            val dot = DotText.dotRadius(pitch)
+            val sep = RectF(sx - dot - 1f, ys[0] - dot - 1f, sx + dot + 1f, ys[1] + dot + 1f)
+            s.flipper(sep, 1000, 2) { i ->
+                if (i == 0) ys.forEach { drawCircle(sx, it, dot, s.fill(s.accent)) }
+            }
         } else {
             val rowH = area.height() * 0.62f
             readout(s, RectF(area.left, area.top, area.right, area.top + rowH), split.days.toString(), "D", s.text)
-            val hours = RectF(area.left, area.top + rowH + 6f, area.right, area.bottom)
-            readout(s, hours, "%02d".format(split.hours), "H", s.accent)
-            val sep = RectF(area.right - 12f, area.top + rowH - 6f, area.right, area.top + rowH + 8f)
-            s.flipper(sep, 1000, 2) { i ->
-                if (i == 0) drawCircle(area.right - 4f, area.top + rowH + 1f, 2.4f, s.fill(s.accent))
-            }
+            readout(s, RectF(area.left, area.top + rowH + 6f, area.right, area.bottom), "%02d".format(split.hours), "H", s.accent)
         }
         if (footer > 0f) {
             val foot = s.tag(9.5f, s.ink(0.5f))
@@ -77,8 +74,11 @@ object CountdownMatrix : WidgetDesign {
         }
     }
 
+    /** A drawn readout: the digits' paint, their baseline and where the readout ends. */
+    private class Readout(val paint: Paint, val baseline: Float, val right: Float)
+
     /** Digits with a small unit letter on the same baseline, sized to fill [r]. */
-    private fun readout(s: Scene, r: RectF, digits: String, unit: String, color: Int) {
+    private fun readout(s: Scene, r: RectF, digits: String, unit: String, color: Int): Readout {
         val u = 0.3f
         val gap = 0.08f
         val pd = s.paint(100f, color)
@@ -89,8 +89,9 @@ object CountdownMatrix : WidgetDesign {
         val d = s.paint(size, color)
         val baseline = r.centerY() + s.capHeight(d) / 2f
         s.canvas.drawText(digits, r.left, baseline, d)
-        if (unit.isNotEmpty()) {
-            s.canvas.drawText(unit, r.left + d.measureText(digits) + size * gap, baseline, s.paint(size * u, s.ink(0.6f, color)))
-        }
+        val unitPaint = s.paint(size * u, s.ink(0.6f, color))
+        val unitX = r.left + d.measureText(digits) + size * gap
+        if (unit.isNotEmpty()) s.canvas.drawText(unit, unitX, baseline, unitPaint)
+        return Readout(d, baseline, if (unit.isEmpty()) r.left + d.measureText(digits) else unitX + unitPaint.measureText(unit))
     }
 }

@@ -248,11 +248,16 @@ Static, Latin-subset instances under `res/font/`, SIL OFL 1.1 (licences in
 `assets/licenses/`). To add a face: drop `<family>_<weight>.ttf` into
 `res/font/`, add it to `tool/gen_font_layouts.sh`, run the script.
 
+Doto's colon and full stop are crosses of dots that read as "‡" and "+";
+dot-matrix designs draw text containing them with `DotText`, and a live
+clock splits into hour and minute TextClocks around a drawn colon.
+
 ## Designs are self-contained per category
 
 ```
 designs/
   Kit.kt                    shared drawing helpers (read-only for design work)
+  DotText.kt                Doto text with its colon and full stop drawn as round grid dots
   classic/ClassicTile.kt    the v0.1 tile shared by the *.classic designs
   <category>/
     <Category>Designs.kt    val <category>Designs = listOf(...)   ← the category's registry
@@ -338,16 +343,16 @@ Changes outside a category folder (shared files, one owner at a time):
 
 | Category | Design | Sizes | Motion / live parts |
 | --- | --- | --- | --- |
-| Clock | Dot Matrix `clock.matrix` | 2×2 4×2 4×4 | TextClock time/date in Doto; LED pulse flipper; hourly day track |
+| Clock | Dot Matrix `clock.matrix` | 2×2 4×2 4×4 | Hour and minute TextClocks in Doto with a drawn dot colon (stacked on 2×2); LED pulse flipper; hourly day track |
 | Clock | Bold Stack `clock.stack` | 2×2 4×4 | Stacked TextClocks; hourly ruler |
 | Clock | Chronograph `clock.dial` | 2×2 4×4 | AnalogClock hands over bitmap dial; TextClock date window |
-| Clock | Word Clock `clock.words` | 2×2 4×4 | Bitmap letter grid; redrawn by the live ticker each minute |
+| Clock | Word Clock `clock.words` | 2×2 4×4 | Bitmap letter grid (4×4) or the lit phrase set large over a faint grid (2×2); redrawn by the live ticker each minute |
 | Clock | Dual Time `clock.dual` | 4×2 2×2 | Two zoned TextClocks; hourly day/night and day bar |
 | Clock | Minimal `clock.minimal` | 4×2 2×2 | TextClock time/date, optional seconds; next alarm |
 | Battery | Dot Cell `battery.cell` | 2×2 4×2 | Dot battery; charging fill flipper |
 | Battery | Ring Gauge `battery.ring` | 2×2 4×4 | 270° gauge, time to full / left; charging glow flipper |
 | Battery | Segments `battery.segments` | 4×2 4×4 | 10 segments, temp/health/volts/source, history on 4×4; charging breathe |
-| Battery | Big Numeric `battery.numeric` | 2×2 4×2 | Condensed numerals over a liquid fill; charging ripple |
+| Battery | Big Numeric `battery.numeric` | 2×2 4×2 | Condensed numerals over a solid liquid fill, inked to contrast where the fill covers them; charging ripple |
 | Battery | 24h History `battery.history` | 4×2 4×4 | Area chart of sampled history, drain rate |
 | Calendar | Month Grid `calendar.month` | 2×2 4×2 4×4 | Month with today ring and per-day event dots; today panel (4×2) or next three events (4×4) |
 | Calendar | Agenda `calendar.agenda` | 4×2 4×4 | Events by day with colour chips, times, locations, a NOW line and "+N more" |
@@ -363,14 +368,14 @@ Changes outside a category folder (shared files, one owner at a time):
 | Weather | Sun Arc `weather.sun` | 2×2 4×2 | Sun position on the day's arc, below the horizon at night; redrawn every 10 min |
 | Weather | Instruments `weather.gauges` | 4×2 4×4 | Wind compass, UV dial, humidity ring; pressure, gusts, feels-like on 4×4 |
 | Countdown | Progress Ring `countdown.ring` | 2×2 4×2 4×4 | Bitmap ring from creation date to target; ring-tip pulse flipper; count-up mode |
-| Countdown | Dot Matrix `countdown.matrix` | 2×2 4×2 4×4 | Doto days/hours readout, redrawn hourly; blinking separator flipper |
+| Countdown | Dot Matrix `countdown.matrix` | 2×2 4×2 4×4 | Doto days/hours readout, redrawn hourly; blinking dot-colon flipper on 4×2 |
 | Countdown | Day Dots `countdown.dots` | 2×2 4×2 4×4 | One dot per day (scaled past the grid capacity); today's dot breathes |
 | Countdown | Boarding Pass `countdown.ticket` | 4×2 4×4 | Ticket with real transparent notches, route line, barcode stub; no motion |
 | Countdown | Up Next `countdown.list` | 2×2 4×2 4×4 | Next events soonest first from the countdown plus the editor's event list; 90-day timeline on 4×4 |
 | Note | Sticky Note `note.sticky` | 2×2 4×2 4×4 | Grain surface, tape, ruled lines, skewed serif with per-line wobble; no motion |
 | Note | Big Quote `note.quote` | 2×2 4×2 4×4 | Serif with hanging quotation mark; no motion |
 | Note | Checklist `note.checklist` | 2×2 4×2 4×4 | Editor items with checked state and progress bar; ticked in the app, not on the widget |
-| Note | Dot Matrix Message `note.marquee` | 2×2 4×2 4×4 | Text paged into ViewFlipper frames (page count bounded by a bitmap budget), 4 s per page |
+| Note | Dot Matrix Message `note.marquee` | 2×2 4×2 4×4 | Text sized to fill the box without breaking words, or paged into ViewFlipper frames (page count bounded by a bitmap budget), 4 s per page |
 | Note | Daily Quote `note.daily` | 2×2 4×2 4×4 | Bundled public-domain set (`Quotes.kt`, each cited), one per calendar day, redrawn at midnight |
 | Calendar, Weather, Countdown, Note | `*.classic` | 4×2 | The v0.1 tile on the engine |
 | Photo | Full Bleed `photo.full` | 2×2 4×2 4×4 | Photo edge to edge or inset, caption on a scrim; optional hourly/daily rotation (live key) |
@@ -388,4 +393,4 @@ Changes outside a category folder (shared files, one owner at a time):
 | Device | Storage `device.storage` | 2×2 4×2 | 10×10 dot field (2×2) or 24-segment bar (4×2); redrawn per 0.2 GB change |
 | Device | Memory `device.memory` | 2×2 4×2 | RAM ring with low-memory threshold notch; redrawn per 2% change |
 | Device | Network `device.network` | 2×2 4×2 | Transport, Wi-Fi arcs from RSSI, internet reachability, metered, bandwidth estimates |
-| Device | Uptime `device.uptime` | 2×2 4×2 | Time since boot, boot timestamp, day strip; redrawn when the shown value changes |
+| Device | Uptime `device.uptime` | 2×2 4×2 | Time since boot, boot timestamp (a boot/hours column on 4×2), day strip; redrawn when the shown value changes |

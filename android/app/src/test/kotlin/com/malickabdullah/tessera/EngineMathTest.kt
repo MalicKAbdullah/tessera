@@ -24,6 +24,14 @@ class EngineMathTest {
     }
 
     @Test
+    fun wordClockPhraseSplitsMinutesRelationAndHour() {
+        assertEquals(Triple("", "O'CLOCK", "TWELVE"), WordClock.phrase(0, 2))
+        assertEquals(Triple("A QUARTER", "PAST", "FOUR"), WordClock.phrase(16, 17))
+        assertEquals(Triple("TWENTY FIVE", "TO", "ELEVEN"), WordClock.phrase(10, 38))
+        assertEquals(Triple("TWENTY", "TO", "TEN"), WordClock.phrase(9, 41))
+    }
+
+    @Test
     fun bitmapScaleIsDensityUntilThePixelCap() {
         assertEquals(2.625f, Renderer.bitmapScale(170f, 170f, 2.625f), 0.0001f)
         val large = Renderer.bitmapScale(350f, 350f, 3.5f)

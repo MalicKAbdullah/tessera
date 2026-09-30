@@ -2,6 +2,7 @@ package com.malickabdullah.tessera.designs.device
 
 import android.graphics.Paint
 import android.graphics.RectF
+import com.malickabdullah.tessera.designs.DotText
 import com.malickabdullah.tessera.engine.Category
 import com.malickabdullah.tessera.engine.Scene
 import com.malickabdullah.tessera.engine.SceneInputs
@@ -38,8 +39,8 @@ object DeviceStorage : WidgetDesign {
             val size = s.fit("888.8", b.width() * 0.5f, heroH) * s.hero
             val hero = s.paint(size, s.text)
             val baseline = b.top + 18f + size * 0.78f
-            s.canvas.drawText(num, b.left - 1f, baseline, hero)
-            val unitX = b.left + hero.measureText(num) + 6f
+            DotText.draw(s.canvas, num, b.left - 1f, baseline, hero, s.style.font)
+            val unitX = b.left + DotText.measure(num, hero, s.style.font) + 6f
             s.canvas.drawText(unit, unitX, baseline, s.paint(size * 0.32f, s.ink(0.6f), font = "mono", weight = 500))
             s.canvas.drawText("FREE", unitX, baseline - size * 0.4f, DeviceKit.label(s, 9f))
             s.canvas.drawText(

@@ -1,7 +1,9 @@
 package com.malickabdullah.tessera.designs.clock
 
+import android.graphics.Paint
 import android.graphics.RectF
 import android.view.Gravity
+import com.malickabdullah.tessera.designs.DotText
 import com.malickabdullah.tessera.designs.Kit
 import com.malickabdullah.tessera.engine.Category
 import com.malickabdullah.tessera.engine.Scene
@@ -12,6 +14,7 @@ import com.malickabdullah.tessera.engine.Toggle
 import com.malickabdullah.tessera.engine.WidgetDesign
 import com.malickabdullah.tessera.engine.hourFormatToggle
 import java.time.temporal.IsoFields
+import kotlin.math.min
 
 object ClockMatrix : WidgetDesign {
     override val id = "clock.matrix"
@@ -57,24 +60,44 @@ object ClockMatrix : WidgetDesign {
         val area = RectF(b.left, b.top + headerH + 6f, b.right, b.bottom - footerH)
         val stacked = s.w < 240f && s.h >= s.w * 0.8f
         if (stacked) {
-            val rowH = area.height() / 2f
-            val size = s.fit(Kit.widest(s, "88"), area.width(), rowH) * s.hero
-            val top = RectF(area.left, area.top, area.right, area.top + rowH)
-            val bottom = RectF(area.left, area.top + rowH, area.right, area.bottom)
-            s.textClock(top, s.timeFormats("hh", "HH"), size, gravity = Gravity.START or Gravity.BOTTOM)
-            s.textClock(bottom, "mm" to "mm", size, s.accent, gravity = Gravity.START or Gravity.TOP)
+            // Hours over minutes, sized by cap height so the digits fill the tile, two grid rows apart.
+            val size = min(
+                s.fitCaps(Kit.widest(s, "88"), area.width(), area.height() / (2f + 2f / 7f)),
+                s.fit(Kit.widest(s, "88"), area.width(), s.h),
+            ) * s.hero
+            val cap = s.capHeight(s.paint(size))
+            val gap = cap * 2f / 7f
+            val top = area.centerY() - cap - gap / 2f
+            val center = Gravity.CENTER_HORIZONTAL
+            clockLine(s, area.left, area.right, top + cap, size, s.timeFormats("hh", "HH"), s.text, center)
+            clockLine(s, area.left, area.right, top + cap * 2f + gap, size, "mm" to "mm", s.accent, center)
         } else {
-            val size = s.fit(Kit.widest(s, "88:88"), area.width(), area.height()) * s.hero
-            s.textClock(area, s.timeFormats("h:mm", "HH:mm"), size, gravity = Gravity.START or Gravity.CENTER_VERTICAL)
+            // Hours and minutes are separate clocks so the colon can be drawn as two round dots:
+            // Doto's own colon reads as a dagger. The group keeps the monospaced "88:88" layout.
+            val sample = Kit.widest(s, "88:88")
+            val size = min(s.fitCaps(sample, area.width(), area.height() * 0.8f), s.fit(sample, area.width(), s.h)) * s.hero
+            val p = s.paint(size)
+            val cell = p.measureText("8")
+            val left = area.centerX() - p.measureText(sample) / 2f
+            val baseline = area.centerY() + s.capHeight(p) / 2f
+            clockLine(s, left, left + cell * 2f, baseline, size, s.timeFormats("h", "HH"), s.text, Gravity.END)
+            DotText.draw(s.canvas, ":", left + cell * 2f, baseline, p, s.style.font)
+            clockLine(s, left + cell * 3f, area.right, baseline, size, "mm" to "mm", s.text, Gravity.START)
         }
 
         if (track) drawDayTrack(s, RectF(b.left, b.bottom - 8f, b.right, b.bottom))
         if (s.h >= 300f) {
             val week = s.now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
             val label = "WK %02d · DAY %03d".format(week, s.now.dayOfYear)
-            val p = s.paint(9.5f * s.k, s.ink(0.5f), font = "mono", weight = 500, align = android.graphics.Paint.Align.RIGHT, tracking = 0.12f)
+            val p = s.paint(9.5f * s.k, s.ink(0.5f), font = "mono", weight = 500, align = Paint.Align.RIGHT, tracking = 0.12f)
             s.canvas.drawText(label, b.right, b.bottom - 18f, p)
         }
+    }
+
+    /** A live clock whose text sits on [baseline] between [left] and [right]; its box is exactly one line tall. */
+    private fun clockLine(s: Scene, left: Float, right: Float, baseline: Float, size: Float, formats: Pair<String, String>, color: Int, gravity: Int) {
+        val fm = s.paint(size).fontMetrics
+        s.textClock(RectF(left, baseline + fm.ascent, right, baseline + fm.descent), formats, size, color, gravity = gravity or Gravity.TOP)
     }
 
     private fun drawDayTrack(s: Scene, r: RectF) {
