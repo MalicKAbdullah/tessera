@@ -19,6 +19,9 @@ import com.malickabdullah.tessera.widgets.CountdownWidget
 import com.malickabdullah.tessera.widgets.NoteLargeWidget
 import com.malickabdullah.tessera.widgets.NoteSmallWidget
 import com.malickabdullah.tessera.widgets.NoteWidget
+import com.malickabdullah.tessera.widgets.PhotoLargeWidget
+import com.malickabdullah.tessera.widgets.PhotoSmallWidget
+import com.malickabdullah.tessera.widgets.PhotoWidget
 import com.malickabdullah.tessera.widgets.TesseraProvider
 import com.malickabdullah.tessera.widgets.WeatherLargeWidget
 import com.malickabdullah.tessera.widgets.WeatherSmallWidget
@@ -56,6 +59,9 @@ object Slots {
         Slot(Category.NOTE, SizeClass.SMALL, NoteSmallWidget::class.java),
         Slot(Category.NOTE, SizeClass.WIDE, NoteWidget::class.java),
         Slot(Category.NOTE, SizeClass.LARGE, NoteLargeWidget::class.java),
+        Slot(Category.PHOTO, SizeClass.SMALL, PhotoSmallWidget::class.java),
+        Slot(Category.PHOTO, SizeClass.WIDE, PhotoWidget::class.java),
+        Slot(Category.PHOTO, SizeClass.LARGE, PhotoLargeWidget::class.java),
     )
 
     fun of(provider: ComponentName): Slot = all.first { it.provider.name == provider.className }

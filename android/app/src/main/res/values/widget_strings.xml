@@ -6,4 +6,5 @@
     <string name="widget_weather">Conditions and forecast for your city</string>
     <string name="widget_countdown">Days until what matters</string>
     <string name="widget_note">A line worth keeping in view</string>
+    <string name="widget_photo">Your photos — framed, masked, dotted and shuffled</string>
 </resources>
