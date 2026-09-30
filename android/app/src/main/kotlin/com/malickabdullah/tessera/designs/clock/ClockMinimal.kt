@@ -40,7 +40,8 @@ object ClockMinimal : WidgetDesign {
         val alarmH = if (alarm) 16f * s.k else 0f
         s.textClock(
             RectF(b.left + 10f, b.top, b.right, b.top + dateH),
-            "EEEE, d MMMM" to "EEEE, d MMMM",
+            // The full weekday and month need a wide widget; narrow ones abbreviate the weekday.
+            (if (b.width() >= 200f) "EEEE, d MMMM" else "EEE, d MMMM").let { it to it },
             12f * s.k,
             s.ink(0.7f),
             weight = 400,
@@ -66,7 +67,7 @@ object ClockMinimal : WidgetDesign {
                 val at = next.at.atZone(s.now.zone)
                 at.format(DateTimeFormatter.ofPattern(if (s.use24h) "HH:mm" else "h:mm a")) + "  ·  " + at.format(DateTimeFormatter.ofPattern("EEE"))
             }
-            s.textMid(label, b.left + 26f, y, s.paint(11.5f * s.k, s.ink(if (next == null) 0.45f else 0.8f), weight = 500))
+            s.textMid(label, b.left + 26f, y, s.paint(11.5f * s.k, s.ink(if (next == null) 0.45f else 0.8f), weight = 500, tracking = 0f))
         }
     }
 }
