@@ -17,6 +17,7 @@ import android.util.TypedValue
 import android.widget.RemoteViews
 import com.malickabdullah.tessera.R
 import com.malickabdullah.tessera.data.Data
+import com.malickabdullah.tessera.data.PhotoMath
 import java.time.ZonedDateTime
 import kotlin.math.ceil
 import kotlin.math.cos
@@ -33,9 +34,17 @@ object Renderer {
      */
     const val MAX_PIXELS = 900_000
 
-    /** Bitmap pixels per dp for a widget of wDp x hDp on a screen of [density]. */
-    fun bitmapScale(wDp: Float, hDp: Float, density: Float): Float =
-        min(density, sqrt(MAX_PIXELS / (wDp * hDp)))
+    /**
+     * Bitmap pixels per dp for a widget of wDp x hDp on a screen of [density].
+     * The main bitmap takes at most half of [budget] bytes, leaving the rest
+     * for overlay frames.
+     */
+    fun bitmapScale(wDp: Float, hDp: Float, density: Float, budget: Long = Long.MAX_VALUE): Float =
+        min(density, sqrt(min(MAX_PIXELS.toLong(), budget / 2 / 4).toFloat() / (wDp * hDp)))
+
+    /** Bitmap bytes one widget update may carry on this device's screen. */
+    fun budget(context: Context): Long =
+        context.resources.displayMetrics.let { PhotoMath.remoteViewsBudget(it.widthPixels, it.heightPixels) }
 
     fun build(
         context: Context,
@@ -46,15 +55,16 @@ object Renderer {
         click: PendingIntent?,
         now: ZonedDateTime = ZonedDateTime.now(),
         data: Data = Data(context),
+        budget: Long = budget(context),
     ): RemoteViews {
         val density = context.resources.displayMetrics.density
-        val (bitmap, scene) = draw(context, design, style, wDp, hDp, bitmapScale(wDp, hDp, density), now, data)
+        val (bitmap, scene) = draw(context, design, style, wDp, hDp, bitmapScale(wDp, hDp, density, budget), now, data, budget)
 
         val views = RemoteViews(context.packageName, R.layout.widget_frame)
         views.setImageViewBitmap(R.id.bg, bitmap)
         views.setContentDescription(R.id.bg, design.name)
         views.removeAllViews(R.id.overlay)
-        scene.overlays.forEach { views.addView(R.id.overlay, overlay(context, it, wDp, hDp, density)) }
+        scene.overlays.forEach { views.addView(R.id.overlay, overlay(context, it, wDp, hDp, density, click)) }
         if (click != null) views.setOnClickPendingIntent(R.id.root, click)
         return views
     }
@@ -69,22 +79,28 @@ object Renderer {
         scale: Float,
         now: ZonedDateTime,
         data: Data,
+        budget: Long,
     ): Pair<Bitmap, Scene> {
         val bitmap = Bitmap.createBitmap(ceil(wDp * scale).toInt(), ceil(hDp * scale).toInt(), Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.scale(scale, scale)
-        val scene = Scene(SceneInputs(context, design, style, data, now), canvas, wDp, hDp, scale)
+        val scene = Scene(SceneInputs(context, design, style, data, now), canvas, wDp, hDp, scale, budget)
         drawSurface(scene)
         design.draw(scene)
         return bitmap to scene
     }
 
-    private fun overlay(context: Context, o: Overlay, wDp: Float, hDp: Float, density: Float): RemoteViews {
+    /**
+     * Overlays fill the frame and are inset by padding. Each carries the
+     * widget's click as well: a launcher dispatches a tap to the deepest view
+     * under it, and the overlay views cover the root.
+     */
+    private fun overlay(context: Context, o: Overlay, wDp: Float, hDp: Float, density: Float, click: PendingIntent?): RemoteViews {
         val l = (o.rect.left * density).toInt()
         val t = (o.rect.top * density).toInt()
         val r = ((wDp - o.rect.right) * density).toInt()
         val b = ((hDp - o.rect.bottom) * density).toInt()
-        return when (o) {
+        val views = when (o) {
             is Overlay.Clock -> RemoteViews(context.packageName, if (o.caps) o.face.capsClockLayout else o.face.clockLayout).apply {
                 setCharSequence(R.id.tc, "setFormat12Hour", o.format12)
                 setCharSequence(R.id.tc, "setFormat24Hour", o.format24)
@@ -118,6 +134,13 @@ object Renderer {
                 }
             }
         }
+        val root = when (o) {
+            is Overlay.Clock -> R.id.tc
+            is Overlay.Analog -> R.id.analog_box
+            is Overlay.Flipper -> R.id.flipper
+        }
+        if (click != null) views.setOnClickPendingIntent(root, click)
+        return views
     }
 
     /** Paints the style's surface, then clips so designs never draw outside the rounded corners. */
@@ -143,7 +166,14 @@ object Renderer {
             }
             BgKind.PHOTO -> {
                 val file = checkNotNull(bg.photo) { "Photo background without a photo path" }
-                val photo = checkNotNull(BitmapFactory.decodeFile(file)) { "Photo background $file is unreadable" }
+                val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                BitmapFactory.decodeFile(file, bounds)
+                val sample = BitmapFactory.Options().apply {
+                    inSampleSize = PhotoMath.sampleSize(
+                        bounds.outWidth, bounds.outHeight, ceil(s.w * s.bitmapScale).toInt(), ceil(s.h * s.bitmapScale).toInt(),
+                    )
+                }
+                val photo = checkNotNull(BitmapFactory.decodeFile(file, sample)) { "Photo background $file is unreadable" }
                 s.canvas.save()
                 s.canvas.clipPath(path)
                 val fit = maxOf(s.w / photo.width, s.h / photo.height)
@@ -155,6 +185,7 @@ object Renderer {
                 // A fixed scrim keeps text legible on any photo.
                 s.canvas.drawPath(path, Paint().apply { color = 0x33000000 })
                 s.canvas.restore()
+                photo.recycle()
             }
         }
         s.canvas.clipPath(path)

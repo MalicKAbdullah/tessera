@@ -58,6 +58,8 @@ class Scene(
     val h: Float,
     /** Bitmap pixels per dp. */
     val bitmapScale: Float,
+    /** Bitmap bytes this widget's RemoteViews may carry in all: the main bitmap plus every overlay frame. */
+    val bitmapBudget: Long,
 ) : SceneInputs(inputs.context, inputs.design, inputs.style, inputs.data, inputs.now) {
     val overlays = mutableListOf<Overlay>()
 

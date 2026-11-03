@@ -3,6 +3,7 @@ package com.malickabdullah.tessera.designs.note
 import android.graphics.RectF
 import com.malickabdullah.tessera.designs.DotText
 import com.malickabdullah.tessera.designs.TextFit
+import com.malickabdullah.tessera.data.PhotoMath
 import com.malickabdullah.tessera.engine.Category
 import com.malickabdullah.tessera.engine.Scene
 import com.malickabdullah.tessera.engine.Signal
@@ -49,7 +50,9 @@ object NoteMarquee : WidgetDesign {
         val lines = TextFit.wrap(message, area.width()) { p.measureText(it) }
 
         val framePx = area.width() * s.bitmapScale * area.height() * s.bitmapScale
-        val maxPages = floor(FRAME_PIXEL_BUDGET / framePx).toInt().coerceIn(1, 6)
+        // Pages share what the main bitmap leaves of the update's budget, with headroom for the parcel.
+        val framesPx = min(FRAME_PIXEL_BUDGET, (s.bitmapBudget * 0.9f - PhotoMath.bitmapBytes(s.w, s.h, s.bitmapScale)) / 4f)
+        val maxPages = floor(framesPx / framePx).toInt().coerceIn(1, 6)
         val pages = TextFit.paginate(lines, rows, maxPages, area.width()) { p.measureText(it) }
 
         val frame = RectF(b.left, b.top, b.right, b.bottom)

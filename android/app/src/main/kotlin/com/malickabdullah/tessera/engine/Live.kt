@@ -21,6 +21,7 @@ import com.malickabdullah.tessera.data.WeatherFetch
 import org.json.JSONObject
 import java.io.IOException
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 /**
  * A non-wakeup (RTC) alarm about a minute out. It never wakes the device:
@@ -55,12 +56,24 @@ class TickReceiver : BroadcastReceiver() {
     }
 }
 
-/** System events after which bitmap-drawn dates, zones and labels are stale. */
+/**
+ * Boot and app update clear the ticker alarm and leave every bitmap as it
+ * was; time, zone and locale changes make drawn dates and labels stale. All
+ * of them restore the engine without the app being opened. Drawing every
+ * widget (photos included) can outlast a receiver's main-thread window, so it
+ * runs on a worker thread while the broadcast is held open.
+ */
 class SystemEventsReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        Slots.syncEnabled(context)
-        Work.ensureScheduled(context)
-        Engine.renderAll(context)
+        val pending = goAsync()
+        val app = context.applicationContext
+        thread(name = "tessera-restore") {
+            try {
+                Engine.restore(app)
+            } finally {
+                pending.finish()
+            }
+        }
     }
 }
 
@@ -76,7 +89,7 @@ class PinReceiver : BroadcastReceiver() {
             Style.parse(JSONObject(checkNotNull(intent.getStringExtra(EXTRA_STYLE)))),
         )
         Engine.render(context, id)
-        Engine.onInstancesChanged(context)
+        Engine.onPlacementChanged(context)
         Engine.onDataChanged?.invoke()
     }
 
@@ -105,12 +118,22 @@ object Work {
             ExistingPeriodicWorkPolicy.KEEP,
             PeriodicWorkRequestBuilder<RefreshWorker>(15, TimeUnit.MINUTES).build(),
         )
-        wm.enqueueUniquePeriodicWork(
-            WEATHER,
-            ExistingPeriodicWorkPolicy.KEEP,
-            PeriodicWorkRequestBuilder<WeatherWorker>(60, TimeUnit.MINUTES).setConstraints(online).build(),
-        )
+        syncWeather(context)
         armCalendarTrigger(context, ExistingWorkPolicy.KEEP)
+    }
+
+    /** The hourly forecast job exists exactly while some placed widget shows the forecast. */
+    fun syncWeather(context: Context) {
+        val wm = WorkManager.getInstance(context)
+        if (Engine.showsWeather(context)) {
+            wm.enqueueUniquePeriodicWork(
+                WEATHER,
+                ExistingPeriodicWorkPolicy.KEEP,
+                PeriodicWorkRequestBuilder<WeatherWorker>(60, TimeUnit.MINUTES).setConstraints(online).build(),
+            )
+        } else {
+            wm.cancelUniqueWork(WEATHER)
+        }
     }
 
     /**
@@ -142,8 +165,7 @@ object Work {
      * a fetch already waiting for the network is not restarted.
      */
     fun fetchWeatherIfStale(context: Context) {
-        val weatherPlaced = Slots.placed(context).any { (_, slot) -> slot.category == Category.WEATHER }
-        if (!weatherPlaced || !WeatherFetch.isStale(context)) return
+        if (!Engine.showsWeather(context) || !WeatherFetch.isStale(context)) return
         WorkManager.getInstance(context).enqueueUniqueWork(
             WEATHER_NOW,
             ExistingWorkPolicy.KEEP,

@@ -87,4 +87,5 @@ dependencies {
     testImplementation("org.robolectric:robolectric:4.16")
     testImplementation("io.github.takahirom.roborazzi:roborazzi:1.76.0")
     testImplementation("androidx.test:core-ktx:1.6.1")
+    testImplementation("androidx.work:work-testing:2.10.1")
 }

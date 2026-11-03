@@ -17,6 +17,7 @@ import com.malickabdullah.tessera.engine.Engine
 import com.malickabdullah.tessera.engine.Instances
 import com.malickabdullah.tessera.engine.Slots
 import com.malickabdullah.tessera.engine.Style
+import com.malickabdullah.tessera.engine.WidgetTap
 import com.malickabdullah.tessera.engine.Work
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -121,9 +122,9 @@ open class MainActivity : FlutterActivity() {
 
     /** What the app should open on: a tapped widget's editor, or null for the gallery. */
     open fun launchTarget(): Map<String, Any>? {
-        val id = intent.getIntExtra(Engine.EXTRA_INSTANCE, AppWidgetManager.INVALID_APPWIDGET_ID)
-        if (id == AppWidgetManager.INVALID_APPWIDGET_ID) return null
-        intent.removeExtra(Engine.EXTRA_INSTANCE)
+        val id = WidgetTap.widgetId(intent) ?: return null
+        // Consumed once, so returning to the app later does not reopen the editor.
+        intent.removeExtra(WidgetTap.EXTRA_WIDGET_ID)
         return mapOf("mode" to "edit", "id" to id)
     }
 }
@@ -148,7 +149,7 @@ class ConfigureActivity : MainActivity() {
     fun complete(designId: String, style: Style) {
         Instances.put(this, widgetId, designId, style)
         Engine.render(this, widgetId)
-        Engine.onInstancesChanged(this)
+        Engine.onPlacementChanged(this)
         setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
         finish()
     }

@@ -77,7 +77,7 @@ object PhotoShuffle : WidgetDesign {
 
         val display = s.context.resources.displayMetrics
         val plan = PhotoMath.flipperPlan(
-            budget = PhotoMath.remoteViewsBudget(display.widthPixels, display.heightPixels),
+            budget = s.bitmapBudget,
             mainBytes = PhotoMath.bitmapBytes(s.w, s.h, s.bitmapScale),
             wDp = card.width(),
             hDp = card.height(),
