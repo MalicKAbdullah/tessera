@@ -2,6 +2,7 @@
 library;
 
 import 'dart:convert';
+import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:tessera/src/core/theme.dart';
 import 'package:tessera/src/features/editor/screens/editor_screen.dart';
 import 'package:tessera/src/features/gallery/screens/gallery_screen.dart';
+import 'package:tessera/src/features/settings/settings_screen.dart';
 
 import '../support/fake_app.dart';
 
@@ -23,7 +25,10 @@ import '../support/fake_app.dart';
 /// Update with `flutter test --update-goldens test/goldens`.
 void main() {
   const phone = Size(412, 915);
-  final themes = {'light': TesseraTheme.light(), 'dark': TesseraTheme.dark()};
+  final themes = {
+    'light': tesseraTheme(Brightness.light),
+    'dark': tesseraTheme(Brightness.dark),
+  };
   late Map<String, Uint8List> previews;
   late Map<String, Uint8List> specimens;
 
@@ -88,7 +93,7 @@ void main() {
       await tester.pumpWidget(
         themed(container, const GalleryScreen(), theme: theme),
       );
-      // Mark assembled and wordmark risen, before the veil lifts.
+      // Tile landed and name risen, before the veil lifts.
       for (var i = 0; i < 17; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
@@ -97,6 +102,37 @@ void main() {
         matchesGoldenFile('intro_$name.png'),
       );
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('settings $name', (tester) async {
+      atPhoneSize(tester);
+      final container = await fakeContainer(await engine());
+      final router = GoRouter(
+        initialLocation: '/settings',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(),
+            routes: [
+              GoRoute(
+                path: 'settings',
+                builder: (_, _) => const SettingsScreen(),
+              ),
+            ],
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(theme: theme, routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await expectLater(
+        find.byType(SettingsScreen),
+        matchesGoldenFile('settings_$name.png'),
+      );
     });
 
     testWidgets('editor $name', (tester) async {
@@ -134,9 +170,21 @@ void main() {
   }
 }
 
-/// Loads every family in the font manifest (the bundled faces and Material
-/// Icons) so goldens show real text instead of the test font's boxes.
+/// Loads every family in the font manifest (Mona Sans and Material Icons),
+/// plus two of the widget engine's faces for the font specimens, so goldens
+/// show real text instead of the test font's boxes.
 Future<void> _loadFonts() async {
+  for (final (family, file) in [
+    ('Inter Tight', 'inter_tight_400'),
+    ('JetBrains Mono', 'jetbrains_mono_400'),
+  ]) {
+    final bytes = File(
+      'android/app/src/main/res/font/$file.ttf',
+    ).readAsBytesSync();
+    await (FontLoader(
+      family,
+    )..addFont(Future.value(ByteData.sublistView(bytes)))).load();
+  }
   final manifest =
       jsonDecode(await rootBundle.loadString('FontManifest.json')) as List;
   for (final entry in manifest.cast<Map<String, dynamic>>()) {

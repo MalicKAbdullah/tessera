@@ -1,3 +1,6 @@
+import 'package:core_theme/core_theme.dart';
+import 'package:core_ui/core_ui.dart';
+import 'package:core_update/core_update.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,8 +8,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/design/tokens.dart';
 import '../../../core/motion/motion.dart';
-import '../../../core/widgets/mosaic_mark.dart';
 import '../../intro/intro_overlay.dart';
+import '../../settings/settings_providers.dart';
 import '../../widgets/models/catalog.dart';
 import '../../widgets/providers/widget_providers.dart';
 import '../../widgets/widgets/native_preview.dart';
@@ -129,6 +132,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                 enter: _enter,
                 markKey: _markKey,
                 markVisible: !_intro,
+                showSettings: !configuring,
                 title: configuring
                     ? 'Choose a design'
                     : 'Widgets,\nquietly yours.',
@@ -138,12 +142,12 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
               ),
             ),
             if (!configuring) ...[
+              const SliverToBoxAdapter(child: _Update()),
               if (placed.isNotEmpty)
                 SliverToBoxAdapter(
                   child: Entrance(
                     animation: _enter,
                     index: 1,
-                    depth: false,
                     child: _PlacedStrip(placed: placed),
                   ),
                 ),
@@ -152,7 +156,7 @@ class _GalleryScreenState extends ConsumerState<GalleryScreen>
                 delegate: _TabsHeader(
                   tabs: _tabs,
                   labels: ['All', for (final c in catalog.categories) c.label],
-                  canvas: Palette.of(context).canvas,
+                  canvas: SuiteColors.of(context).background,
                 ),
               ),
             ],
@@ -224,6 +228,7 @@ class _Header extends StatelessWidget {
     required this.enter,
     required this.markKey,
     required this.markVisible,
+    required this.showSettings,
     required this.title,
     required this.subtitle,
   });
@@ -232,6 +237,7 @@ class _Header extends StatelessWidget {
   final Animation<double> enter;
   final GlobalKey markKey;
   final bool markVisible;
+  final bool showSettings;
   final String title;
   final String subtitle;
 
@@ -240,7 +246,7 @@ class _Header extends StatelessWidget {
     final theme = Theme.of(context);
     final reduced = Motion.reduced(context);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.l, Gap.xl, Gap.l),
+      padding: const EdgeInsets.fromLTRB(Gap.xl, Gap.s, Gap.s, Gap.l),
       child: AnimatedBuilder(
         animation: scroll,
         builder: (context, _) {
@@ -250,23 +256,35 @@ class _Header extends StatelessWidget {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Opacity(
-                    opacity: markVisible ? 1 : 0,
-                    child: MosaicMark(key: markKey, size: 26, spread: pull),
-                  ),
-                  const SizedBox(width: Gap.m),
-                  Text('Tessera', style: theme.textTheme.titleLarge),
-                  const Spacer(),
-                  Text(subtitle, style: theme.textTheme.labelSmall),
-                ],
+              SizedBox(
+                height: AppSpacing.tapTarget,
+                child: Row(
+                  children: [
+                    Opacity(
+                      opacity: markVisible ? 1 : 0,
+                      child: SuiteAppIcon(
+                        key: markKey,
+                        app: SuiteApp.tessera,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: Gap.m),
+                    Text('Tessera', style: theme.textTheme.titleLarge),
+                    const Spacer(),
+                    Text(subtitle, style: theme.textTheme.labelSmall),
+                    if (showSettings)
+                      IconButton(
+                        tooltip: 'Settings',
+                        onPressed: () => context.go('/settings'),
+                        icon: const Icon(Icons.settings_outlined),
+                      ),
+                  ],
+                ),
               ),
-              const SizedBox(height: Gap.xxl),
+              const SizedBox(height: Gap.xl),
               Entrance(
                 animation: enter,
                 index: 0,
-                depth: false,
                 child: Transform.translate(
                   offset: Offset(0, lift * 0.35 + pull * 18),
                   child: Opacity(
@@ -300,7 +318,7 @@ class _TabsHeader extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrink, bool overlaps) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final theme = Theme.of(context);
     return AnimatedContainer(
       duration: Motion.of(context, Motion.base),
@@ -308,7 +326,7 @@ class _TabsHeader extends SliverPersistentHeaderDelegate {
         color: canvas,
         border: Border(
           bottom: BorderSide(
-            color: overlaps ? p.hairline : p.hairline.withValues(alpha: 0),
+            color: overlaps ? c.hairline : c.hairline.withValues(alpha: 0),
           ),
         ),
       ),
@@ -322,12 +340,12 @@ class _TabsHeader extends SliverPersistentHeaderDelegate {
         dividerColor: Colors.transparent,
         indicatorSize: TabBarIndicatorSize.tab,
         indicator: BoxDecoration(
-          color: p.ink,
+          color: c.accentContainer,
           borderRadius: BorderRadius.circular(Radii.pill),
         ),
         indicatorPadding: const EdgeInsets.symmetric(vertical: 12),
-        labelColor: p.canvas,
-        unselectedLabelColor: p.muted,
+        labelColor: c.textPrimary,
+        unselectedLabelColor: c.textSecondary,
         labelStyle: theme.textTheme.labelLarge!.copyWith(fontSize: 14),
         unselectedLabelStyle: theme.textTheme.labelLarge!.copyWith(
           fontSize: 14,
@@ -375,23 +393,20 @@ class _PlacedStrip extends ConsumerWidget {
               final shown =
                   design.sizes.where((s) => s.id == p.size).firstOrNull ??
                   design.sizes.first;
-              return ScrollDepth(
-                tilt: 0.12,
-                child: Pressable(
-                  semanticLabel: 'Edit ${design.name}',
-                  onTap: () => context.go('/widget/${p.id}'),
-                  child: Hero(
-                    tag: placedHeroTag(p.id),
-                    child: Backdrop(
-                      radius: Radii.m,
-                      child: Padding(
-                        padding: const EdgeInsets.all(Gap.m),
-                        child: NativePreview(
-                          design: p.design,
-                          style: p.style,
-                          size: shown,
-                          width: 92 * shown.widthDp / shown.heightDp,
-                        ),
+              return Pressable(
+                semanticLabel: 'Edit ${design.name}',
+                onTap: () => context.go('/widget/${p.id}'),
+                child: Hero(
+                  tag: placedHeroTag(p.id),
+                  child: Backdrop(
+                    radius: Radii.m,
+                    child: Padding(
+                      padding: const EdgeInsets.all(Gap.m),
+                      child: NativePreview(
+                        design: p.design,
+                        style: p.style,
+                        size: shown,
+                        width: 92 * shown.widthDp / shown.heightDp,
                       ),
                     ),
                   ),
@@ -419,85 +434,76 @@ class _DesignCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final style = ref.watch(styleProvider(DraftTarget(design.id)));
-    return ScrollDepth(
-      tilt: 0.06,
-      child: Pressable(
-        semanticLabel: design.name,
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Hero(
-                tag: designHeroTag(design.id),
-                child: Backdrop(
-                  child: ScrollDepth(
-                    shift: -14,
-                    child: LayoutBuilder(
-                      builder: (context, box) {
-                        final aspect = size.widthDp / size.heightDp;
-                        final width = ((box.maxHeight - 48) * aspect).clamp(
-                          80.0,
-                          box.maxWidth - 48,
-                        );
-                        return Center(
-                          child: NativePreview(
-                            design: design.id,
-                            style: style,
-                            size: size,
-                            width: width,
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+    return Pressable(
+      semanticLabel: design.name,
+      onTap: onTap,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Hero(
+              tag: designHeroTag(design.id),
+              child: Backdrop(
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final aspect = size.widthDp / size.heightDp;
+                    final width = ((box.maxHeight - 48) * aspect).clamp(
+                      80.0,
+                      box.maxWidth - 48,
+                    );
+                    return Center(
+                      child: NativePreview(
+                        design: design.id,
+                        style: style,
+                        size: size,
+                        width: width,
+                      ),
+                    );
+                  },
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Gap.xs, Gap.m, Gap.xs, 0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      design.name,
-                      style: theme.textTheme.titleMedium,
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Gap.xs, Gap.m, Gap.xs, 0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: Text(design.name, style: theme.textTheme.titleMedium),
+                ),
+                if (design.motion != null) ...[
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: c.accent,
+                      shape: BoxShape.circle,
                     ),
                   ),
-                  if (design.motion != null) ...[
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: p.accentInk,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: Gap.xs + 2),
-                    Text('MOTION', style: theme.textTheme.labelSmall),
-                    const SizedBox(width: Gap.m),
-                  ],
-                  Text(
-                    design.sizes.map((s) => s.label).join(' '),
-                    style: theme.textTheme.labelMedium,
-                  ),
+                  const SizedBox(width: Gap.xs + 2),
+                  Text('MOTION', style: theme.textTheme.labelSmall),
+                  const SizedBox(width: Gap.m),
                 ],
-              ),
+                Text(
+                  design.sizes.map((s) => s.label).join(' '),
+                  style: theme.textTheme.labelMedium,
+                ),
+              ],
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(Gap.xs, Gap.xs, Gap.xs, 0),
-              child: Text(
-                design.blurb,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall,
-              ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Gap.xs, Gap.xs, Gap.xs, 0),
+            child: Text(
+              design.blurb,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -508,28 +514,32 @@ class _Empty extends StatelessWidget {
   final bool configuring;
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+  Widget build(BuildContext context) => AppEmptyState(
+    icon: Icons.widgets_outlined,
+    title: configuring ? 'Nothing fits this slot yet' : 'No designs here yet',
+    message: configuring
+        ? 'Try a different widget size from your launcher.'
+        : 'New designs arrive with updates.',
+  );
+}
+
+/// A newer release on GitHub, until dismissed for the session.
+class _Update extends ConsumerWidget {
+  const _Update();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final info = ref.watch(updateCheckProvider).valueOrNull;
+    if (info == null || ref.watch(updateDismissedProvider)) {
+      return const SizedBox.shrink();
+    }
     return Padding(
-      padding: const EdgeInsets.all(Gap.xxl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Opacity(opacity: 0.35, child: MosaicMark(size: 56)),
-          const SizedBox(height: Gap.xl),
-          Text(
-            configuring ? 'Nothing fits this slot yet' : 'No designs here yet',
-            style: theme.textTheme.titleMedium,
-          ),
-          const SizedBox(height: Gap.s),
-          Text(
-            configuring
-                ? 'Try a different widget size from your launcher.'
-                : 'New designs arrive with updates.',
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodySmall,
-          ),
-        ],
+      padding: const EdgeInsets.fromLTRB(Gap.l, 0, Gap.l, Gap.l),
+      child: UpdateBanner(
+        info: info,
+        onUpdate: () => ref.read(updateServiceProvider).openDownload(info),
+        onDismiss: () =>
+            ref.read(updateDismissedProvider.notifier).state = true,
       ),
     );
   }

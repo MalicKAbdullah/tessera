@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:core_theme/core_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -67,7 +68,7 @@ class _AppliedNoteState extends ConsumerState<_AppliedNote> {
       _timer = Timer(_settle, () => setState(() => _applying = false));
       if (!_applying) setState(() => _applying = true);
     });
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final theme = Theme.of(context);
     return SizedBox(
       height: 56,
@@ -84,7 +85,7 @@ class _AppliedNoteState extends ConsumerState<_AppliedNote> {
                 height: 6,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _applying ? p.accentInk : p.ink,
+                  color: _applying ? c.accent : c.textPrimary,
                 ),
               ),
               const SizedBox(width: Gap.s),
@@ -188,14 +189,14 @@ class PinActionState extends ConsumerState<PinAction> {
   }
 
   Widget _pinBody(BuildContext context) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final theme = Theme.of(context);
     final label = switch (state) {
       PinState.idle => Text('Add ${widget.size.label} to home screen'),
       PinState.asking => SizedBox(
         width: 18,
         height: 18,
-        child: CircularProgressIndicator(strokeWidth: 1.6, color: p.canvas),
+        child: CircularProgressIndicator(strokeWidth: 2, color: c.onAccent),
       ),
       PinState.confirming => const Text('Confirm in the launcher prompt'),
       PinState.placed => const Row(
@@ -231,7 +232,9 @@ class PinActionState extends ConsumerState<PinAction> {
                     key: ValueKey(note),
                     textAlign: TextAlign.center,
                     style: theme.textTheme.bodySmall!.copyWith(
-                      color: state == PinState.declined ? p.ink : p.muted,
+                      color: state == PinState.declined
+                          ? c.textPrimary
+                          : c.textSecondary,
                     ),
                   ),
                 ),
@@ -247,8 +250,6 @@ class PinActionState extends ConsumerState<PinAction> {
                 ),
               ),
             PrimaryButton(
-              color: state == PinState.placed ? p.accent : null,
-              foreground: state == PinState.placed ? p.onAccent : null,
               onTap: switch (state) {
                 PinState.idle ||
                 PinState.confirming ||
@@ -321,11 +322,12 @@ class _TileBurstState extends State<TileBurst>
   @override
   Widget build(BuildContext context) {
     if (Motion.reduced(context)) return const SizedBox.shrink();
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return AnimatedBuilder(
       animation: _c,
-      builder: (context, _) =>
-          CustomPaint(painter: _BurstPainter(_c.value, p.accent, p.ink)),
+      builder: (context, _) => CustomPaint(
+        painter: _BurstPainter(_c.value, c.accent, c.textPrimary),
+      ),
     );
   }
 }

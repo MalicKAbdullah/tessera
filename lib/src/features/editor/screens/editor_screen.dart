@@ -1,10 +1,11 @@
+import 'package:core_theme/core_theme.dart';
+import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/design/tokens.dart';
 import '../../../core/motion/motion.dart';
-import '../../../core/widgets/mosaic_mark.dart';
 import '../../gallery/screens/gallery_screen.dart';
 import '../../widgets/models/catalog.dart';
 import '../../widgets/models/widget_style.dart';
@@ -54,7 +55,7 @@ class PlacedEditorScreen extends ConsumerWidget {
               Expanded(
                 child: Center(
                   child: placed.isLoading
-                      ? const MosaicLoader()
+                      ? const CircularProgressIndicator()
                       : const _Gone(),
                 ),
               ),
@@ -81,27 +82,17 @@ class _Gone extends StatelessWidget {
   const _Gone();
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.all(Gap.xxl),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Opacity(opacity: 0.35, child: MosaicMark(size: 56)),
-          const SizedBox(height: Gap.xl),
-          Text('This widget is gone', style: theme.textTheme.titleMedium),
-          const SizedBox(height: Gap.s),
-          Text(
-            'It is no longer on your home screen.',
-            style: theme.textTheme.bodySmall,
-          ),
-          const SizedBox(height: Gap.l),
-          QuietButton(label: 'Back to designs', onTap: () => context.go('/')),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AppEmptyState(
+    icon: Icons.widgets_outlined,
+    title: 'This widget is gone',
+    message: 'It is no longer on your home screen.',
+    action: VaultButton(
+      label: 'Back to designs',
+      variant: VaultButtonVariant.secondary,
+      isFullWidth: false,
+      onPressed: () => context.go('/'),
+    ),
+  );
 }
 
 class _Editor extends ConsumerStatefulWidget {
@@ -155,7 +146,7 @@ class _EditorState extends ConsumerState<_Editor>
     final design = catalog.design(widget.target.design);
     final style = ref.watch(styleProvider(widget.target));
     final theme = Theme.of(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final wide = MediaQuery.sizeOf(context).width >= 840;
     final stage = Padding(
       padding: const EdgeInsets.symmetric(horizontal: Gap.l),
@@ -217,7 +208,7 @@ class _EditorState extends ConsumerState<_Editor>
                   width: 6,
                   height: 6,
                   decoration: BoxDecoration(
-                    color: p.accentInk,
+                    color: c.accent,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -252,12 +243,7 @@ class _EditorState extends ConsumerState<_Editor>
       padding: const EdgeInsets.fromLTRB(Gap.xl, 0, Gap.xl, 132),
       children: [
         for (var i = 0; i < sections.length; i++)
-          Entrance(
-            animation: _enter,
-            index: i,
-            depth: false,
-            child: sections[i],
-          ),
+          Entrance(animation: _enter, index: i, child: sections[i]),
       ],
     );
     final action = Positioned(
@@ -269,7 +255,11 @@ class _EditorState extends ConsumerState<_Editor>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [p.canvas.withValues(alpha: 0), p.canvas, p.canvas],
+            colors: [
+              c.background.withValues(alpha: 0),
+              c.background,
+              c.background,
+            ],
             stops: const [0, 0.35, 1],
           ),
         ),
@@ -324,7 +314,7 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(Gap.s, Gap.s, Gap.xl, Gap.m),
       child: Row(
@@ -338,9 +328,9 @@ class _TopBar extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: p.hairline),
+                border: Border.all(color: c.border),
               ),
-              child: Icon(Icons.arrow_back, size: 20, color: p.ink),
+              child: Icon(Icons.arrow_back, size: 20, color: c.textPrimary),
             ),
           ),
           const SizedBox(width: Gap.m),
@@ -499,7 +489,7 @@ class _FontCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return Pressable(
       semanticLabel: font.label,
       onTap: onTap,
@@ -508,23 +498,23 @@ class _FontCard extends StatelessWidget {
         curve: Motion.ease,
         padding: const EdgeInsets.fromLTRB(Gap.m, Gap.s, Gap.l, Gap.s),
         decoration: BoxDecoration(
-          color: selected ? p.surface : p.canvas,
-          borderRadius: BorderRadius.circular(Radii.s + 4),
+          color: c.surface,
+          borderRadius: BorderRadius.circular(Radii.s),
           border: Border.all(
-            color: selected ? p.ink : p.hairline,
-            width: selected ? 1.5 : 1,
+            color: selected ? c.accent : c.border,
+            width: selected ? 2 : 1,
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _Specimen(font: font.key, weight: weight, color: p.ink),
+            _Specimen(font: font.key, weight: weight, color: c.textPrimary),
             const SizedBox(height: Gap.xs),
             Text(
               font.label.toUpperCase(),
               style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                color: selected ? p.ink : p.muted,
+                color: selected ? c.textPrimary : c.textSecondary,
               ),
             ),
           ],

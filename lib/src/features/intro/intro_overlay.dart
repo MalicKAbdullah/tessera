@@ -1,12 +1,13 @@
+import 'package:core_theme/core_theme.dart';
+import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/design/tokens.dart';
 import '../../core/motion/motion.dart';
-import '../../core/widgets/mosaic_mark.dart';
 
-/// First-launch sequence over the gallery: tiles assemble into the mark, the
-/// wordmark rises, then the veil lifts while the mark flies into the
-/// gallery header at [markTarget]. Tapping anywhere skips to the exit.
+/// First-launch sequence over the gallery: the app tile lands, the name
+/// rises, then the veil lifts while the tile flies into the gallery header
+/// at [markTarget]. Tapping anywhere skips to the exit.
 class IntroOverlay extends StatefulWidget {
   const IntroOverlay({
     super.key,
@@ -15,7 +16,7 @@ class IntroOverlay extends StatefulWidget {
     required this.onDone,
   });
 
-  /// The header mark the intro mark lands on.
+  /// The header tile the intro tile lands on.
   final GlobalKey markTarget;
 
   /// The veil starts lifting; the gallery should begin its entrance.
@@ -41,7 +42,7 @@ class _IntroOverlayState extends State<IntroOverlay>
     super.didChangeDependencies();
     if (_c.isAnimating || _c.isCompleted) return;
     _c
-      ..duration = Duration(milliseconds: Motion.reduced(context) ? 1400 : 2700)
+      ..duration = Duration(milliseconds: Motion.reduced(context) ? 1400 : 2200)
       ..addListener(_onTick)
       ..addStatusListener((s) {
         if (s == AnimationStatus.completed) widget.onDone();
@@ -74,7 +75,7 @@ class _IntroOverlayState extends State<IntroOverlay>
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final theme = Theme.of(context);
     final reduced = Motion.reduced(context);
     return GestureDetector(
@@ -86,7 +87,9 @@ class _IntroOverlayState extends State<IntroOverlay>
           animation: _c,
           builder: (context, _) {
             final exit = Motion.ease.transform(_phase(_exitAt, 1));
-            final words = Motion.enter.transform(_phase(0.34, 0.62));
+            final arrive = _phase(0, 0.24);
+            final land = AppMotion.settle.transform(arrive);
+            final words = Motion.enter.transform(_phase(0.2, 0.44));
             final centre = Rect.fromCenter(
               center: box.biggest.center(Offset.zero).translate(0, -40),
               width: _markSize,
@@ -98,16 +101,21 @@ class _IntroOverlayState extends State<IntroOverlay>
               children: [
                 Positioned.fill(
                   child: ColoredBox(
-                    color: p.canvas.withValues(alpha: 1 - exit),
+                    color: c.background.withValues(alpha: 1 - exit),
                   ),
                 ),
                 Positioned.fromRect(
                   rect: mark,
                   child: Opacity(
-                    opacity: reduced ? 1 - exit : 1,
-                    child: MosaicMark(
-                      size: mark.width,
-                      assemble: reduced ? 1 : _phase(0, 0.52),
+                    opacity: reduced
+                        ? 1 - exit
+                        : Motion.ease.transform(arrive.clamp(0.0, 1.0)),
+                    child: Transform.scale(
+                      scale: reduced ? 1 : 0.72 + 0.28 * land,
+                      child: SuiteAppIcon(
+                        app: SuiteApp.tessera,
+                        size: mark.width,
+                      ),
                     ),
                   ),
                 ),

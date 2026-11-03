@@ -1,3 +1,5 @@
+import 'package:core_theme/core_theme.dart';
+import 'package:core_ui/core_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -12,12 +14,12 @@ class Section extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return Container(
       margin: const EdgeInsets.only(top: Gap.xl),
       padding: const EdgeInsets.only(top: Gap.l),
       decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: p.hairline)),
+        border: Border(top: BorderSide(color: c.hairline)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -34,7 +36,7 @@ class Section extends StatelessWidget {
   }
 }
 
-/// A slider with its value as a mono readout. It clicks once per [steps]th of
+/// A slider with its value as a tabular readout. It clicks once per [steps]th of
 /// its range, and the readout lifts in the accent colour while dragged.
 class LabeledSlider extends StatefulWidget {
   const LabeledSlider({
@@ -79,7 +81,7 @@ class _LabeledSliderState extends State<LabeledSlider> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return SizedBox(
       height: 44,
       child: Row(
@@ -107,9 +109,8 @@ class _LabeledSliderState extends State<LabeledSlider> {
               curve: Motion.ease,
               child: AnimatedDefaultTextStyle(
                 duration: Motion.of(context, Motion.quick),
-                style: theme.textTheme.labelMedium!.copyWith(
-                  color: _dragging ? p.accentInk : p.muted,
-                  fontFeatures: const [FontFeature.tabularFigures()],
+                style: AppTextStyles.numberSmall.copyWith(
+                  color: _dragging ? c.accent : c.textSecondary,
                 ),
                 child: Text(widget.display, textAlign: TextAlign.end),
               ),
@@ -121,8 +122,10 @@ class _LabeledSliderState extends State<LabeledSlider> {
   }
 }
 
-/// Segmented control: equal segments on a track, with a pill that glides to
-/// the selection.
+/// Segmented control drawn like the suite's `AppSegmentedControl` (recessed
+/// track, raised thumb that settles on the selection), except that a label
+/// too long for its segment fades out instead of overflowing: design option
+/// names vary in length and some sets fill five segments.
 class PillSelector<T> extends StatelessWidget {
   const PillSelector({
     super.key,
@@ -138,33 +141,37 @@ class PillSelector<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
-    final theme = Theme.of(context);
+    final c = SuiteColors.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final keys = options.keys.toList();
     final index = keys.indexOf(selected);
     final n = keys.length;
     return Container(
       height: 40,
       padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: p.surface,
-        borderRadius: BorderRadius.circular(Radii.pill),
-        border: Border.all(color: p.hairline),
+      decoration: ShapeDecoration(
+        color: c.surfaceAlt,
+        shape: const StadiumBorder(),
       ),
       child: Stack(
         children: [
           if (index >= 0)
             AnimatedAlign(
               duration: Motion.of(context, Motion.base),
-              curve: Motion.ease,
+              curve: AppMotion.settle,
               alignment: Alignment(n == 1 ? 0 : -1 + 2 * index / (n - 1), 0),
               child: FractionallySizedBox(
                 widthFactor: 1 / n,
                 heightFactor: 1,
                 child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: p.ink,
-                    borderRadius: BorderRadius.circular(Radii.pill),
+                  decoration: ShapeDecoration(
+                    color: dark ? AppColors.gray700 : c.surface,
+                    shape: StadiumBorder(
+                      side: BorderSide(
+                        color: dark ? Colors.transparent : c.border,
+                        width: 0.5,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -173,20 +180,36 @@ class PillSelector<T> extends StatelessWidget {
             children: [
               for (final k in keys)
                 Expanded(
-                  child: Pressable(
-                    onTap: k == selected ? null : () => onSelected(k),
-                    child: Center(
-                      child: AnimatedDefaultTextStyle(
-                        duration: Motion.of(context, Motion.base),
-                        style: theme.textTheme.labelLarge!.copyWith(
-                          fontSize: 13,
-                          color: k == selected ? p.canvas : p.muted,
-                        ),
-                        child: Text(
-                          options[k]!,
-                          maxLines: 1,
-                          overflow: TextOverflow.fade,
-                          softWrap: false,
+                  child: Semantics(
+                    button: true,
+                    selected: k == selected,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: k == selected
+                          ? null
+                          : () {
+                              HapticFeedback.selectionClick();
+                              onSelected(k);
+                            },
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: Gap.xs,
+                          ),
+                          child: AnimatedDefaultTextStyle(
+                            duration: Motion.of(context, Motion.quick),
+                            style: AppTextStyles.labelStrong.copyWith(
+                              color: k == selected
+                                  ? c.textPrimary
+                                  : c.textSecondary,
+                            ),
+                            child: Text(
+                              options[k]!,
+                              maxLines: 1,
+                              overflow: TextOverflow.fade,
+                              softWrap: false,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -214,30 +237,14 @@ class ChoicePill extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
-    final p = Palette.of(context);
-    return Pressable(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: Motion.of(context, Motion.base),
-        curve: Motion.ease,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-        decoration: BoxDecoration(
-          color: selected ? p.ink : p.surface,
-          borderRadius: BorderRadius.circular(Radii.pill),
-          border: Border.all(color: selected ? p.ink : p.hairline),
-        ),
-        child: AnimatedDefaultTextStyle(
-          duration: Motion.of(context, Motion.base),
-          style: Theme.of(context).textTheme.labelLarge!.copyWith(
-            fontSize: 13,
-            color: selected ? p.canvas : p.ink,
-          ),
-          child: Text(label),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => AppChip(
+    label: label,
+    selected: selected,
+    onTap: () {
+      HapticFeedback.selectionClick();
+      onTap();
+    },
+  );
 }
 
 /// Options that fit on one track use [PillSelector]; longer sets wrap.
@@ -371,22 +378,22 @@ class ColorDot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return Pressable(
       scale: 0.9,
       onTap: onTap,
       semanticLabel: color == null ? 'Custom colour' : 'Colour',
       child: AnimatedContainer(
         duration: Motion.of(context, Motion.base),
-        curve: Curves.easeOutBack,
+        curve: AppMotion.settle,
         width: 34,
         height: 34,
         padding: EdgeInsets.all(selected ? 4 : 0),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: selected ? p.ink : p.hairline,
-            width: selected ? 1.5 : 1,
+            color: selected ? c.accent : c.border,
+            width: selected ? 2 : 1,
           ),
         ),
         child: DecoratedBox(
@@ -412,40 +419,30 @@ class ColorDot extends StatelessWidget {
   }
 }
 
-/// The app's main call to action: a full-width ink pill.
+/// The editor's main call to action: the suite's primary pill, with a child
+/// that can change in place (labels, progress, a check).
 class PrimaryButton extends StatelessWidget {
-  const PrimaryButton({
-    super.key,
-    required this.child,
-    required this.onTap,
-    this.color,
-    this.foreground,
-  });
+  const PrimaryButton({super.key, required this.child, required this.onTap});
 
   final Widget child;
   final VoidCallback? onTap;
-  final Color? color;
-  final Color? foreground;
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
-    final fg = foreground ?? p.canvas;
+    final c = SuiteColors.of(context);
     return Pressable(
       onTap: onTap,
-      child: AnimatedContainer(
-        duration: Motion.of(context, Motion.slow),
-        curve: Motion.ease,
-        height: 56,
+      child: Container(
+        height: AppSpacing.buttonHeight,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: color ?? p.ink,
-          borderRadius: BorderRadius.circular(Radii.pill),
+        decoration: ShapeDecoration(
+          color: c.accent,
+          shape: const StadiumBorder(),
         ),
         child: IconTheme.merge(
-          data: IconThemeData(color: fg, size: 18),
+          data: IconThemeData(color: c.onAccent, size: 18),
           child: DefaultTextStyle.merge(
-            style: Theme.of(context).textTheme.labelLarge!.copyWith(color: fg),
+            style: AppTextStyles.button.copyWith(color: c.onAccent),
             child: child,
           ),
         ),
@@ -461,18 +458,8 @@ class QuietButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Pressable(
-    onTap: onTap,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Gap.m, vertical: Gap.m),
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.labelLarge!.copyWith(color: Palette.of(context).muted),
-      ),
-    ),
-  );
+  Widget build(BuildContext context) =>
+      TextButton(onPressed: onTap, child: Text(label));
 }
 
 Future<Color?> showCustomColorPicker(BuildContext context, Color initial) {
@@ -506,7 +493,7 @@ class _HsvPickerState extends State<_HsvPicker> {
             height: 64,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(Radii.m),
+              borderRadius: BorderRadius.circular(Radii.s),
             ),
           ),
           const SizedBox(height: Gap.m),
@@ -536,9 +523,9 @@ class _HsvPickerState extends State<_HsvPicker> {
             onChanged: (v) => setState(() => _hsv = _hsv.withValue(v)),
           ),
           const SizedBox(height: Gap.m),
-          PrimaryButton(
-            onTap: () => Navigator.pop(context, color),
-            child: const Text('Use colour'),
+          VaultButton(
+            label: 'Use colour',
+            onPressed: () => Navigator.pop(context, color),
           ),
         ],
       ),

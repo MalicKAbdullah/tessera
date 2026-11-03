@@ -69,23 +69,19 @@ class _PressableState extends State<Pressable>
   }
 }
 
-/// Staggered entrance with depth: rises, un-tilts and fades in along
-/// [animation], offset by [index] (capped so long lists do not queue up).
+/// Staggered entrance: rises and fades in along [animation], offset by
+/// [index] (capped so long lists do not queue up).
 class Entrance extends StatefulWidget {
   const Entrance({
     super.key,
     required this.animation,
     required this.index,
     required this.child,
-    this.depth = true,
   });
 
   final Animation<double> animation;
   final int index;
   final Widget child;
-
-  /// Adds a perspective tilt that flattens as the child lands.
-  final bool depth;
 
   @override
   State<Entrance> createState() => _EntranceState();
@@ -126,111 +122,14 @@ class _EntranceState extends State<Entrance> {
   @override
   Widget build(BuildContext context) => FadeTransition(
     opacity: _t,
-    child: AnimatedBuilder(
-      animation: _t,
+    child: SlideTransition(
+      position: Tween(
+        begin: const Offset(0, 0.06),
+        end: Offset.zero,
+      ).animate(_t),
       child: widget.child,
-      builder: (context, child) {
-        final r = 1 - _t.value;
-        final m = Matrix4.identity()
-          ..setEntry(3, 2, 0.0012)
-          ..translateByDouble(0, 28 * r, 0, 1);
-        if (widget.depth) m.rotateX(0.22 * r);
-        m.scaleByDouble(0.94 + 0.06 * _t.value, 0.94 + 0.06 * _t.value, 1, 1);
-        return Transform(
-          alignment: Alignment.center,
-          transform: m,
-          child: child,
-        );
-      },
     ),
   );
-}
-
-/// Tilts and shifts [child] by where it sits in the enclosing scroll view:
-/// cards lean back as they near the top edge and forward near the bottom,
-/// and [shift] moves the child against the scroll for parallax. Runs in the
-/// paint phase, so scrolling repaints without rebuilding.
-class ScrollDepth extends StatelessWidget {
-  const ScrollDepth({
-    super.key,
-    required this.child,
-    this.tilt = 0,
-    this.shift = 0,
-  });
-
-  final Widget child;
-
-  /// Radians at the viewport edges.
-  final double tilt;
-
-  /// Logical pixels at the viewport edges.
-  final double shift;
-
-  @override
-  Widget build(BuildContext context) {
-    if (Motion.reduced(context)) return child;
-    return Flow(
-      delegate: _DepthDelegate(
-        scrollable: Scrollable.of(context),
-        item: context,
-        tilt: tilt,
-        shift: shift,
-      ),
-      children: [child],
-    );
-  }
-}
-
-class _DepthDelegate extends FlowDelegate {
-  _DepthDelegate({
-    required this.scrollable,
-    required this.item,
-    required this.tilt,
-    required this.shift,
-  }) : super(repaint: scrollable.position);
-
-  final ScrollableState scrollable;
-  final BuildContext item;
-  final double tilt;
-  final double shift;
-
-  @override
-  void paintChildren(FlowPaintingContext context) {
-    final viewport = scrollable.context.findRenderObject()! as RenderBox;
-    final box = item.findRenderObject()! as RenderBox;
-    final centre = box.localToGlobal(
-      box.size.center(Offset.zero),
-      ancestor: viewport,
-    );
-    final vertical = scrollable.position.axis == Axis.vertical;
-    final extent = vertical ? viewport.size.height : viewport.size.width;
-    final t = (((vertical ? centre.dy : centre.dx) / extent) * 2 - 1).clamp(
-      -1.0,
-      1.0,
-    );
-    final size = context.size;
-    final m = Matrix4.identity()
-      ..translateByDouble(size.width / 2, size.height / 2, 0, 1)
-      ..setEntry(3, 2, 0.0009);
-    if (vertical) {
-      m
-        ..rotateX(-t * tilt)
-        ..translateByDouble(0, t * shift, 0, 1);
-    } else {
-      m
-        ..rotateY(t * tilt)
-        ..translateByDouble(t * shift, 0, 0, 1);
-    }
-    m.translateByDouble(-size.width / 2, -size.height / 2, 0, 1);
-    context.paintChild(0, transform: m);
-  }
-
-  @override
-  bool shouldRepaint(_DepthDelegate old) =>
-      old.scrollable != scrollable ||
-      old.item != item ||
-      old.tilt != tilt ||
-      old.shift != shift;
 }
 
 /// Answers every change of [trigger] with a spring: the child dips slightly

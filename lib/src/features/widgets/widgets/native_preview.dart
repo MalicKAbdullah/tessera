@@ -156,7 +156,7 @@ class Backdrop extends StatelessWidget {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: Palette.of(context).stage,
+        colors: stageColors(Theme.of(context).brightness),
       ),
     ),
     child: child,
