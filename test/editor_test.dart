@@ -44,7 +44,7 @@ Future<ProviderContainer> _pumpEditor(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp.router(
-        theme: TesseraTheme.light(),
+        theme: tesseraTheme(Brightness.light),
         routerConfig: router,
       ),
     ),

@@ -10,7 +10,7 @@ not chrome: the Kotlin engine and every design stay as they are.
 
 | Area | Joins Offlyne (replaced) | Stays Tessera |
 |---|---|---|
-| Colour | `Palette` (cool monochrome + lime) becomes `AppTheme.build(accent: AppAccents.tessera)` and `SuiteColors` | The wallpaper stand-in behind previews (`Palette.stage`), kept as a local constant |
+| Colour | `Palette` (cool monochrome + lime) becomes `AppTheme.build(accent: AppAccents.tessera)` and `SuiteColors`, still lime | The wallpaper stand-in behind previews (`Palette.stage`), kept as a local constant |
 | Type | Space Grotesk, Inter Tight and JetBrains Mono leave the Flutter font block; chrome uses Mona Sans, Mona Sans Display and Mona Sans Mono | All widget faces in `res/font/` (Doto, Space Grotesk, Inter Tight, JetBrains Mono, Instrument Serif, Oswald), drawn natively |
 | Components | Buttons, text fields, selects, segmented controls, settings rows, banners and empty states come from `core_ui` | Editor-only controls (colour swatches, sliders, font specimens, size picker, preview stage), restyled with `SuiteColors` |
 | Motion | Durations and curves from `AppMotion`; the scroll-linked tilt (`ScrollDepth`) is removed | `Pressable` and `SpringResponse` (direct manipulation, matching the `settle` curve), `Entrance`, preview cross-fades; all respect reduced motion |
@@ -24,27 +24,21 @@ Tessera takes no `core_lock`, `core_crypto`, `core_storage`, `core_backup` or
 `core_notify`: it holds nothing secret (its photos and notes are shown on the
 home screen by design) and posts no notifications.
 
-## Accent: Orchid
+## Accent: electric lime
 
-Existing accents by hue, with Tessera in its gap:
+Tessera keeps its electric lime. Warden, which shares the lime hue, is no
+longer supported, so no two supported apps collide.
 
-| Accent (app) | Light | Dark | Hue |
-|---|---|---|---|
-| Lime (Warden) | `#457A0C` | `#A6E33C` | 89° |
-| Jade (DoseWise) | `#08805F` | `#3EDDA6` | 164° |
-| Cyan (OpenLock) | `#007E9C` | `#3FD0EE` | 192° |
-| Cobalt (Budgetly) | `#0F62D6` | `#6AA6FF` | 215° |
-| Indigo (Ledgerly) | `#4A4FE0` | `#9298FF` | 238° |
-| Violet (Vaultly) | `#7341E6` | `#B197FF` | 258° |
-| **Orchid (Tessera)** | **`#A21CAF`** | **`#E37BF2`** | **295°** |
-| Berry (Reflect) | `#C81E5B` | `#FF6B9A` | 338° |
+| | Value | Contrast |
+|---|---|---|
+| Light accent (`AppAccents.tessera.light`) | `#4F7300` deep lime ink | 5.5:1 under white text, 5.2:1 on the light background |
+| Dark accent | `#D4FF3A` electric lime | 16.9:1 on the dark background, under dark text |
+| Containers | `#F4FFCE` light, `#313A1F` dark | accent 5.3:1 and 10.4:1 on them |
+| Launcher tile | `#D4FF3A` with an ink `#0E1116` glyph | 16.4:1 |
 
-- **In plain words:** Tessera's chrome turns orchid (a purple-magenta) in place of electric lime.
-- **Why this way:** the widest free gap on the wheel that no rule forbids sits between violet (258°) and berry (338°). Orchid sits 37° from violet and 43° from berry. White on `#A21CAF` is 6.3:1 (AA needs 4.5); `#E37BF2` on the dark background is 7.8:1 and on the dark surface 7.3:1.
-- **Why not the alternatives:** lime is Warden's. Green collides with the shared positive colour, red with negative, amber/yellow with warning, and orange is banned by BRAND.md. Teal falls between cyan and jade, under 30° from each.
-
-`AppAccents.tessera` uses containers `#F5E8F7` (light) and `#33203A` (dark),
-`onAccentLight` white and `onAccentDark` the dark background, like the others.
+- **In plain words:** the chrome is lime, as before: a deep olive-lime for text, strokes and buttons on light screens, and the bright electric lime on dark screens.
+- **Why this way:** lime is Tessera's identity and already lights the widgets' LED accents, so the chrome and the widgets agree. The suite's accent model has one colour per brightness that serves as fill under `onAccent` text and as text on the background, which the deep ink does in light mode and the electric lime does in dark mode.
+- **Why not the alternatives:** electric lime as the light accent fails both jobs (white on `#D4FF3A` is 1.2:1, lime text on white is unreadable). A new hue, such as orchid, would split the app from its widgets. On the launcher tile the lime stays and the glyph turns ink, the one exception to the white-glyph rule, recorded in core's BRAND.md.
 
 ## Icon glyph
 
@@ -65,7 +59,7 @@ const List<BrandShape> tesseraGlyph = [
 
 - Tiles are 6 units on the stroke centre line (8 outside the stroke), corner radius 1.5, with 2 units of clear space between them. The glyph spans 3 to 21, inside the grid's keyline.
 - The dot has the standard radius 2 and sits at the centre of the empty cell (17, 17).
-- White glyph on the `#A21CAF` tile, and the same glyph as the monochrome layer.
+- Ink `#0E1116` glyph on the `#D4FF3A` tile; the monochrome layer is the same glyph in white, which the system tints.
 
 ## Steps
 
@@ -87,7 +81,7 @@ Total: about 5–7 days.
 
 ## Risks
 
-- **Lime inside, orchid outside.** Many design defaults use the lime LED accent, so the gallery shows lime widgets in orchid chrome. That is intended: widgets are the user's content, and the accent is themable per widget. Chrome never uses lime.
+- **Lime in two places.** Many design defaults use the lime LED accent, and the chrome's accent is lime too. Chrome lime marks only the accent roles (primary button, selection, focus), on the suite's neutral shell, so the previews still carry most of the colour on screen.
 - **Golden churn.** Step 3 re-records every Flutter chrome golden. The Roborazzi widget goldens must not change in any step; a diff there means the migration touched the engine.
 - **Two engines.** The launcher's configure screen runs a second Flutter engine in the same process. Anything loaded before `runApp` (appearance, content) must be re-read on resume rather than cached for the life of the engine.
 - **Core drift.** Tessera pins core by SHA like the other apps; core changes reach it only through a deliberate bump.

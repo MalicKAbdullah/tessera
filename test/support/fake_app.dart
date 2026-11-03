@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:core_theme/core_theme.dart';
+import 'package:core_update/core_update.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tessera/src/core/theme.dart';
+import 'package:tessera/src/features/settings/settings_providers.dart';
 import 'package:tessera/src/features/widgets/models/catalog.dart';
 import 'package:tessera/src/features/widgets/models/widget_style.dart';
 import 'package:tessera/src/features/widgets/providers/widget_providers.dart';
@@ -115,18 +118,34 @@ class FakeEngine extends Engine {
       Future.value(pinAccepted);
 }
 
+/// Never finds an update, without touching the network.
+class FakeUpdateService implements IUpdateService {
+  UpdateInfo? next;
+
+  @override
+  Future<UpdateInfo?> check() => Future.value(next);
+
+  @override
+  Future<bool> openDownload(UpdateInfo info) => Future.value(true);
+}
+
 Future<ProviderContainer> fakeContainer(
   FakeEngine engine, {
   Map<String, Object> prefs = const {},
+  IUpdateService? updates,
 }) async {
   SharedPreferences.setMockInitialValues(prefs);
   final sp = await SharedPreferences.getInstance();
+  final appearance = await AppearanceController.load();
   return ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(sp),
       engineProvider.overrideWithValue(engine),
       catalogProvider.overrideWithValue(catalog),
       minuteProvider.overrideWith((ref) => Stream.value(DateTime(2026))),
+      appearanceProvider.overrideWithValue(appearance),
+      updateServiceProvider.overrideWithValue(updates ?? FakeUpdateService()),
+      appVersionProvider.overrideWith((ref) => '0.2.1'),
     ],
   );
 }
@@ -134,5 +153,8 @@ Future<ProviderContainer> fakeContainer(
 Widget themed(ProviderContainer container, Widget child, {ThemeData? theme}) =>
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(theme: theme ?? TesseraTheme.light(), home: child),
+      child: MaterialApp(
+        theme: theme ?? tesseraTheme(Brightness.light),
+        home: child,
+      ),
     );

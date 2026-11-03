@@ -182,16 +182,31 @@ screen therefore show the same pixels.
 
 ## App chrome (`lib/src/core/`)
 
+The chrome is an Offlyne app ("Tessera, by Offlyne") built on
+[secure-suite-core](https://github.com/MalicKAbdullah/secure-suite-core)'s
+`core_theme`, `core_ui` and `core_update`, pinned by commit in `pubspec.yaml`.
+The widgets are the user's content and keep their own faces and colours.
+
 | Piece | Where | Role |
 | --- | --- | --- |
-| Tokens | `design/tokens.dart` | `Palette` (light/dark colour roles, a `ThemeExtension`), `Gap`, `Radii`, `Fonts`, `Motion` (durations, curves, springs, `Motion.reduced`). |
-| Theme | `theme.dart` | Type scale on the bundled faces (Space Grotesk display, Inter Tight body, JetBrains Mono labels), exposed to Flutter from `res/font/` in `pubspec.yaml`. Ink splashes are off. |
-| Motion | `motion/motion.dart` | `Pressable` (spring press to 0.97 + selection haptic, used for every tap), `Entrance` (staggered rise with depth), `ScrollDepth` (scroll-linked tilt/parallax in the paint phase), `SpringResponse` (stage spring on each edit). |
-| Mark | `widgets/mosaic_mark.dart` | The 3×3 mosaic mark, its assembly animation and the breathing loader. |
+| Theme | `theme.dart` | `AppTheme.build` with `AppAccents.tessera`: the suite's neutrals, Mona Sans type and component themes, in Tessera's lime (`#4F7300` ink on light surfaces, `#D4FF3A` on dark). Widgets read colours from `SuiteColors.of(context)`. |
+| Tokens | `design/tokens.dart` | `Gap` and `Radii` on `AppSpacing`; `stageColors`, the wallpaper stand-in behind previews; `Motion`, durations and curves from `AppMotion` plus the press and stage springs and `Motion.reduced`. |
+| Motion | `motion/motion.dart` | `Pressable` (spring press to 0.97 + selection haptic), `Entrance` (staggered rise and fade), `SpringResponse` (stage spring on each edit). |
+| Appearance | `features/settings/` | `AppearanceController` is loaded before `runApp` and bound to `themeMode`; Settings offers System, Light and Dark first. On resume the stored choice is re-read, since the launcher's configure screen runs a second engine. |
+| Updates | `features/settings/settings_providers.dart` | `GithubUpdateService` for this repo; the gallery shows `UpdateBanner` for a newer release (installs need `REQUEST_INSTALL_PACKAGES`), and Settings has "Check on open" and "Check now". |
 
+- Buttons, segmented controls, chips, settings rows, banners and empty states
+  come from `core_ui`. The editor-only controls (swatches, sliders, font
+  cards, size picker, preview stage) are local and drawn with `SuiteColors`.
+  The size and option picker draws the suite's segmented control locally
+  because option labels can be longer than a segment.
+- The launcher icon, monochrome layer and native splash (tile and "by Offlyne"
+  endorsement) come from core's brand kit, `brand/icons/tessera/`: an ink
+  2×2 mosaic with the family dot on a lime tile.
 - The first-launch intro (`features/intro/intro_overlay.dart`) plays over the
-  gallery once; `TesseraStore.introSeen` records it. The launcher configure
-  flow never shows it.
+  gallery once: the app tile lands, the name rises, and the tile flies into
+  the gallery header. `TesseraStore.introSeen` records it. The launcher
+  configure flow never shows it.
 - Previews stay native PNGs; motion is applied to the containers around
   them. `NativePreview` fades each new render over the previous one and
   drops covered frames once the new one is opaque.
@@ -238,8 +253,8 @@ A failed comparison leaves `*_compare.png` diffs in
 `build/app/outputs/roborazzi/`. Commit re-recorded goldens with the change
 that caused them.
 
-Flutter chrome has goldens too: `test/goldens/` covers the gallery, editor
-and intro in light and dark at 412×915 with a fake engine
+Flutter chrome has goldens too: `test/goldens/` covers the gallery, editor,
+intro and settings in light and dark at 412×915 with a fake engine
 (`flutter test --update-goldens test/goldens` to rewrite). Their comparator
 tolerates small font rasterisation differences between macOS and Linux.
 

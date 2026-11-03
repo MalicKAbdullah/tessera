@@ -4,12 +4,14 @@
 
 ### Widgets, quietly yours.
 
+Tessera, by Offlyne.
+
 A growing library of home-screen widgets — dot-matrix and analog clocks, word and world time, live battery gauges and history — each drawn natively, alive where Android allows, and styled exactly the way you like.
 
 </div>
 
 > ### ◼️ Simple, but effective
-> No accounts, no ads, no tracking. Tessera stores your styles on your phone and only talks to the network for one thing: the weather for the city **you** type in.
+> No accounts, no ads, no tracking. Tessera stores your styles on your phone and only talks to the network for the weather for the city **you** type in, and an update check you can switch off.
 
 Every widget is drawn by a native Kotlin engine at the widget's real size, and the app's previews are that same rendering — what you tune is what lands on your home screen.
 
@@ -80,7 +82,7 @@ flutter test
 ## 🧱 Built With
 
 - **Kotlin** — the widget engine: Canvas rendering, RemoteViews overlays, WorkManager refresh
-- **Flutter** & **Dart** — the gallery and editor
+- **Flutter** & **Dart** — the gallery and editor, on the Offlyne design system ([secure-suite-core](https://github.com/MalicKAbdullah/secure-suite-core))
 - **Riverpod** (state) · **go_router** (navigation) · **Open-Meteo** (weather & geocoding)
 - Fonts under the SIL Open Font License — see `android/app/src/main/assets/licenses/`
 
