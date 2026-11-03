@@ -41,7 +41,7 @@ Future<ProviderContainer> _open(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp.router(
-        theme: TesseraTheme.light(),
+        theme: tesseraTheme(Brightness.light),
         routerConfig: _router = createRouter(
           initialLocation: launchLocation(target),
         ),
