@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,7 +23,6 @@ class DraftEditorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _Editor(
     target: DraftTarget(design),
-    initial: null,
     fixedSize: null,
     heroTag: designHeroTag(design),
   );
@@ -41,10 +41,8 @@ class PlacedEditorScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final placed = ref.watch(placedProvider);
-    final widget = placed.valueOrNull
-        ?.where((p) => p.id == widgetId)
-        .firstOrNull;
+    final placed = ref.watch(placedWidgetProvider(widgetId));
+    final widget = placed.valueOrNull;
     if (widget == null) {
       return Scaffold(
         body: SafeArea(
@@ -68,9 +66,6 @@ class PlacedEditorScreen extends ConsumerWidget {
     final design = catalog.design(configureDesign ?? widget.design);
     return _Editor(
       target: PlacedTarget(design.id, widgetId, configuring: configuring),
-      initial: configuring
-          ? ref.read(storeProvider).draft(design.id) ?? design.defaults
-          : widget.style,
       fixedSize: design.size(widget.size),
       heroTag: configuring ? designHeroTag(design.id) : placedHeroTag(widgetId),
     );
@@ -107,13 +102,11 @@ class _Gone extends StatelessWidget {
 class _Editor extends ConsumerStatefulWidget {
   const _Editor({
     required this.target,
-    required this.initial,
     required this.fixedSize,
     required this.heroTag,
   });
 
   final EditTarget target;
-  final WidgetStyle? initial;
   final SizeInfo? fixedSize;
   final String heroTag;
 
@@ -136,10 +129,6 @@ class _EditorState extends ConsumerState<_Editor>
   @override
   void initState() {
     super.initState();
-    final initial = widget.initial;
-    if (initial != null) {
-      ref.read(styleProvider(widget.target).notifier).load(initial);
-    }
     _enter.forward();
   }
 
@@ -605,6 +594,28 @@ class _SurfaceControls extends ConsumerWidget {
   const _SurfaceControls({required this.target});
   final EditTarget target;
 
+  /// A photo surface starts with a pick; cancelling keeps the current one.
+  Future<void> _pickPhoto(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final String? path;
+    try {
+      path = await ref.read(engineProvider).pickBackground();
+    } on PlatformException catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not use that photo: ${e.message}')),
+      );
+      return;
+    }
+    if (path == null) return;
+    ref
+        .read(styleProvider(target).notifier)
+        .update(
+          (s) => s.copyWith(
+            background: s.background.copyWith(kind: BgKind.photo, photo: path),
+          ),
+        );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final style = ref.watch(styleProvider(target));
@@ -617,15 +628,13 @@ class _SurfaceControls extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           OptionPicker(
-            options: {
-              // Photo backgrounds need a picker; the engine already draws them.
-              for (final k in BgKind.values.where((k) => k != BgKind.photo))
-                k: k.label,
-            },
+            options: {for (final k in BgKind.values) k: k.label},
             selected: bg.kind,
-            onSelected: (k) => notifier.update(
-              (s) => s.copyWith(background: bg.copyWith(kind: k)),
-            ),
+            onSelected: (k) => k == BgKind.photo && bg.photo == null
+                ? _pickPhoto(context, ref)
+                : notifier.update(
+                    (s) => s.copyWith(background: bg.copyWith(kind: k)),
+                  ),
           ),
           AnimatedSize(
             duration: Motion.of(context, Motion.base),
@@ -634,7 +643,16 @@ class _SurfaceControls extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (bg.kind != BgKind.transparent) ...[
+                if (bg.kind == BgKind.photo)
+                  Padding(
+                    padding: const EdgeInsets.only(top: Gap.s),
+                    child: QuietButton(
+                      label: 'Choose another photo',
+                      onTap: () => _pickPhoto(context, ref),
+                    ),
+                  ),
+                if (bg.kind != BgKind.transparent &&
+                    bg.kind != BgKind.photo) ...[
                   const SizedBox(height: Gap.l),
                   SwatchRow(
                     colors: swatches,

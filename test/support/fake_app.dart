@@ -91,6 +91,22 @@ class FakeEngine extends Engine {
   @override
   Future<List<PlacedWidget>> placed() => Future.value(List.of(placedWidgets));
 
+  /// Every bind the editor pushed, in order.
+  final List<(int, String, WidgetStyle)> binds = [];
+
+  @override
+  Future<bool> bind(int id, String design, WidgetStyle style) async {
+    if (!placedWidgets.any((p) => p.id == id)) return false;
+    binds.add((id, design, style));
+    return true;
+  }
+
+  /// What the photo picker returns; null is a cancelled pick.
+  String? pickedBackground;
+
+  @override
+  Future<String?> pickBackground() => Future.value(pickedBackground);
+
   @override
   Future<bool> canPin() => Future.value(true);
 

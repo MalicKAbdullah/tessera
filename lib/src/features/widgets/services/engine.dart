@@ -100,12 +100,13 @@ class Engine {
       PlacedWidget.fromJson(p as Map<String, dynamic>),
   ];
 
-  Future<void> bind(int id, String design, WidgetStyle style) =>
-      _channel.invokeMethod('bind', {
+  /// Rebinds placed widget [id]; false when it has left the home screen.
+  Future<bool> bind(int id, String design, WidgetStyle style) async =>
+      (await _channel.invokeMethod<bool>('bind', {
         'id': id,
         'design': design,
         'style': jsonEncode(style.toJson()),
-      });
+      }))!;
 
   Future<bool> canPin() async => (await _channel.invokeMethod<bool>('canPin'))!;
 
@@ -133,6 +134,11 @@ class Engine {
   /// the picks; a cancelled pick returns the album unchanged.
   Future<PhotoAlbum> pickPhotos() =>
       _album(_channel.invokeMethod('pickPhotos'));
+
+  /// Picks one image for a photo surface; its stored path, or null when
+  /// the picker was cancelled.
+  Future<String?> pickBackground() =>
+      _channel.invokeMethod<String>('pickBackground');
 
   Future<PhotoAlbum> removePhoto(String id) =>
       _album(_channel.invokeMethod('removePhoto', {'id': id}));

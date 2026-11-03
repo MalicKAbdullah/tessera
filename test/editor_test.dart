@@ -72,6 +72,33 @@ void main() {
     expect(find.text('Blends into'), findsOneWidget);
   });
 
+  testWidgets('a photo surface opens the picker and keeps the pick', (
+    tester,
+  ) async {
+    final engine = FakeEngine();
+    final container = await _pumpEditor(tester, engine);
+
+    await tester.tap(find.text('Photo'));
+    await tester.pumpAndSettle();
+    expect(
+      container.read(styleProvider(_target)).background.kind,
+      BgKind.solid,
+      reason: 'a cancelled pick keeps the surface',
+    );
+
+    engine.pickedBackground = '/data/backgrounds/a.jpg';
+    await tester.tap(find.text('Photo'));
+    await tester.pumpAndSettle();
+    final bg = container.read(styleProvider(_target)).background;
+    expect(bg.kind, BgKind.photo);
+    expect(bg.photo, '/data/backgrounds/a.jpg');
+    expect(
+      container.read(storeProvider).draft(_target.design)!.background.photo,
+      '/data/backgrounds/a.jpg',
+    );
+    expect(find.text('Choose another photo'), findsOneWidget);
+  });
+
   testWidgets('a design toggle flips from its default', (tester) async {
     final container = await _pumpEditor(tester, FakeEngine());
     await tester.tap(find.text('Seconds'));

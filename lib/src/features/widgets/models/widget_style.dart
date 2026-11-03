@@ -30,14 +30,18 @@ class Background {
   /// Absolute path of an image in app storage; set when [kind] is photo.
   final String? photo;
 
-  Background copyWith({BgKind? kind, Color? color, Color? color2}) =>
-      Background(
-        kind: kind ?? this.kind,
-        color: color ?? this.color,
-        color2: color2 ?? this.color2,
-        angle: angle,
-        photo: photo,
-      );
+  Background copyWith({
+    BgKind? kind,
+    Color? color,
+    Color? color2,
+    String? photo,
+  }) => Background(
+    kind: kind ?? this.kind,
+    color: color ?? this.color,
+    color2: color2 ?? this.color2,
+    angle: angle,
+    photo: photo ?? this.photo,
+  );
 
   Map<String, Object?> toJson() => {
     'kind': kind.name,
