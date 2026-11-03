@@ -94,6 +94,20 @@ class EngineReliabilityTest {
     }
 
     @Test
+    fun aLauncherUpdateDrawsEveryNamedWidgetEvenIfOneFails() {
+        val broken = place(ClockWidget::class.java)
+        val healthy = place(ClockWidget::class.java)
+        val minimal = Registry.design("clock.minimal")
+        Instances.put(context, broken, minimal.id, minimal.defaults.copy(bg = minimal.defaults.bg.copy(kind = BgKind.PHOTO, photo = "/nonexistent.jpg")))
+        Instances.put(context, healthy, minimal.id, minimal.defaults)
+        Instances.setLastKey(context, healthy, "stale")
+
+        ClockWidget().onUpdate(context, manager, intArrayOf(broken, healthy))
+
+        assertNotEquals("stale", Instances.lastKey(context, healthy))
+    }
+
+    @Test
     fun aTickThatFailsStillReArmsTheTicker() {
         val broken = place(ClockWidget::class.java)
         val minimal = Registry.design("clock.minimal")

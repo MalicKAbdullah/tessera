@@ -15,7 +15,7 @@ import com.malickabdullah.tessera.engine.Work
  */
 abstract class TesseraProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
-        ids.forEach { Engine.render(context, it) }
+        Engine.render(context, ids)
         Engine.onPlacementChanged(context)
     }
 

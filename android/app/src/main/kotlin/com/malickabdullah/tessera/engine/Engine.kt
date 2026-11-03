@@ -158,12 +158,21 @@ object Engine {
      * its last bitmap; the others in the same pass must still be drawn.
      */
     private fun eachPlaced(context: Context, block: (Int, Slot) -> Unit) {
-        Slots.placed(context).forEach { (id, slot) ->
-            try {
-                block(id, slot)
-            } catch (e: Exception) {
-                Log.e(TAG, "Widget $id (${slot.category.id}, ${slot.size.id}) failed to draw", e)
-            }
+        Slots.placed(context).forEach { (id, slot) -> isolated(id) { block(id, slot) } }
+    }
+
+    /** Draws the widgets a launcher update names, each on its own like [eachPlaced]. */
+    fun render(context: Context, ids: IntArray) {
+        val data = Data(context)
+        val now = ZonedDateTime.now()
+        ids.forEach { id -> isolated(id) { render(context, id, data, now) } }
+    }
+
+    private inline fun isolated(id: Int, block: () -> Unit) {
+        try {
+            block()
+        } catch (e: Exception) {
+            Log.e(TAG, "Widget $id failed to draw", e)
         }
     }
 }
