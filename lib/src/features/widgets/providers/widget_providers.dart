@@ -147,6 +147,15 @@ class ContentNotifier extends Notifier<WidgetContent> {
   }
 }
 
+/// Re-reads the user's content from disk. The launcher's configure screen runs
+/// a second Flutter engine over the same preferences file with its own
+/// in-memory copy, so this engine reloads whenever it returns to the front,
+/// before it can write a stale copy back.
+Future<void> reloadContent(ProviderContainer container) async {
+  await container.read(sharedPreferencesProvider).reload();
+  container.invalidate(contentProvider);
+}
+
 final placedProvider = FutureProvider<List<PlacedWidget>>((ref) {
   ref.watch(dataRevisionProvider);
   return ref.read(engineProvider).placed();

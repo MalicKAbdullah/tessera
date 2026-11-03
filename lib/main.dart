@@ -28,6 +28,7 @@ Future<void> main() async {
   engine.onDataChanged = () =>
       container.read(dataRevisionProvider.notifier).state++;
   engine.onLaunchTarget = openLaunchTarget;
+  AppLifecycleListener(onResume: () => reloadContent(container));
   runApp(
     UncontrolledProviderScope(container: container, child: const TesseraApp()),
   );

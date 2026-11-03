@@ -13,9 +13,23 @@ import java.time.ZonedDateTime
 object Engine {
     const val EXTRA_INSTANCE = "tessera.instance"
 
-    /** Set while the app is open so previews redraw when live data changes. */
+    /**
+     * The app window that redraws its previews when live data changes. The
+     * launcher's configure screen is a second activity with its own Flutter
+     * engine, so each window claims the hook when it comes to the front and
+     * releases only its own.
+     */
     @Volatile
     var onDataChanged: (() -> Unit)? = null
+        private set
+
+    fun claimDataChanged(listener: () -> Unit) {
+        onDataChanged = listener
+    }
+
+    fun releaseDataChanged(listener: () -> Unit) {
+        if (onDataChanged === listener) onDataChanged = null
+    }
 
     fun resolve(context: Context, id: Int, slot: Slot): Binding =
         Instances.get(context, id) ?: Registry.defaultFor(slot).let { Binding(it.id, it.defaults) }
