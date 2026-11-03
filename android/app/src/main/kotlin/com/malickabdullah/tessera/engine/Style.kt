@@ -69,6 +69,9 @@ data class Style(
     companion object {
         const val VERSION = 2
 
+        /** Corner radius of every rectangular design; dials, paper and tickets choose their own shape. */
+        const val CORNER = 30f
+
         fun parse(json: JSONObject): Style {
             require(json.getInt("v") == VERSION) { "Style schema ${json.getInt("v")} reached native code unmigrated" }
             val bg = json.getJSONObject("bg")
@@ -103,7 +106,7 @@ data class Style(
             kind: BgKind = BgKind.SOLID,
             background2: Long = background,
             opacity: Float = 1f,
-            radius: Float = 28f,
+            radius: Float = CORNER,
             padding: Float = 16f,
             tracking: Float = 0f,
         ) = Style(

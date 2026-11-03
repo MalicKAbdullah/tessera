@@ -89,8 +89,9 @@ internal object SkyKit {
      */
     fun noPlace(s: Scene) {
         val b = s.box
-        val horizon = b.top + b.height() * 0.58f
-        val r = b.height() * 0.16f
+        // Sun and prompt as one group centred in the box; the sun stops growing past a 2×2's.
+        val r = minOf(b.height() * 0.16f, 24f)
+        val horizon = b.centerY() - 8f * s.k
         val cx = b.centerX()
         s.canvas.save()
         s.canvas.clipRect(b.left, b.top, b.right, horizon)
@@ -104,7 +105,7 @@ internal object SkyKit {
         }
         s.canvas.drawText("SET A PLACE", cx, horizon + 22f * s.k, label(s, 10f, s.text, Paint.Align.CENTER))
         s.canvas.drawText(
-            "Pick a city in the editor",
+            "Tap to choose a city",
             cx,
             horizon + 38f * s.k,
             s.paint(10.5f * s.k, s.ink(0.55f), font = "sans", weight = 400, align = Paint.Align.CENTER),
@@ -113,7 +114,7 @@ internal object SkyKit {
 
     /** (lit limb, earthshine) tones that read on the widget's surface. */
     fun moonTones(s: Scene): Pair<Int, Int> =
-        if (luminance(s.style.bg.color) > 0.55f) MOON to 0xFF2B2D33.toInt() else MOON to withAlpha(MOON, 0.1f)
+        if (luminance(s.style.bg.color) > 0.55f) MOON to 0xFF2B2D33.toInt() else MOON to withAlpha(MOON, 0.05f)
 
     // Approximate near-side maria as seen from the northern hemisphere: (x, y, rx, ry) in disc radii.
     private val maria = listOf(
@@ -166,7 +167,7 @@ internal object SkyKit {
             cy,
             r,
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                shader = RadialGradient(cx, cy, r, intArrayOf(0, 0, 0x33000000), floatArrayOf(0f, 0.7f, 1f), Shader.TileMode.CLAMP)
+                shader = RadialGradient(cx, cy, r, intArrayOf(0, 0, 0x26000000), floatArrayOf(0f, 0.75f, 1f), Shader.TileMode.CLAMP)
             },
         )
         // Erase the unlit part. A Porter-Duff mode only touches the pixels a shape covers, so
@@ -178,7 +179,7 @@ internal object SkyKit {
             shadowPath,
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
-                maskFilter = BlurMaskFilter((r * 0.05f).coerceAtLeast(0.6f), BlurMaskFilter.Blur.NORMAL)
+                maskFilter = BlurMaskFilter((r * 0.03f).coerceAtLeast(0.6f), BlurMaskFilter.Blur.NORMAL)
             },
         )
         c.restoreToCount(layer)

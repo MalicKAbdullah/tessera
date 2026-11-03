@@ -27,7 +27,7 @@ object SkyArc : WidgetDesign {
     override val sizes = listOf(SizeClass.WIDE, SizeClass.SMALL)
     override val defaults = Style.of(
         "sans", 500, text = 0xFF16171A, accent = 0xFF6C4DFF, background = 0xFFEEF0F3,
-        kind = BgKind.GRADIENT, background2 = 0xFFDCE3EE, radius = 30f, padding = 16f,
+        kind = BgKind.GRADIENT, background2 = 0xFFDCE3EE,
     )
     override val toggles = listOf(hourFormatToggle)
     override val signals = setOf(Signal.CONTENT)

@@ -21,7 +21,7 @@ object CountdownTicket : WidgetDesign {
     override val name = "Boarding Pass"
     override val blurb = "A ticket for the trip ahead: event, date, a route line that fills as the day nears, and a tear-off stub with the days left."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("condensed", 500, text = 0xFF16171A, accent = 0xFF2F5BD8, background = 0xFFEEF0F3, radius = 22f, padding = 16f)
+    override val defaults = Style.of("condensed", 500, text = 0xFF16171A, accent = 0xFF2F5BD8, background = 0xFFEEF0F3, radius = 22f)
     override val toggles = listOf(countModeToggle)
     override val signals = setOf(Signal.CONTENT)
 
@@ -68,7 +68,8 @@ object CountdownTicket : WidgetDesign {
         s.canvas.drawText("ADMIT ONE", r.right, r.top + 8f, s.tag(8.5f, s.accent, Paint.Align.RIGHT))
         s.canvas.drawLine(r.left, r.top + 15f, r.right, r.top + 15f, s.stroke(s.ink(0.18f), 1f))
 
-        val titleH = min(r.height() * 0.3f, 52f)
+        val tall = r.height() > 150f
+        val titleH = min(r.height() * 0.3f, if (tall) 76f else 52f)
         val title = v.title.uppercase()
         val titlePaint = s.paint(s.fit(title, r.width(), titleH) * s.hero, s.text)
         s.canvas.drawText(title, r.left, r.top + 22f + s.capHeight(titlePaint) + 2f, titlePaint)
@@ -77,16 +78,19 @@ object CountdownTicket : WidgetDesign {
         route(s, v, RectF(r.left, routeY - 8f, r.right, routeY + 8f))
 
         val fields = listOf("DATE" to v.target.dayMonth().uppercase(), "DAY" to v.target.weekday(), (if (v.countUp) "SINCE" else "STATUS") to statusWord(v))
-        val fieldY = if (r.height() > 150f) routeY + 30f else r.bottom - 26f
+        // Fields sit on the bottom edge (above the date line when tall), leaving the title and route their room.
+        val fieldY = if (tall) r.bottom - 50f * s.k else r.bottom - 26f
         val colW = r.width() / fields.size
         val label = s.tag(8.5f, s.ink(0.5f))
-        val value = s.paint(min(20f * s.k, colW / 4.2f), s.text, weight = 700)
+        // One size for the row, small enough that the longest value (BOARDING) is never cut.
+        val valueSize = min(if (tall) 24f * s.k else 20f * s.k, fields.minOf { (_, t) -> s.fit(t, colW - 8f, 100f, weight = 700) })
+        val value = s.paint(valueSize, s.text, weight = 700)
         fields.forEachIndexed { i, (l, t) ->
             val x = r.left + i * colW
             s.canvas.drawText(l, x, fieldY, label)
-            s.canvas.drawText(TextFit.ellipsize(t, colW - 6f, value.measurer()), x, fieldY + 20f * s.k, value)
+            s.canvas.drawText(TextFit.ellipsize(t, colW - 6f, value.measurer()), x, fieldY + (if (tall) 26f else 20f) * s.k, value)
         }
-        if (r.height() > 150f) {
+        if (tall) {
             val phrase = s.paint(14f * s.k, s.ink(0.7f), font = "grotesk", weight = 400)
             s.canvas.drawText(TextFit.ellipsize(v.target.short(), r.width(), phrase.measurer()), r.left, r.bottom - 2f, phrase)
         }
@@ -116,10 +120,11 @@ object CountdownTicket : WidgetDesign {
 
     private fun drawStub(s: Scene, v: CountdownView, r: RectF, vertical: Boolean) {
         val bars = CountdownMath.barcode("${v.title}${v.target}", 34)
-        val unit = if (vertical) (r.width() * 0.5f) / bars.sum() else min(r.width() / bars.sum() * 0.9f, 2.4f)
-        val barH = if (vertical) r.height() * 0.24f else r.height() * 0.22f
+        // A tall ticket's stub is a strip: days on the left at full height, the barcode on the right.
+        val unit = if (vertical) (r.width() * 0.42f) / bars.sum() else min(r.width() / bars.sum() * 0.9f, 2.4f)
+        val barH = if (vertical) r.height() * 0.62f else r.height() * 0.22f
         val barsW = bars.sum() * unit
-        val bx = if (vertical) r.left else r.centerX() - barsW / 2f
+        val bx = if (vertical) r.right - barsW else r.centerX() - barsW / 2f
         val by = r.bottom - barH
         var x = bx
         val ink = s.fill(s.ink(0.85f))
@@ -127,9 +132,10 @@ object CountdownTicket : WidgetDesign {
             if (i % 2 == 0) s.canvas.drawRect(x, by, x + w * unit, by + barH, ink)
             x += w * unit
         }
-        val numRect = if (vertical) RectF(r.left, r.top, r.right, by - 8f) else RectF(r.left, r.top + 10f, r.right, by - 10f)
+        val numRect = if (vertical) RectF(r.left, r.top + 2f, bx - 12f, r.bottom - 12f) else RectF(r.left, r.top + 10f, r.right, by - 10f)
         val big = v.hero
-        val np = s.paint(s.fit(big, numRect.width(), numRect.height() * 0.7f) * s.hero, s.accent, align = if (vertical) Paint.Align.LEFT else Paint.Align.CENTER)
+        val size = if (vertical) s.fitCaps(big, numRect.width(), numRect.height() - 24f) else s.fit(big, numRect.width(), numRect.height() * 0.7f)
+        val np = s.paint(size * s.hero, s.accent, align = if (vertical) Paint.Align.LEFT else Paint.Align.CENTER)
         val nx = if (vertical) numRect.left else numRect.centerX()
         s.canvas.drawText(big, nx, numRect.top + s.capHeight(np) + 2f, np)
         val cap = if (v.days == 0L) "DEPARTS" else v.reading.caption.uppercase()

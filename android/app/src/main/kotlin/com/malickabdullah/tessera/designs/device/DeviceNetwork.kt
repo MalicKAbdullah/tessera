@@ -18,7 +18,7 @@ object DeviceNetwork : WidgetDesign {
     override val name = "Network"
     override val blurb = "Connection type, Wi-Fi signal, internet reachability and the link's estimated speed."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("sans", 500, text = 0xFFEDEFF2, accent = 0xFF4FD1C5, background = 0xFF12161A, radius = 28f, padding = 16f)
+    override val defaults = Style.of("sans", 500, text = 0xFFEDEFF2, accent = 0xFF4FD1C5, background = 0xFF12161A)
 
     override fun liveKey(scene: SceneInputs): String {
         val n = scene.data.network

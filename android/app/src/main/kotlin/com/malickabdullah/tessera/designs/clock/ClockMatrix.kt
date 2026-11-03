@@ -22,7 +22,7 @@ object ClockMatrix : WidgetDesign {
     override val name = "Dot Matrix"
     override val blurb = "LED-grid time over a lattice of unlit dots, with a 24-dot track of the day."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("dot", 700, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF0C0C0D, radius = 30f)
+    override val defaults = Style.of("dot", 700, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF0C0C0D)
     override val toggles = listOf(
         hourFormatToggle,
         Toggle.Switch("pulse", "Pulsing LED", true),
@@ -56,9 +56,11 @@ object ClockMatrix : WidgetDesign {
         }
 
         val track = s.flag("track") && s.h >= 120f
-        val footerH = if (track) 16f else 0f
+        val tall = s.h >= 300f
+        val footerH = (if (track) 16f else 0f) + (if (tall) 16f else 0f)
         val area = RectF(b.left, b.top + headerH + 6f, b.right, b.bottom - footerH)
-        val stacked = s.w < 240f && s.h >= s.w * 0.8f
+        // Square boxes stack hours over minutes, so the digits use the height instead of one thin row.
+        val stacked = s.h >= s.w * 0.8f
         if (stacked) {
             // Hours over minutes, sized by cap height so the digits fill the tile, two grid rows apart.
             val size = min(
@@ -86,7 +88,7 @@ object ClockMatrix : WidgetDesign {
         }
 
         if (track) drawDayTrack(s, RectF(b.left, b.bottom - 8f, b.right, b.bottom))
-        if (s.h >= 300f) {
+        if (tall) {
             val week = s.now.get(IsoFields.WEEK_OF_WEEK_BASED_YEAR)
             val label = "WK %02d · DAY %03d".format(week, s.now.dayOfYear)
             val p = s.paint(9.5f * s.k, s.ink(0.5f), font = "mono", weight = 500, align = Paint.Align.RIGHT, tracking = 0.12f)

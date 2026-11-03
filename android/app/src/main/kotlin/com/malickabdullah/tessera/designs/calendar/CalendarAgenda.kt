@@ -20,7 +20,7 @@ object CalendarAgenda : WidgetDesign {
     override val name = "Agenda"
     override val blurb = "Your next events by day, each with its calendar colour, and a line marking now."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("sans", 500, text = 0xFF16171A, accent = 0xFF2F6BFF, background = 0xFFEEF0F3, radius = 30f, padding = 16f)
+    override val defaults = Style.of("sans", 500, text = 0xFF16171A, accent = 0xFF2F6BFF, background = 0xFFEEF0F3)
     override val toggles = listOf(hourFormatToggle, Toggle.Switch("location", "Show location", true))
     override val signals = setOf(Signal.CALENDAR)
 
@@ -114,7 +114,8 @@ object CalendarAgenda : WidgetDesign {
 
     private fun empty(s: Scene, r: RectF) {
         val rowH = 22f * s.k
-        val rows = ((r.height() - 12f) / rowH).toInt().coerceIn(1, 6)
+        // Ghost rows fill the whole list, so a tall agenda reads as an empty page rather than a short one.
+        val rows = ((r.height() - 12f) / rowH).toInt().coerceAtLeast(1)
         for (i in 0 until rows) {
             val cy = r.top + rowH * i + rowH / 2f
             s.canvas.drawRoundRect(RectF(r.left, cy - 7f, r.left + 3f, cy + 7f), 1.5f, 1.5f, s.fill(s.ink(0.08f)))
@@ -130,7 +131,7 @@ object CalendarAgenda : WidgetDesign {
         val granted = s.data.calendar.granted
         CalendarKit.glyph(s.canvas, card.left + 18f * s.k, cy, 12f * s.k, if (granted) s.accent else s.ink(0.45f), s)
         val title = if (granted) "Nothing scheduled" else "Calendar not connected"
-        val sub = if (granted) "NEXT ${CalendarSource.WINDOW_DAYS} DAYS ARE CLEAR" else "OPEN TESSERA TO CONNECT"
+        val sub = if (granted) "NEXT ${CalendarSource.WINDOW_DAYS} DAYS ARE CLEAR" else "TAP TO CONNECT"
         s.canvas.drawText(title, card.left + 34f * s.k, cy - 1f, s.paint(12f * s.k, s.ink(0.85f), weight = 500))
         s.canvas.drawText(sub, card.left + 34f * s.k, cy + 11f * s.k, CalendarKit.mono(s, 7f, s.ink(0.45f)))
     }

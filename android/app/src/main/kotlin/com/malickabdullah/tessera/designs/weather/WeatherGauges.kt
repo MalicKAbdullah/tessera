@@ -23,7 +23,7 @@ object WeatherGauges : WidgetDesign {
     override val name = "Instruments"
     override val blurb = "A wind compass, UV dial and humidity ring side by side; pressure and gusts join them on 4×4."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFFECECEA, accent = 0xFF7FD1FF, background = 0xFF0F1012, radius = 30f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFFECECEA, accent = 0xFF7FD1FF, background = 0xFF0F1012)
     override val toggles = listOf(WeatherKit.unitsToggle)
     override val signals = setOf(Signal.WEATHER, Signal.CONTENT)
 
