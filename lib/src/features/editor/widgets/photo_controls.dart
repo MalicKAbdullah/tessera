@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:core_theme/core_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/design/tokens.dart';
 import '../../../core/motion/motion.dart';
-import '../../../core/widgets/mosaic_mark.dart';
 import '../../widgets/models/photo_album.dart';
 import '../../widgets/providers/widget_providers.dart';
 import 'controls.dart';
@@ -130,7 +130,7 @@ class _AddTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(right: Gap.s),
       child: Pressable(
@@ -139,14 +139,20 @@ class _AddTile extends StatelessWidget {
         child: Container(
           width: 72,
           decoration: BoxDecoration(
-            color: p.surface,
+            color: c.surface,
             borderRadius: BorderRadius.circular(Radii.s + 2),
-            border: Border.all(color: p.hairline),
+            border: Border.all(color: c.hairline),
           ),
           child: Center(
             child: busy
-                ? const MosaicLoader(size: 22)
-                : Icon(Icons.add_photo_alternate_outlined, color: p.ink),
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(
+                    Icons.add_photo_alternate_outlined,
+                    color: c.textPrimary,
+                  ),
           ),
         ),
       ),
@@ -162,7 +168,7 @@ class _Thumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return Padding(
       padding: const EdgeInsets.only(right: Gap.s),
       child: Stack(
@@ -188,10 +194,10 @@ class _Thumb extends StatelessWidget {
                 width: 22,
                 height: 22,
                 decoration: BoxDecoration(
-                  color: p.canvas.withValues(alpha: 0.85),
+                  color: c.background.withValues(alpha: 0.85),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.close, size: 13, color: p.ink),
+                child: Icon(Icons.close, size: 13, color: c.textPrimary),
               ),
             ),
           ),

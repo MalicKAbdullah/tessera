@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:core_theme/core_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -66,7 +67,7 @@ class CountdownControls extends ConsumerWidget {
     final content = ref.watch(contentProvider);
     final notifier = ref.read(contentProvider.notifier);
     final theme = Theme.of(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final now = DateTime.now();
     final target = content.effectiveCountdownDate(now);
     return Section(
@@ -97,9 +98,9 @@ class CountdownControls extends ConsumerWidget {
               height: 52,
               padding: const EdgeInsets.symmetric(horizontal: Gap.l),
               decoration: BoxDecoration(
-                color: p.surface,
+                color: c.surface,
                 borderRadius: BorderRadius.circular(Radii.s),
-                border: Border.all(color: p.hairline),
+                border: Border.all(color: c.hairline),
               ),
               child: Row(
                 children: [
@@ -112,7 +113,7 @@ class CountdownControls extends ConsumerWidget {
                       DateFormat('d MMM y').format(target),
                       key: ValueKey(target),
                       style: theme.textTheme.labelMedium!.copyWith(
-                        color: p.ink,
+                        color: c.textPrimary,
                       ),
                     ),
                   ),
@@ -169,7 +170,7 @@ class _WeatherControlsState extends ConsumerState<WeatherControls> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final city = ref.watch(contentProvider).city;
     return Section(
       title: 'Location',
@@ -185,7 +186,11 @@ class _WeatherControlsState extends ConsumerState<WeatherControls> {
                   : Pressable(
                       semanticLabel: 'Refresh weather',
                       onTap: () => ref.read(engineProvider).refreshWeather(),
-                      child: Icon(Icons.refresh, size: 20, color: p.muted),
+                      child: Icon(
+                        Icons.refresh,
+                        size: 20,
+                        color: c.textSecondary,
+                      ),
                     ),
             ),
             onChanged: _search,
@@ -195,7 +200,7 @@ class _WeatherControlsState extends ConsumerState<WeatherControls> {
               padding: const EdgeInsets.only(top: Gap.s),
               child: Text(
                 _error!,
-                style: theme.textTheme.bodySmall?.copyWith(color: p.accentInk),
+                style: theme.textTheme.bodySmall?.copyWith(color: c.accent),
               ),
             ),
           AnimatedSize(
@@ -204,7 +209,7 @@ class _WeatherControlsState extends ConsumerState<WeatherControls> {
             alignment: Alignment.topCenter,
             child: Column(
               children: [
-                for (final c in _results)
+                for (final city in _results)
                   Pressable(
                     scale: 0.985,
                     onTap: () {
@@ -212,19 +217,19 @@ class _WeatherControlsState extends ConsumerState<WeatherControls> {
                       setState(() => _results = const []);
                       ref
                           .read(contentProvider.notifier)
-                          .update((content) => content.copyWith(city: c));
+                          .update((content) => content.copyWith(city: city));
                     },
                     child: Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(vertical: Gap.m),
                       decoration: BoxDecoration(
-                        border: Border(bottom: BorderSide(color: p.hairline)),
+                        border: Border(bottom: BorderSide(color: c.hairline)),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(c.name, style: theme.textTheme.titleSmall),
-                          Text(c.region, style: theme.textTheme.bodySmall),
+                          Text(city.name, style: theme.textTheme.titleSmall),
+                          Text(city.region, style: theme.textTheme.bodySmall),
                         ],
                       ),
                     ),
@@ -254,14 +259,14 @@ class _ListRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     return Pressable(
       scale: 0.985,
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: Gap.s),
         decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: p.hairline)),
+          border: Border(bottom: BorderSide(color: c.hairline)),
         ),
         child: Row(
           children: [
@@ -273,7 +278,7 @@ class _ListRow extends StatelessWidget {
               onTap: onRemove,
               child: Padding(
                 padding: const EdgeInsets.all(Gap.s),
-                child: Icon(Icons.close, size: 18, color: p.muted),
+                child: Icon(Icons.close, size: 18, color: c.textSecondary),
               ),
             ),
           ],
@@ -445,7 +450,7 @@ class _ChecklistControlsState extends ConsumerState<ChecklistControls> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final p = Palette.of(context);
+    final c = SuiteColors.of(context);
     final items = ref.watch(contentProvider).checklist;
     return Section(
       title: 'Checklist items',
@@ -467,21 +472,21 @@ class _ChecklistControlsState extends ConsumerState<ChecklistControls> {
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: item.done ? p.ink : Colors.transparent,
+                        color: item.done ? c.textPrimary : Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: item.done ? p.ink : p.faint,
+                          color: item.done ? c.textPrimary : c.border,
                           width: 1.5,
                         ),
                       ),
                       child: item.done
-                          ? Icon(Icons.check, size: 14, color: p.canvas)
+                          ? Icon(Icons.check, size: 14, color: c.background)
                           : null,
                     ),
                     child: AnimatedDefaultTextStyle(
                       duration: Motion.of(context, Motion.base),
                       style: theme.textTheme.bodyMedium!.copyWith(
-                        color: item.done ? p.muted : p.ink,
+                        color: item.done ? c.textSecondary : c.textPrimary,
                         decoration: item.done
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
@@ -501,7 +506,7 @@ class _ChecklistControlsState extends ConsumerState<ChecklistControls> {
               suffixIcon: Pressable(
                 semanticLabel: 'Add',
                 onTap: _add,
-                child: Icon(Icons.add, color: p.ink),
+                child: Icon(Icons.add, color: c.textPrimary),
               ),
             ),
             onSubmitted: (_) => _add(),

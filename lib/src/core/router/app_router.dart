@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/editor/screens/editor_screen.dart';
 import '../../features/gallery/screens/gallery_screen.dart';
+import '../../features/settings/settings_screen.dart';
 import '../../features/widgets/services/engine.dart';
 import '../design/tokens.dart';
 
@@ -14,9 +15,7 @@ Page<void> _page(BuildContext context, GoRouterState state, Widget child) {
   return CustomTransitionPage(
     key: state.pageKey,
     transitionDuration: reduced ? Duration.zero : Motion.page,
-    reverseTransitionDuration: reduced
-        ? Duration.zero
-        : const Duration(milliseconds: 340),
+    reverseTransitionDuration: reduced ? Duration.zero : Motion.base,
     child: child,
     transitionsBuilder: (context, animation, secondary, child) {
       final inward = CurvedAnimation(
@@ -49,6 +48,11 @@ final appRouter = GoRouter(
       pageBuilder: (context, state) =>
           _page(context, state, const GalleryScreen()),
       routes: [
+        GoRoute(
+          path: 'settings',
+          pageBuilder: (context, state) =>
+              _page(context, state, const SettingsScreen()),
+        ),
         GoRoute(
           path: 'design/:design',
           pageBuilder: (context, state) => _page(
