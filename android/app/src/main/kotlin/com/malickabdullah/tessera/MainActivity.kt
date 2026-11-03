@@ -54,6 +54,7 @@ open class MainActivity : FlutterActivity() {
 
     override fun onResume() {
         super.onResume()
+        channel?.claimDataChanged()
         Slots.syncEnabled(this)
         Work.ensureScheduled(this)
         if (WeatherFetch.isStale(this)) Work.fetchWeatherNow(this)

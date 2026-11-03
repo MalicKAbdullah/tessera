@@ -54,14 +54,19 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
     private val encoder = Executors.newSingleThreadExecutor()
     private val photoImport = Executors.newSingleThreadExecutor()
 
+    private val dataChanged: () -> Unit = { main.post { channel.invokeMethod("dataChanged", null) } }
+
     init {
         channel.setMethodCallHandler(this)
-        Engine.onDataChanged = { main.post { channel.invokeMethod("dataChanged", null) } }
+        claimDataChanged()
     }
+
+    /** Routes live-data changes to this window's previews; called whenever its activity resumes. */
+    fun claimDataChanged() = Engine.claimDataChanged(dataChanged)
 
     fun dispose() {
         channel.setMethodCallHandler(null)
-        Engine.onDataChanged = null
+        Engine.releaseDataChanged(dataChanged)
         encoder.shutdown()
         photoImport.shutdown()
     }
