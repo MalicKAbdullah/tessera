@@ -28,7 +28,8 @@ object SkyYear : WidgetDesign {
     override val defaults = Style.of("condensed", 500, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF15171B, radius = 28f, padding = 16f)
     override val signals = setOf(Signal.CONTENT)
 
-    private val month = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+    // Built per use: the process outlives a system locale change.
+    private val month: DateTimeFormatter get() = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
 
     override fun liveKey(scene: SceneInputs): String {
         val p = scene.data.skyPlace

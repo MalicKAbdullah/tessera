@@ -31,9 +31,10 @@ internal object SkyKit {
     const val BLUE = 0xFF5C7FE6.toInt()
     private const val MOON = 0xFFEDE9DF.toInt()
 
-    private val h24 = DateTimeFormatter.ofPattern("HH:mm")
-    private val h12 = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
-    val dayMonth: DateTimeFormatter = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
+    // Built per use: the process outlives a system locale change.
+    private val h24: DateTimeFormatter get() = DateTimeFormatter.ofPattern("HH:mm")
+    private val h12: DateTimeFormatter get() = DateTimeFormatter.ofPattern("h:mm a", Locale.getDefault())
+    val dayMonth: DateTimeFormatter get() = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
 
     fun light(altitude: Double): Light = when {
         altitude >= SunAltitude.GOLDEN_TOP -> Light.DAY
