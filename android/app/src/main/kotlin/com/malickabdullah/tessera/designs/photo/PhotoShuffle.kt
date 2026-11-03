@@ -22,7 +22,7 @@ object PhotoShuffle : WidgetDesign {
     override val name = "Shuffle"
     override val blurb = "An album as a stack of prints; the top one changes on its own."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("mono", 500, text = 0xFFF4F4F4, accent = 0xFFD4FF3A, background = 0xFF151515, radius = 28f, padding = 16f)
+    override val defaults = Style.of("mono", 500, text = 0xFFF4F4F4, accent = 0xFFD4FF3A, background = 0xFF151515)
     override val toggles = listOf(
         Toggle.Choice(
             "shuffle",
@@ -77,7 +77,7 @@ object PhotoShuffle : WidgetDesign {
 
         val display = s.context.resources.displayMetrics
         val plan = PhotoMath.flipperPlan(
-            budget = PhotoMath.remoteViewsBudget(display.widthPixels, display.heightPixels),
+            budget = s.bitmapBudget,
             mainBytes = PhotoMath.bitmapBytes(s.w, s.h, s.bitmapScale),
             wDp = card.width(),
             hDp = card.height(),

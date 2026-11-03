@@ -24,7 +24,8 @@ Gallery / Editor ── MethodChannel ──▶  EngineChannel ─▶ Registry (
 | `Registry.kt` | Concatenates the per-category design lists (gallery order), checks them against the slots, and builds the catalog JSON for Dart. |
 | `Slots.kt` | One `AppWidgetProvider` per category × size (`Slot`); enables only slots some design fills. |
 | `Instances.kt` | Per-`appWidgetId` binding: design id + `Style`, and the last live key. |
-| `Engine.kt` | Resolves an id to its binding, measures it, renders, and decides what to redraw. |
+| `Engine.kt` | Resolves an id to its binding, renders it per launcher size, and decides what to redraw. |
+| `WidgetSizes.kt` | `WidgetSizes`: the boxes a launcher lays a widget out in. `WidgetTap`: the per-widget tap intent. |
 | `Renderer.kt` | Draws the surface and design into a bitmap, attaches overlays, returns `RemoteViews`. |
 | `Scene.kt` | The drawing API a design gets: canvas in dp, paints, fitting, overlays. |
 | `Style.kt` | v2 style JSON (mirror of `widget_style.dart`). |
@@ -38,18 +39,32 @@ widgets placed on v0.1 survive the update. They hold no logic.
 ### How a widget is drawn
 
 1. `Engine.render(id)` finds the slot (from the provider class), the binding
-   (or the slot's default design when unbound) and the size in dp from
-   `AppWidgetManager` options (`MIN_WIDTH` × `MAX_HEIGHT`, portrait). It
-   re-renders on `onAppWidgetOptionsChanged`, so resizing redraws at the new
-   size.
-2. `Renderer` makes a bitmap at `min(density, √(900 000 / (w·h)))` px per dp.
-   The cap keeps RemoteViews under the binder/bitmap budget; above it the
-   ImageView upscales slightly.
+   (or the slot's default design when unbound) and every box the launcher
+   lays the widget out in (`WidgetSizes`). Android 12+ launchers report each
+   size (portrait, landscape, each display of a foldable or tablet) in
+   `OPTION_APPWIDGET_SIZES`; Tessera draws one RemoteViews per size and hands
+   the launcher the size map, so it picks the layout for the box it uses.
+   Earlier launchers report a min/max range, and only the current
+   orientation's box (`MIN_WIDTH` × `MAX_HEIGHT` in portrait, `MAX_WIDTH` ×
+   `MIN_HEIGHT` in landscape) can be drawn. The bitmap is stretched to its
+   view (fitXY) while overlays are positioned in pixels, so a bitmap drawn
+   for another box would drift away from its TextClocks. It re-renders on
+   `onAppWidgetOptionsChanged`, so resizing redraws at the new size.
+2. `Renderer` makes a bitmap at `min(density, √(maxPixels / (w·h)))` px per
+   dp, where `maxPixels` is 900 000 or half the size's share of the bitmap
+   budget, whichever is smaller. The host's budget (1.5 screens of ARGB,
+   `PhotoMath.remoteViewsBudget`) is split equally across the sizes; above
+   the cap the ImageView upscales slightly.
 3. The canvas is scaled so designs draw in dp. The style's surface (solid,
    gradient, dot grid, grain, transparent, photo) is painted and clipped to
    the corner radius, then `design.draw(scene)` runs.
+   Rectangular designs share a 30 dp corner (`Style.CORNER`) and 16 dp
+   padding by default; dials, the sticky note and the boarding pass choose
+   their own shape, and photo designs and the month grid pad tighter.
 4. Overlays the design declared are added as nested RemoteViews in
    `widget_frame.xml`'s overlay container, positioned by padding in px.
+   Each overlay fills the frame, so each carries the widget's tap as well as
+   the root.
 
 ### Overlays: what makes widgets live without waking the phone
 
@@ -81,10 +96,14 @@ The engine stores the key per instance and redraws only when it changes.
 | **Live ticker** (`LiveTicker`, ~1 min, `AlarmManager.RTC`) | Non-wakeup: never wakes the device, fires as soon as it wakes. Runs only while some placed widget has a live key. Replaces `ACTION_SCREEN_ON`, which manifest receivers cannot get. |
 | **Charging trigger** (WorkManager, `requiresCharging`) | Armed whenever a battery design renders unplugged; runs the moment power connects. `ACTION_POWER_CONNECTED`/`DISCONNECTED`/`BATTERY_LOW`/`OKAY` are not delivered to manifest receivers since Android 8. |
 | **Periodic refresh** (WorkManager, 15 min) | `Engine.tick`: redraws anything whose key moved. |
-| **Weather** (WorkManager, 60 min, network) | Fetches Open-Meteo into the cache, then redraws `Signal.WEATHER` designs. Also runs once when the city changes, when the app opens, and from the live ticker and 15-minute refresh whenever a weather widget is placed and the cache is stale (>30 min, another city, or an older `CACHE_VERSION`). A failed fetch (network, non-200, unparseable body) retries and keeps the last good forecast. |
+| **Weather** (WorkManager, 60 min, network; scheduled only while a placed widget shows the forecast) | Fetches Open-Meteo into the cache, then redraws `Signal.WEATHER` designs. Also runs once when the city changes, when the app opens, and from the live ticker and 15-minute refresh whenever a weather widget is placed and the cache is stale (>30 min, another city, or an older `CACHE_VERSION`). A failed fetch (network, non-200, unparseable body) retries and keeps the last good forecast. |
 | **Calendar changes** (WorkManager content-URI trigger on `CalendarContract.CONTENT_URI`) | Runs a few seconds after any event is added, edited or removed, even with the app closed; redraws `Signal.CALENDAR` designs and re-arms itself (triggers are one-shot). Armed only while READ_CALENDAR is granted. |
 | **App foreground** (`MainActivity.onResume`) | Redraws everything; a runtime battery receiver redraws on every level/plug change while the app is open. |
-| **System events** (`SystemEventsReceiver`) | Boot, package update, time set, time zone and locale changes redraw everything. |
+| **System events** (`SystemEventsReceiver`) | Boot, package update, time set, time zone and locale changes run `Engine.restore` on a worker thread (`goAsync`): enable slots, schedule the jobs, redraw every widget and re-arm the ticker, without the app being opened. |
+
+A render, refresh or tick pass draws each widget on its own: one that throws
+keeps its last bitmap and is logged, the rest are still drawn, and the ticker
+is re-armed even when a pass fails.
 
 Data is read at render time (`data/Data.kt` is a lazy per-render bag), so a
 bitmap is never older than the render that produced it. Battery comes from the
@@ -127,6 +146,11 @@ screens of ARGB bitmap memory (`PhotoMath.remoteViewsBudget`);
 `PhotoMath.flipperPlan` fits the Shuffle flipper's frames into what the main
 bitmap leaves, lowering frame resolution first and frame count second.
 
+The editor's Photo surface picks one image through the same pipeline into
+`files/backgrounds`, named by a hash of its content. Styles (drafts and
+placed widgets) refer to it by path and outlive any album change, so these
+files are never deleted.
+
 ### Previews are the widget
 
 `EngineChannel.render` builds the exact `RemoteViews` the launcher receives,
@@ -145,8 +169,16 @@ screen therefore show the same pixels.
   immediately with the slot's default design and can be reconfigured by
   long-press; earlier, the configure screen opens first. The configure screen
   is the Flutter gallery filtered to the slot.
-- **Editing a placed widget:** tapping a widget opens its editor; changes bind
-  live (debounced).
+- **Editing a placed widget:** tapping a widget fires `WidgetTap`'s
+  PendingIntent: explicit to `MainActivity`, the widget id as request code
+  and extra, immutable, `CLEAR_TOP|SINGLE_TOP` so a running app gets it in
+  `onNewIntent`. On a cold start `main()` reads the launch target before
+  building the router and starts at `/widget/<id>` (gallery beneath it);
+  while running, the target is pushed over the channel and routed the same
+  way. The editor reads the widget's binding fresh each time it opens and
+  binds changes live (debounced; an edit made just before leaving is still
+  bound). A widget removed before or during editing shows a "gone" state,
+  and `bind` refuses ids no longer on the home screen.
 
 ## App chrome (`lib/src/core/`)
 

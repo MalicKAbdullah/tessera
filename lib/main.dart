@@ -34,6 +34,9 @@ Future<void> main() async {
   );
   engine.onDataChanged = () =>
       container.read(dataRevisionProvider.notifier).state++;
+  appRouter = createRouter(
+    initialLocation: launchLocation(await engine.launchTarget()),
+  );
   engine.onLaunchTarget = openLaunchTarget;
   AppLifecycleListener(
     onResume: () async {
@@ -46,8 +49,6 @@ Future<void> main() async {
   runApp(
     UncontrolledProviderScope(container: container, child: const TesseraApp()),
   );
-  final initial = await engine.launchTarget();
-  if (initial != null) openLaunchTarget(initial);
 }
 
 /// The typefaces the widget engine bundles in res/font, all under the SIL

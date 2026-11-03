@@ -65,9 +65,10 @@ internal fun SceneInputs.countdown(): CountdownView {
 internal fun SceneInputs.countdownItems(): List<CountdownMath.Item> =
     listOf(primary()) + data.content.events.map { CountdownMath.Item(it.title, it.date) }
 
-private val shortDate = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault())
-private val dayMonth = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
-private val weekday = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
+// Built per use: the process outlives a system locale change.
+private val shortDate: DateTimeFormatter get() = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.getDefault())
+private val dayMonth: DateTimeFormatter get() = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+private val weekday: DateTimeFormatter get() = DateTimeFormatter.ofPattern("EEE", Locale.getDefault())
 
 internal fun LocalDate.short(): String = format(shortDate)
 internal fun LocalDate.dayMonth(): String = format(dayMonth)

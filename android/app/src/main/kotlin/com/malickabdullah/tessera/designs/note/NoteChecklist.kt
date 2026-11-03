@@ -11,6 +11,7 @@ import com.malickabdullah.tessera.engine.Signal
 import com.malickabdullah.tessera.engine.SizeClass
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.WidgetDesign
+import kotlin.math.min
 
 object NoteChecklist : WidgetDesign {
     override val id = "note.checklist"
@@ -18,7 +19,7 @@ object NoteChecklist : WidgetDesign {
     override val name = "Checklist"
     override val blurb = "Your to-do items with checkboxes and a progress bar; tick them off in the app."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("grotesk", 500, text = 0xFF1D1D1F, accent = 0xFF16171A, background = 0xFFEEF0F3, radius = 28f, padding = 16f)
+    override val defaults = Style.of("grotesk", 500, text = 0xFF1D1D1F, accent = 0xFF16171A, background = 0xFFEEF0F3)
     override val signals = setOf(Signal.CONTENT)
 
     override fun draw(s: Scene) {
@@ -37,17 +38,20 @@ object NoteChecklist : WidgetDesign {
         s.canvas.drawRoundRect(bar, 2f, 2f, s.fill(s.ink(0.1f)))
         if (done > 0) s.canvas.drawRoundRect(RectF(bar.left, bar.top, bar.left + bar.width() * done / items.size, bar.bottom), 2f, 2f, s.fill(s.accent))
 
-        val rowH = 26f * s.k
-        // A tall widget with a short list closes on a large progress figure instead of blank space.
+        val baseRow = 26f * s.k
+        // A tall widget with a short list closes on a large progress figure instead of blank space,
+        // and its rows open up (to a limit) to share the height that is left.
         val summaryH = 64f * s.k
-        val summary = b.bottom - (bar.bottom + 8f) - items.size * rowH >= summaryH + 12f
-        val list = RectF(b.left, bar.bottom + 8f, b.right, if (summary) b.bottom - summaryH else b.bottom)
+        val summary = b.bottom - (bar.bottom + 8f) - items.size * baseRow >= summaryH + 12f
+        val list = RectF(b.left, bar.bottom + 8f, b.right, if (summary) b.bottom - summaryH - 6f else b.bottom)
+        val rowH = if (summary) min(36f * s.k, list.height() / items.size) else baseRow
+        val grow = min(1.2f, rowH / baseRow)
         val capacity = (list.height() / rowH).toInt().coerceAtLeast(1)
         val overflow = items.size > capacity
         val shown = if (overflow) capacity - 1 else items.size
-        val text = s.paint(14f * s.k, s.text, weight = 400)
-        val struck = s.paint(14f * s.k, s.ink(0.4f), weight = 400)
-        val box = 15f * s.k
+        val text = s.paint(14f * s.k * grow, s.text, weight = 400)
+        val struck = s.paint(14f * s.k * grow, s.ink(0.4f), weight = 400)
+        val box = 15f * s.k * grow
         for (i in 0 until shown) {
             val item = items[i]
             val cy = list.top + rowH * i + rowH / 2f

@@ -22,7 +22,7 @@ object DeviceMemory : WidgetDesign {
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
     override val defaults = Style.of(
         "grotesk", 500, text = 0xFF15171A, accent = 0xFF3A7BFF, background = 0xFFF2F3F5,
-        kind = BgKind.DOTS, background2 = 0xFFE3E6EA, radius = 28f, padding = 14f,
+        kind = BgKind.DOTS, background2 = 0xFFE3E6EA,
     )
 
     override fun liveKey(scene: SceneInputs) = DeviceKit.memoryKey(scene)

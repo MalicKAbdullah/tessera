@@ -4,6 +4,7 @@ import android.graphics.DashPathEffect
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
+import com.malickabdullah.tessera.designs.Kit
 import com.malickabdullah.tessera.engine.Category
 import com.malickabdullah.tessera.engine.Scene
 import com.malickabdullah.tessera.engine.SceneInputs
@@ -19,7 +20,7 @@ object BatteryCell : WidgetDesign {
     override val name = "Dot Cell"
     override val blurb = "A battery drawn in dots that light column by column, with a dot-matrix percentage."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("dot", 700, text = 0xFFF0F0F0, accent = 0xFFC6F432, background = 0xFF0D0D0D, radius = 30f)
+    override val defaults = Style.of("dot", 700, text = 0xFFF0F0F0, accent = 0xFFC6F432, background = 0xFF0D0D0D)
     override val signals = setOf(Signal.BATTERY)
     override val motion = "While charging, the next columns of cells fill in a loop."
 
@@ -41,8 +42,8 @@ object BatteryCell : WidgetDesign {
             cell = RectF(b.left, b.top + 22f, b.left + b.width() * 0.56f, b.bottom - 4f)
             number = RectF(cell.right + 12f, b.top + 16f, b.right, b.bottom - 14f)
         } else {
-            number = RectF(b.left, b.top + 14f, b.right, b.top + 14f + b.height() * 0.42f)
-            cell = RectF(b.left, number.bottom + 8f, b.right - 6f, b.bottom)
+            number = RectF(b.left, b.top + 16f, b.right, b.top + 16f + b.height() * 0.44f)
+            cell = RectF(b.left, number.bottom + 6f, b.right, b.bottom)
         }
         val inner = drawShell(s, cell)
         val cols = (inner.width() / PITCH).toInt()
@@ -61,10 +62,10 @@ object BatteryCell : WidgetDesign {
         }
 
         val pct = "${bat.level}"
-        val size = s.fit("100", number.width() * 0.82f, number.height()) * s.hero
+        // Sized by cap height to the digits shown, with room for the % sign, so the figure fills its row.
+        val size = s.fitCaps(Kit.widest(s, "8".repeat(maxOf(2, pct.length))), number.width() * 0.78f, number.height() * 0.86f) * s.hero
         val big = s.paint(size, s.text)
-        val fm = big.fontMetrics
-        val baseline = number.centerY() - (fm.ascent + fm.descent) / 2f
+        val baseline = number.centerY() + s.capHeight(big) / 2f
         s.canvas.drawText(pct, number.left, baseline, big)
         s.canvas.drawText("%", number.left + big.measureText(pct) + 2f, baseline, s.paint(size * 0.36f, color))
         if (wide) {

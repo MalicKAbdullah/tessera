@@ -23,7 +23,7 @@ object CalendarWeek : WidgetDesign {
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
     override val defaults = Style.of(
         "grotesk", 500, text = 0xFFEDEFF2, accent = 0xFF9AD0C2, background = 0xFF15171B,
-        kind = BgKind.GRADIENT, background2 = 0xFF22262C, radius = 30f, padding = 16f,
+        kind = BgKind.GRADIENT, background2 = 0xFF22262C,
     )
     override val toggles = listOf(hourFormatToggle)
     override val signals = setOf(Signal.CALENDAR)

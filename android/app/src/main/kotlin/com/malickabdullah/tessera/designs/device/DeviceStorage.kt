@@ -3,6 +3,7 @@ package com.malickabdullah.tessera.designs.device
 import android.graphics.Paint
 import android.graphics.RectF
 import com.malickabdullah.tessera.designs.DotText
+import com.malickabdullah.tessera.designs.Kit
 import com.malickabdullah.tessera.engine.Category
 import com.malickabdullah.tessera.engine.Scene
 import com.malickabdullah.tessera.engine.SceneInputs
@@ -18,7 +19,7 @@ object DeviceStorage : WidgetDesign {
     override val name = "Storage"
     override val blurb = "Free space on the phone, as a dot field on 2×2 and a segmented bar on 4×2."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("dot", 700, text = 0xFFECEDEE, accent = 0xFFD4FF3A, background = 0xFF121212, radius = 28f, padding = 16f)
+    override val defaults = Style.of("dot", 700, text = 0xFFECEDEE, accent = 0xFFD4FF3A, background = 0xFF121212)
 
     override fun liveKey(scene: SceneInputs) = DeviceKit.storageKey(scene)
 
@@ -35,21 +36,23 @@ object DeviceStorage : WidgetDesign {
             DeviceKit.label(s, 9.5f, align = Paint.Align.RIGHT),
         )
         if (s.w >= s.h * 1.4f) {
-            val heroH = b.height() * 0.42f
-            val size = s.fit("888.8", b.width() * 0.5f, heroH) * s.hero
+            // The free figure fills the space between the header and the bar; unit and total sit beside it.
+            val barTop = b.bottom - 34f
+            val heroArea = RectF(b.left, b.top + 20f, b.left + b.width() * 0.64f, barTop - 10f)
+            val size = s.fitCaps(Kit.widest(s, "888.8"), heroArea.width(), heroArea.height()) * s.hero
             val hero = s.paint(size, s.text)
-            val baseline = b.top + 18f + size * 0.78f
+            val baseline = heroArea.centerY() + s.capHeight(hero) / 2f
             DotText.draw(s.canvas, num, b.left - 1f, baseline, hero, s.style.font)
-            val unitX = b.left + DotText.measure(num, hero, s.style.font) + 6f
-            s.canvas.drawText(unit, unitX, baseline, s.paint(size * 0.32f, s.ink(0.6f), font = "mono", weight = 500))
-            s.canvas.drawText("FREE", unitX, baseline - size * 0.4f, DeviceKit.label(s, 9f))
+            val unitX = b.left + DotText.measure(num, hero, s.style.font) + 8f
+            s.canvas.drawText("FREE", unitX, baseline - s.capHeight(hero) + 8f, DeviceKit.label(s, 9f))
+            s.canvas.drawText(unit, unitX, baseline, s.paint(15f * s.k, s.ink(0.7f), font = "mono", weight = 500))
             s.canvas.drawText(
                 "of ${DeviceKit.bytes(st.totalBytes)}",
                 b.right,
                 baseline,
                 s.paint(12f * s.k, s.ink(0.6f), font = "mono", weight = 400, align = Paint.Align.RIGHT),
             )
-            DeviceKit.segments(s, RectF(b.left, b.bottom - 30f, b.right, b.bottom - 14f), st.usedFraction, 24, color)
+            DeviceKit.segments(s, RectF(b.left, barTop, b.right, b.bottom - 14f), st.usedFraction, 24, color)
             val l = DeviceKit.label(s, 8.5f)
             s.canvas.drawText("${DeviceKit.bytes(st.usedBytes)} USED", b.left, b.bottom, l)
             s.canvas.drawText("${DeviceKit.bytes(st.freeBytes)} FREE", b.right, b.bottom, DeviceKit.label(s, 8.5f, align = Paint.Align.RIGHT))

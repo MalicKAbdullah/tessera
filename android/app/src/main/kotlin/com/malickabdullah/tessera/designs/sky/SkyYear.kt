@@ -25,10 +25,11 @@ object SkyYear : WidgetDesign {
     override val name = "Day Length"
     override val blurb = "Today's daylight on the curve of the whole year, and how much it changed since yesterday."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("condensed", 500, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF15171B, radius = 28f, padding = 16f)
+    override val defaults = Style.of("condensed", 500, text = 0xFFF2F3F5, accent = 0xFFD4FF3A, background = 0xFF15171B)
     override val signals = setOf(Signal.CONTENT)
 
-    private val month = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
+    // Built per use: the process outlives a system locale change.
+    private val month: DateTimeFormatter get() = DateTimeFormatter.ofPattern("d MMM", Locale.getDefault())
 
     override fun liveKey(scene: SceneInputs): String {
         val p = scene.data.skyPlace

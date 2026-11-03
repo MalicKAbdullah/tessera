@@ -41,7 +41,18 @@ Page<void> _page(BuildContext context, GoRouterState state, Widget child) {
   );
 }
 
-final appRouter = GoRouter(
+/// Where a launch opens: the gallery, a tapped widget's editor, or the
+/// launcher's configure flow for a widget being placed.
+String launchLocation(LaunchTarget? target) => switch (target) {
+  null => '/',
+  LaunchEdit(:final widgetId) => '/widget/$widgetId',
+  LaunchConfigure(:final widgetId) => '/configure/$widgetId',
+};
+
+/// Starts at [initialLocation] so a cold start from a widget tap opens on
+/// its editor, with the gallery beneath it for back.
+GoRouter createRouter({String initialLocation = '/'}) => GoRouter(
+  initialLocation: initialLocation,
   routes: [
     GoRoute(
       path: '/',
@@ -97,7 +108,9 @@ final appRouter = GoRouter(
   ],
 );
 
-void openLaunchTarget(LaunchTarget target) => switch (target) {
-  LaunchEdit(:final widgetId) => appRouter.go('/widget/$widgetId'),
-  LaunchConfigure(:final widgetId) => appRouter.go('/configure/$widgetId'),
-};
+/// Created in main() once the launch target is known.
+late final GoRouter appRouter;
+
+/// A widget tapped while the app is already running.
+void openLaunchTarget(LaunchTarget target) =>
+    appRouter.go(launchLocation(target));

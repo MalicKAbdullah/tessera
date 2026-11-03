@@ -3,6 +3,7 @@ package com.malickabdullah.tessera.designs.note
 import android.graphics.RectF
 import com.malickabdullah.tessera.designs.DotText
 import com.malickabdullah.tessera.designs.TextFit
+import com.malickabdullah.tessera.data.PhotoMath
 import com.malickabdullah.tessera.engine.Category
 import com.malickabdullah.tessera.engine.Scene
 import com.malickabdullah.tessera.engine.Signal
@@ -19,7 +20,7 @@ object NoteMarquee : WidgetDesign {
     override val name = "Dot Matrix Message"
     override val blurb = "Your message in LED dot-matrix type, paged automatically when it is too long to show at once."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("dot", 700, text = 0xFFD4FF3A, accent = 0xFFF2F3F5, background = 0xFF0B0B0C, radius = 30f, padding = 16f)
+    override val defaults = Style.of("dot", 700, text = 0xFFD4FF3A, accent = 0xFFF2F3F5, background = 0xFF0B0B0C)
     override val signals = setOf(Signal.CONTENT)
     override val motion = "Long messages flip to the next page every four seconds; short ones stay still."
 
@@ -49,7 +50,9 @@ object NoteMarquee : WidgetDesign {
         val lines = TextFit.wrap(message, area.width()) { p.measureText(it) }
 
         val framePx = area.width() * s.bitmapScale * area.height() * s.bitmapScale
-        val maxPages = floor(FRAME_PIXEL_BUDGET / framePx).toInt().coerceIn(1, 6)
+        // Pages share what the main bitmap leaves of the update's budget, with headroom for the parcel.
+        val framesPx = min(FRAME_PIXEL_BUDGET, (s.bitmapBudget * 0.9f - PhotoMath.bitmapBytes(s.w, s.h, s.bitmapScale)) / 4f)
+        val maxPages = floor(framesPx / framePx).toInt().coerceIn(1, 6)
         val pages = TextFit.paginate(lines, rows, maxPages, area.width()) { p.measureText(it) }
 
         val frame = RectF(b.left, b.top, b.right, b.bottom)

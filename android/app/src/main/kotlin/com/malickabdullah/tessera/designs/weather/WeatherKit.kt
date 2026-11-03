@@ -126,22 +126,37 @@ internal object WeatherKit {
         val city: City? = s.data.content.city
         val b = s.box
         val side = minOf(b.width(), b.height())
-        val gy = b.top + b.height() * 0.4f
-        val gx = if (b.width() > b.height() * 1.4f) b.left + side * 0.45f else b.centerX()
-        glyph(s.canvas, Sky.PARTLY, true, gx, gy, side * 0.5f, s.ink(0.22f), s.ink(0.32f, s.accent), Layer.ALL, 0)
-        val center = gx == b.centerX()
-        val tx = if (center) b.centerX() else gx + side * 0.45f
-        val align = if (center) Paint.Align.CENTER else Paint.Align.LEFT
-        val title = s.paint(minOf(16f, side * 0.1f) * s.k, s.text, weight = 500, align = align)
+        // A modest glyph and a readable prompt as one group: centred in a square, side by side in a wide box.
+        val glyphSize = minOf(side * 0.46f, 84f)
+        val titleSize = minOf(20f, side * 0.11f) * s.k
+        val wide = b.width() > b.height() * 1.4f
+        val gx: Float
+        val gy: Float
+        val tx: Float
+        val ty: Float
+        if (wide) {
+            gx = b.left + b.width() * 0.3f
+            gy = b.centerY()
+            tx = gx + glyphSize * 0.7f + 4f
+            ty = gy + titleSize * 0.2f
+        } else {
+            val group = glyphSize + 12f + titleSize + 16f * s.k
+            gx = b.centerX()
+            gy = b.centerY() - group / 2f + glyphSize / 2f
+            tx = b.centerX()
+            ty = gy + glyphSize / 2f + 12f + titleSize * 0.8f
+        }
+        glyph(s.canvas, Sky.PARTLY, true, gx, gy, glyphSize, s.ink(0.22f), s.ink(0.4f, s.accent), Layer.ALL, 0)
+        val align = if (wide) Paint.Align.LEFT else Paint.Align.CENTER
+        val title = s.paint(titleSize, s.text, weight = 500, align = align)
         val sub = mono(s, 8.5f, s.ink(0.55f), align)
-        val ty = if (center) b.top + b.height() * 0.8f else gy - 4f
         val (line1, line2) = when {
-            city == null -> "Pick a city" to "TAP TO OPEN TESSERA"
+            city == null -> "Pick a city" to "TAP TO CHOOSE ONE"
             s.data.weather == null -> city.name to "WAITING FOR THE FORECAST"
             else -> city.name to "OFFLINE · FORECAST EXPIRED"
         }
         s.canvas.drawText(line1, tx, ty, title)
-        s.canvas.drawText(line2, tx, ty + 16f * s.k, sub)
+        s.canvas.drawText(line2, tx, ty + 15f * s.k, sub)
         return null
     }
 

@@ -79,13 +79,7 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
             "render" -> renderPreview(call, result)
             "specimen" -> specimen(call, result)
             "placed" -> result.success(placed().toString())
-            "bind" -> {
-                val id = call.argument<Int>("id")!!
-                Instances.put(activity, id, call.argument<String>("design")!!, style(call))
-                Engine.render(activity, id)
-                Engine.onInstancesChanged(activity)
-                result.success(null)
-            }
+            "bind" -> result.success(bind(call))
             "canPin" -> result.success(AppWidgetManager.getInstance(activity).isRequestPinAppWidgetSupported)
             "pin" -> result.success(pin(call))
             "setContent" -> {
@@ -100,6 +94,7 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
             }
             "photos" -> result.success(PhotoStore.read(activity).toJson().toString())
             "pickPhotos" -> pickPhotos(result)
+            "pickBackground" -> pickBackground(result)
             "removePhoto" -> {
                 val album = PhotoStore.remove(activity, call.argument<String>("id")!!)
                 Engine.refresh(activity, Signal.CONTENT)
@@ -153,6 +148,25 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
         }
     }
 
+    /** Opens the photo picker for one image and stores it as a surface; replies with its path, or null when cancelled. */
+    private fun pickBackground(result: MethodChannel.Result) {
+        activity.pickPhotos(1) { uris ->
+            val uri = uris.firstOrNull()
+            if (uri == null) {
+                result.success(null)
+                return@pickPhotos
+            }
+            photoImport.execute {
+                try {
+                    val file = PhotoStore.importBackground(activity, uri)
+                    main.post { result.success(file.absolutePath) }
+                } catch (e: Exception) {
+                    main.post { result.error("import", e.message, null) }
+                }
+            }
+        }
+    }
+
     /** "granted", "ask" (the system dialog will show) or "blocked" (only Settings can grant it). */
     private fun calendarAccess(): String = when {
         CalendarSource.granted(activity) -> "granted"
@@ -177,6 +191,19 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
         }
         pendingCalendar?.success(calendarAccess())
         pendingCalendar = null
+    }
+
+    /**
+     * Rebinds a placed widget; false when it is no longer on the home screen
+     * (removed while its editor was open), in which case nothing is stored.
+     */
+    private fun bind(call: MethodCall): Boolean {
+        val id = call.argument<Int>("id")!!
+        val slot = Slots.placed(activity).firstOrNull { it.first == id }?.second ?: return false
+        Instances.put(activity, id, call.argument<String>("design")!!, style(call))
+        Engine.render(activity, id, slot = slot)
+        Engine.onPlacementChanged(activity)
+        return true
     }
 
     private fun style(call: MethodCall) = Style.parse(JSONObject(call.argument<String>("style")!!))

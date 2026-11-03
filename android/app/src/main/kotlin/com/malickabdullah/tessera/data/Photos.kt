@@ -9,7 +9,9 @@ import android.net.Uri
 import android.provider.MediaStore
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.File
+import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -107,6 +109,41 @@ object PhotoStore : DataSource<PhotoAlbum> {
         read(context).copy(caption = caption.trim()).also { write(context, it) }
 
     private fun importOne(context: Context, uri: Uri, maxShort: Int): Photo {
+        val exif = context.contentResolver.openInputStream(uri).use { ExifInterface(checkNotNull(it)) }
+        val upright = decodeUpright(context, uri, maxShort, exif)
+        val id = UUID.randomUUID().toString()
+        val file = File(dir(context), "$id.jpg")
+        file.outputStream().use { upright.compress(Bitmap.CompressFormat.JPEG, 90, it) }
+        val photo = Photo(id, file, upright.width, upright.height, dateOf(context, uri, exif))
+        upright.recycle()
+        return photo
+    }
+
+    /**
+     * Imports one picked image as a widget's photo surface. Styles (drafts
+     * and placed widgets alike) refer to it by path and outlive any album
+     * change, so the file is named by its content and never deleted: picking
+     * the same image again reuses it. Runs off the main thread.
+     */
+    fun importBackground(context: Context, uri: Uri): File {
+        val maxShort = context.resources.displayMetrics.let { min(it.widthPixels, it.heightPixels) }
+        val exif = context.contentResolver.openInputStream(uri).use { ExifInterface(checkNotNull(it)) }
+        val upright = decodeUpright(context, uri, maxShort, exif)
+        val bytes = ByteArrayOutputStream().also { upright.compress(Bitmap.CompressFormat.JPEG, 90, it) }.toByteArray()
+        upright.recycle()
+        val name = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }.take(32)
+        val dir = File(context.filesDir, "backgrounds").apply { mkdirs() }
+        val file = File(dir, "$name.jpg")
+        if (!file.exists()) {
+            val tmp = File(dir, "$name.tmp")
+            tmp.writeBytes(bytes)
+            check(tmp.renameTo(file)) { "Could not store background $name" }
+        }
+        return file
+    }
+
+    /** Decodes [uri] once at the stored size ([PhotoMath.storedSize]) and turns it upright from EXIF. */
+    private fun decodeUpright(context: Context, uri: Uri, maxShort: Int, exif: ExifInterface): Bitmap {
         val resolver = context.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, bounds) }
@@ -118,19 +155,13 @@ object PhotoStore : DataSource<PhotoAlbum> {
         val decoded = checkNotNull(resolver.openInputStream(uri).use { BitmapFactory.decodeStream(it, null, options) }) {
             "$uri could not be decoded"
         }
-        val exif = resolver.openInputStream(uri).use { ExifInterface(checkNotNull(it)) }
         val m = Matrix().apply {
             postScale(targetW.toFloat() / decoded.width, targetH.toFloat() / decoded.height)
             postRotate(rotation(exif))
         }
         val upright = Bitmap.createBitmap(decoded, 0, 0, decoded.width, decoded.height, m, true)
         if (upright !== decoded) decoded.recycle()
-        val id = UUID.randomUUID().toString()
-        val file = File(dir(context), "$id.jpg")
-        file.outputStream().use { upright.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-        val photo = Photo(id, file, upright.width, upright.height, dateOf(context, uri, exif))
-        upright.recycle()
-        return photo
+        return upright
     }
 
     private fun rotation(exif: ExifInterface): Float = when (

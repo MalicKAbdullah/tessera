@@ -91,7 +91,7 @@ object ClockWords : WidgetDesign {
     override val name = "Word Clock"
     override val blurb = "The time spelled out in a lit letter grid, with a dot per minute in the corners."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.LARGE)
-    override val defaults = Style.of("mono", 500, text = 0xFFEAF0FF, accent = 0xFF8FB3FF, background = 0xFF0F1A2B, radius = 30f, padding = 14f)
+    override val defaults = Style.of("mono", 500, text = 0xFFEAF0FF, accent = 0xFF8FB3FF, background = 0xFF0F1A2B)
 
     override fun liveKey(scene: SceneInputs) = "${scene.now.hour}:${scene.now.minute}"
 

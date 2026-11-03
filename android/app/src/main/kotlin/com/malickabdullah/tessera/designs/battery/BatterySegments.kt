@@ -16,7 +16,7 @@ object BatterySegments : WidgetDesign {
     override val name = "Segments"
     override val blurb = "Ten-segment bar with temperature, health, voltage and power source."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("mono", 500, text = 0xFFE9EDE4, accent = 0xFFD4FF3A, background = 0xFF121412, radius = 26f, padding = 16f)
+    override val defaults = Style.of("mono", 500, text = 0xFFE9EDE4, accent = 0xFFD4FF3A, background = 0xFF121412)
     override val signals = setOf(Signal.BATTERY)
     override val motion = "While charging, the next segment breathes."
 

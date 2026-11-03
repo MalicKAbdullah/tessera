@@ -82,7 +82,7 @@ object Shots {
         val h = shot.size.heightDp.toFloat()
         val scale = pxPerDp ?: Renderer.bitmapScale(w, h, DENSITY)
         val (bitmap, scene) = Renderer.draw(
-            context, shot.design, style(shot.design, shot.theme), w, h, scale, Fixed.now, FixedData(context, shot.state, photoDir),
+            context, shot.design, style(shot.design, shot.theme), w, h, scale, Fixed.now, FixedData(context, shot.state, photoDir), Renderer.budget(context),
         )
         val canvas = Canvas(bitmap)
         canvas.scale(scale, scale)

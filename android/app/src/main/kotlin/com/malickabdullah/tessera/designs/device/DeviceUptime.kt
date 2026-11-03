@@ -17,11 +17,11 @@ object DeviceUptime : WidgetDesign {
     override val name = "Uptime"
     override val blurb = "How long since the phone last restarted, with the boot time and a 30-day strip."
     override val sizes = listOf(SizeClass.SMALL, SizeClass.WIDE)
-    override val defaults = Style.of("condensed", 500, text = 0xFFF2F3F5, accent = 0xFF9BE15D, background = 0xFF161816, radius = 28f, padding = 16f)
+    override val defaults = Style.of("condensed", 500, text = 0xFFF2F3F5, accent = 0xFF9BE15D, background = 0xFF161816)
 
-    private val since = DateTimeFormatter.ofPattern("EEE d MMM · HH:mm", Locale.getDefault())
-    private val bootDay = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
-    private val bootTime = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
+    // Built per use: the process outlives a system locale change.
+    private val bootDay: DateTimeFormatter get() = DateTimeFormatter.ofPattern("EEE d MMM", Locale.getDefault())
+    private val bootTime: DateTimeFormatter get() = DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault())
 
     override fun liveKey(scene: SceneInputs) = DeviceKit.uptime(scene.data.uptimeMs)
 
@@ -52,7 +52,14 @@ object DeviceUptime : WidgetDesign {
                 s.canvas.drawText(v, x, top + 9f + 17f * s.k, value)
             }
         } else {
-            s.canvas.drawText("SINCE ${boot.format(since).uppercase()}", b.left, baseline + 16f * s.k, DeviceKit.label(s, 8.5f))
+            // Boot day and time as two labelled columns between the hero and the day strip.
+            val top = baseline + (b.bottom - 14f - baseline) / 2f - 13f * s.k
+            val value = s.paint(12.5f * s.k, s.text, font = "mono", weight = 500)
+            s.canvas.drawText("BOOTED", b.left, top + 8f, DeviceKit.label(s, 8f))
+            s.canvas.drawText(boot.format(bootDay).uppercase(), b.left, top + 8f + 16f * s.k, value)
+            val x = b.left + b.width() * 0.68f
+            s.canvas.drawText("AT", x, top + 8f, DeviceKit.label(s, 8f))
+            s.canvas.drawText(boot.format(bootTime), x, top + 8f + 16f * s.k, value)
         }
         // One cell per day for 30 days: days elapsed since boot lit, today's cell half-lit.
         val days = (up / 86_400_000L).toInt()

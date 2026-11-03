@@ -80,26 +80,38 @@ class PlacedTarget extends EditTarget {
   int get hashCode => Object.hash(design, widgetId, configuring);
 }
 
-final styleProvider =
-    NotifierProvider.family<StyleNotifier, WidgetStyle, EditTarget>(
-      StyleNotifier.new,
-    );
+/// Disposed with the screens editing it, so a placed widget's editor always
+/// opens on that widget's current binding.
+final styleProvider = NotifierProvider.autoDispose
+    .family<StyleNotifier, WidgetStyle, EditTarget>(StyleNotifier.new);
 
-class StyleNotifier extends FamilyNotifier<WidgetStyle, EditTarget> {
+class StyleNotifier extends AutoDisposeFamilyNotifier<WidgetStyle, EditTarget> {
   Timer? _push;
 
   @override
   WidgetStyle build(EditTarget target) {
-    ref.onDispose(() => _push?.cancel());
+    final engine = ref.read(engineProvider);
+    ref.onDispose(() {
+      // Leaving the editor right after an edit still applies it.
+      final push = _push;
+      if (push != null && push.isActive) {
+        push.cancel();
+        final placed = target as PlacedTarget;
+        engine.bind(placed.widgetId, placed.design, _pending!);
+      }
+    });
     final defaults = ref.read(catalogProvider).design(target.design).defaults;
     return switch (target) {
-      DraftTarget() => ref.read(storeProvider).draft(target.design) ?? defaults,
-      PlacedTarget() => defaults,
+      DraftTarget() || PlacedTarget(configuring: true) =>
+        ref.read(storeProvider).draft(target.design) ?? defaults,
+      // The placed editor is built only once its widget has loaded.
+      PlacedTarget(:final widgetId) =>
+        ref.read(placedWidgetProvider(widgetId)).requireValue!.style,
     };
   }
 
-  /// Starts a placed widget's editor from its current binding.
-  void load(WidgetStyle style) => state = style;
+  /// The style waiting in [_push] to be bound.
+  WidgetStyle? _pending;
 
   void update(WidgetStyle Function(WidgetStyle) change) {
     state = change(state);
@@ -110,10 +122,15 @@ class StyleNotifier extends FamilyNotifier<WidgetStyle, EditTarget> {
         // Sliders emit many values per second; the widget only needs the
         // one the user settles on.
         _push?.cancel();
-        _push = Timer(
-          const Duration(milliseconds: 350),
-          () => ref.read(engineProvider).bind(widgetId, design, state),
-        );
+        _pending = state;
+        _push = Timer(const Duration(milliseconds: 350), () async {
+          final kept = await ref
+              .read(engineProvider)
+              .bind(widgetId, design, _pending!);
+          ref.invalidate(placedProvider);
+          // Removed while its editor was open: the editor shows that.
+          if (!kept) ref.invalidate(placedWidgetProvider(widgetId));
+        });
       case PlacedTarget(configuring: true):
         break;
     }
@@ -160,6 +177,16 @@ final placedProvider = FutureProvider<List<PlacedWidget>>((ref) {
   ref.watch(dataRevisionProvider);
   return ref.read(engineProvider).placed();
 });
+
+/// One placed widget as the engine has it now, or null once it has left
+/// the home screen. Disposed with its editor, so every editor opens on the
+/// widget's current binding rather than an earlier read of [placedProvider].
+final placedWidgetProvider = FutureProvider.autoDispose
+    .family<PlacedWidget?, int>((ref, id) async {
+      ref.watch(dataRevisionProvider);
+      final placed = await ref.read(engineProvider).placed();
+      return placed.where((p) => p.id == id).firstOrNull;
+    });
 
 class PreviewRequest {
   const PreviewRequest(this.design, this.style, this.size);

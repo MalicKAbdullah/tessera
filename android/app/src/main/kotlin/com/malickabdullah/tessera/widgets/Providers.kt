@@ -15,8 +15,8 @@ import com.malickabdullah.tessera.engine.Work
  */
 abstract class TesseraProvider : AppWidgetProvider() {
     override fun onUpdate(context: Context, manager: AppWidgetManager, ids: IntArray) {
-        ids.forEach { Engine.render(context, it) }
-        Engine.onInstancesChanged(context)
+        Engine.render(context, ids)
+        Engine.onPlacementChanged(context)
     }
 
     override fun onAppWidgetOptionsChanged(context: Context, manager: AppWidgetManager, id: Int, options: Bundle) {
@@ -25,7 +25,7 @@ abstract class TesseraProvider : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, ids: IntArray) {
         ids.forEach { Instances.remove(context, it) }
-        Engine.onInstancesChanged(context)
+        Engine.onPlacementChanged(context)
     }
 
     override fun onEnabled(context: Context) {

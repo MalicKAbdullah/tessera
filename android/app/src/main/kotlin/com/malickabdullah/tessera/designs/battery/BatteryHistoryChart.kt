@@ -17,7 +17,7 @@ object BatteryHistoryChart : WidgetDesign {
     override val name = "24h History"
     override val blurb = "Your last day of charge as an area chart, with charging stretches and drain rate."
     override val sizes = listOf(SizeClass.WIDE, SizeClass.LARGE)
-    override val defaults = Style.of("sans", 500, text = 0xFFE6EAF2, accent = 0xFF7FB2FF, background = 0xFF10131A, radius = 26f, padding = 16f)
+    override val defaults = Style.of("sans", 500, text = 0xFFE6EAF2, accent = 0xFF7FB2FF, background = 0xFF10131A)
     override val signals = setOf(Signal.BATTERY)
 
     override fun liveKey(scene: SceneInputs) = BatteryKit.key(scene)

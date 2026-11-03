@@ -41,7 +41,7 @@ object ClockDual : WidgetDesign {
     override val sizes = listOf(SizeClass.WIDE, SizeClass.SMALL)
     override val defaults = Style.of(
         "sans", 300, text = 0xFFF4F4F2, accent = 0xFF9AD0C2, background = 0xFF17191D,
-        kind = BgKind.GRADIENT, background2 = 0xFF252A30, radius = 30f, padding = 16f,
+        kind = BgKind.GRADIENT, background2 = 0xFF252A30,
     )
     override val toggles = listOf(hourFormatToggle, Toggle.Choice("zone", "Second city", zones, "Europe/London"))
 
