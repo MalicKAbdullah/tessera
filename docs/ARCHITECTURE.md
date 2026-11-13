@@ -163,8 +163,8 @@ tag), so either side of the channel opens the other's files.
   `no_backup`. A missing key while sealed data exists throws `DataKeyLost`
   rather than starting an empty store.
 - **The engine's documents** (`security/Vault.kt`, `files/vault/engine`):
-  content, placed-widget bindings, the forecast for the user's city, the photo
-  album and its JPEGs, and photo surfaces. `Vault.key` is the single entry
+  content, placed-widget bindings, the forecast for the user's city, battery
+  history, the photo album and its JPEGs, and photo surfaces. `Vault.key` is the single entry
   point, so whichever runs first after an update (the app, a launcher update,
   the boot or package-replaced receiver, a worker) seals v0.3.0's plaintext
   first (`security/LegacyPlaintext.kt`).
@@ -173,9 +173,8 @@ tag), so either side of the channel opens the other's files.
   `vault` channel call returns. `TesseraStore` keeps them in memory for
   synchronous reads; `migratePlaintext` moves v0.3.0's shared preferences in.
 - **Left in plain storage:** progress flags (intro seen, schema), the
-  appearance mode core_theme keeps, live keys (dates, levels, counts) and
-  battery history samples. None is something the user typed or chose about
-  themselves.
+  appearance mode core_theme keeps, and live keys (dates, levels, counts).
+  None is something the user typed or chose.
 
 Backup and device-to-device transfer are off (`allowBackup="false"`,
 `data_extraction_rules.xml`), so nothing leaves the phone.

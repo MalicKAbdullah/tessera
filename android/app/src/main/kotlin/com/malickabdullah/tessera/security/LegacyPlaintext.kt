@@ -1,6 +1,7 @@
 package com.malickabdullah.tessera.security
 
 import android.content.Context
+import com.malickabdullah.tessera.data.BatteryHistory
 import com.malickabdullah.tessera.data.ContentSource
 import com.malickabdullah.tessera.data.PhotoStore
 import com.malickabdullah.tessera.data.WeatherSource
@@ -10,20 +11,22 @@ import java.io.File
 
 /**
  * Up to v0.3.0 the engine kept the user's data in plain files: content,
- * widget bindings and the forecast for their city in shared preferences,
- * photos and photo surfaces as JPEGs. Each is sealed into the [Vault] and
+ * widget bindings, the forecast for their city and battery history in shared
+ * preferences, photos and photo surfaces as JPEGs. Each is sealed into the [Vault] and
  * only then deleted, so an interrupted move repeats from the untouched
  * plaintext on the next start.
  */
 internal object LegacyPlaintext {
     private const val CONTENT_PREFS = "tessera.content"
     private const val WEATHER_PREFS = "tessera.weather"
+    private const val BATTERY_PREFS = "tessera.battery"
     private const val INSTANCE_PREFIX = "i."
 
     fun migrate(context: Context, key: ByteArray) {
         content(context, key)
         instances(context, key)
         weather(context, key)
+        battery(context, key)
         photos(context, key)
         backgrounds(context, key)
     }
@@ -75,6 +78,14 @@ internal object LegacyPlaintext {
             Vault.put(context, key, WeatherSource.DOC, doc.toString().toByteArray())
         }
         check(context.deleteSharedPreferences(WEATHER_PREFS)) { "Could not delete $WEATHER_PREFS" }
+    }
+
+    private fun battery(context: Context, key: ByteArray) {
+        if (!prefsExist(context, BATTERY_PREFS)) return
+        context.getSharedPreferences(BATTERY_PREFS, Context.MODE_PRIVATE).getString("samples", null)?.let {
+            Vault.put(context, key, BatteryHistory.DOC, it.toByteArray())
+        }
+        check(context.deleteSharedPreferences(BATTERY_PREFS)) { "Could not delete $BATTERY_PREFS" }
     }
 
     private fun photos(context: Context, key: ByteArray) {

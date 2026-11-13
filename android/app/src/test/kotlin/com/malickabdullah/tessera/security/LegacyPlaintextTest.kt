@@ -2,6 +2,7 @@ package com.malickabdullah.tessera.security
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import com.malickabdullah.tessera.data.BatteryHistory
 import com.malickabdullah.tessera.data.ContentSource
 import com.malickabdullah.tessera.data.PhotoStore
 import com.malickabdullah.tessera.data.WeatherSource
@@ -47,6 +48,9 @@ class LegacyPlaintextTest {
             .putString("forecast", "{\"current\":{}}").putString("city", "52.52,13.4")
             .putInt("version", WeatherSource.CACHE_VERSION).putLong("fetchedAt", 42L).commit()
 
+        context.getSharedPreferences("tessera.battery", Context.MODE_PRIVATE).edit()
+            .putString("samples", "29000000:64:0,29000010:63:0").commit()
+
         val photos = File(context.filesDir, "photos").apply { mkdirs() }
         File(photos, "p1.jpg").writeBytes(photoJpeg)
         File(photos, "album.json").writeText(
@@ -76,6 +80,8 @@ class LegacyPlaintextTest {
 
         assertEquals(42L, WeatherSource.cache(context)!!.getLong("fetchedAt"))
 
+        assertEquals(listOf(64, 63), BatteryHistory.read(context).map { it.level })
+
         val album = PhotoStore.read(context)
         assertEquals("Summer", album.caption)
         assertEquals(listOf("p1"), album.photos.map { it.id })
@@ -85,6 +91,7 @@ class LegacyPlaintextTest {
         val prefs = File(context.dataDir, "shared_prefs")
         assertFalse(File(prefs, "tessera.content.xml").exists())
         assertFalse(File(prefs, "tessera.weather.xml").exists())
+        assertFalse(File(prefs, "tessera.battery.xml").exists())
         assertFalse(File(prefs, "${Instances.PREFS}.xml").readText().contains("i.5"))
         assertFalse(File(context.filesDir, "photos").exists())
         assertFalse(File(context.filesDir, "backgrounds").exists())

@@ -1,6 +1,7 @@
 package com.malickabdullah.tessera.data
 
 import android.content.Context
+import com.malickabdullah.tessera.security.Vault
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.BatteryManager
@@ -76,13 +77,12 @@ data class BatterySample(val epochMinute: Long, val level: Int, val charging: Bo
  * or ticks. Stored compactly as "minute:level:c" entries.
  */
 object BatteryHistory : DataSource<List<BatterySample>> {
-    private const val PREFS = "tessera.battery"
-    private const val KEY = "samples"
+    const val DOC = "battery"
     private const val WINDOW_MINUTES = 24 * 60
     private const val MIN_GAP_MINUTES = 5
 
     override fun read(context: Context): List<BatterySample> =
-        prefs(context).getString(KEY, "").orEmpty().split(',').filter { it.isNotEmpty() }.map {
+        Vault.readText(context, DOC).orEmpty().split(',').filter { it.isNotEmpty() }.map {
             val (m, l, c) = it.split(':')
             BatterySample(m.toLong(), l.toInt(), c == "1")
         }
@@ -94,9 +94,7 @@ object BatteryHistory : DataSource<List<BatterySample>> {
         if (!changed && nowMinute - last!!.epochMinute < MIN_GAP_MINUTES) return
         val kept = samples.filter { nowMinute - it.epochMinute <= WINDOW_MINUTES } +
             BatterySample(nowMinute, state.level, state.charging)
-        prefs(context).edit()
-            .putString(KEY, kept.joinToString(",") { "${it.epochMinute}:${it.level}:${if (it.charging) 1 else 0}" })
-            .apply()
+        Vault.writeText(context, DOC, kept.joinToString(",") { "${it.epochMinute}:${it.level}:${if (it.charging) 1 else 0}" })
     }
 
     /** Percent per hour over the most recent unplugged stretch; negative while draining. */
@@ -107,6 +105,4 @@ object BatteryHistory : DataSource<List<BatterySample>> {
         if (minutes < 20) return null
         return (stretch.last().level - stretch.first().level) * 60f / minutes
     }
-
-    private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 }
