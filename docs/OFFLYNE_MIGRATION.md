@@ -20,9 +20,11 @@ not chrome: the Kotlin engine and every design stay as they are.
 | Updates | `core_update`: `GithubUpdateService(owner: 'MalicKAbdullah', repo: 'tessera')`, `UpdateBanner` on the gallery | Release workflow (already ships an `arm64-v8a` APK, which `pickApkUrl` prefers) |
 | Widgets | Nothing | Engine, designs, default styles (dot-matrix type, lime LED accents), Roborazzi goldens |
 
-Tessera takes no `core_lock`, `core_crypto`, `core_storage`, `core_backup` or
-`core_notify`: it holds nothing secret (its photos and notes are shown on the
-home screen by design) and posts no notifications.
+Tessera takes `core_crypto` for its data at rest (docs/ARCHITECTURE.md, Data
+at rest). It takes no `core_lock`, `core_storage`, `core_backup` or
+`core_notify`: what it holds is shown on the home screen by design, widgets
+need the data key without Flutter so the engine keeps it in the Keystore
+itself, and it posts no notifications.
 
 ## Accent: electric lime
 

@@ -11,7 +11,7 @@ A growing library of home-screen widgets — dot-matrix and analog clocks, word 
 </div>
 
 > ### ◼️ Simple, but effective
-> No accounts, no ads, no tracking. Tessera stores your styles on your phone and only talks to the network for the weather for the city **you** type in, and an update check you can switch off.
+> No accounts, no ads, no tracking. Tessera keeps your notes, photos and styles encrypted on your phone, never in a cloud backup, and only talks to the network for the weather for the city **you** type in, and an update check you can switch off.
 
 Every widget is drawn by a native Kotlin engine at the widget's real size, and the app's previews are that same rendering — what you tune is what lands on your home screen.
 
