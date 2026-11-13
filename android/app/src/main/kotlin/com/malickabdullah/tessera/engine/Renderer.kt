@@ -165,15 +165,16 @@ object Renderer {
                 s.canvas.drawPath(path, paint)
             }
             BgKind.PHOTO -> {
-                val file = checkNotNull(bg.photo) { "Photo background without a photo path" }
+                val id = checkNotNull(bg.photo) { "Photo background without a photo" }
+                val jpeg = s.data.background(id)
                 val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-                BitmapFactory.decodeFile(file, bounds)
+                BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, bounds)
                 val sample = BitmapFactory.Options().apply {
                     inSampleSize = PhotoMath.sampleSize(
                         bounds.outWidth, bounds.outHeight, ceil(s.w * s.bitmapScale).toInt(), ceil(s.h * s.bitmapScale).toInt(),
                     )
                 }
-                val photo = checkNotNull(BitmapFactory.decodeFile(file, sample)) { "Photo background $file is unreadable" }
+                val photo = checkNotNull(BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, sample)) { "Photo background $id is unreadable" }
                 s.canvas.save()
                 s.canvas.clipPath(path)
                 val fit = maxOf(s.w / photo.width, s.h / photo.height)

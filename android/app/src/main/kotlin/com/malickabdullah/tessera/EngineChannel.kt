@@ -32,6 +32,7 @@ import com.malickabdullah.tessera.engine.Slots
 import com.malickabdullah.tessera.engine.Style
 import com.malickabdullah.tessera.engine.Work
 import com.malickabdullah.tessera.engine.PinReceiver
+import com.malickabdullah.tessera.security.Vault
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
@@ -92,7 +93,9 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
                 Work.fetchWeatherNow(activity)
                 result.success(null)
             }
+            "vault" -> result.success(mapOf("dir" to Vault.appDir(activity).path, "key" to Vault.key(activity)))
             "photos" -> result.success(PhotoStore.read(activity).toJson().toString())
+            "photoBytes" -> result.success(PhotoStore.bytes(activity, call.argument<String>("id")!!))
             "pickPhotos" -> pickPhotos(result)
             "pickBackground" -> pickBackground(result)
             "removePhoto" -> {
@@ -148,7 +151,7 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
         }
     }
 
-    /** Opens the photo picker for one image and stores it as a surface; replies with its path, or null when cancelled. */
+    /** Opens the photo picker for one image and stores it as a surface; replies with its id, or null when cancelled. */
     private fun pickBackground(result: MethodChannel.Result) {
         activity.pickPhotos(1) { uris ->
             val uri = uris.firstOrNull()
@@ -158,8 +161,8 @@ class EngineChannel(private val activity: MainActivity, messenger: BinaryMesseng
             }
             photoImport.execute {
                 try {
-                    val file = PhotoStore.importBackground(activity, uri)
-                    main.post { result.success(file.absolutePath) }
+                    val id = PhotoStore.importBackground(activity, uri)
+                    main.post { result.success(id) }
                 } catch (e: Exception) {
                     main.post { result.error("import", e.message, null) }
                 }

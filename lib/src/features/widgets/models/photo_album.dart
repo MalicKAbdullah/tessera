@@ -26,17 +26,14 @@ class PhotoAlbum {
 }
 
 class AlbumPhoto {
-  const AlbumPhoto({required this.id, required this.path, required this.date});
+  const AlbumPhoto({required this.id, required this.date});
 
+  /// Reads the encrypted copy through `Engine.photoBytes`.
   final String id;
-
-  /// Absolute path of the downscaled private copy.
-  final String path;
   final DateTime date;
 
   factory AlbumPhoto.fromJson(Map<String, dynamic> json) => AlbumPhoto(
     id: json['id'] as String,
-    path: json['path'] as String,
     date: DateTime.parse(json['date'] as String),
   );
 }

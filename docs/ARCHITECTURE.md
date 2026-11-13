@@ -23,7 +23,7 @@ Gallery / Editor ── MethodChannel ──▶  EngineChannel ─▶ Registry (
 | `Model.kt` | `Category`, `SizeClass`, `Signal`, `Toggle`, and the `WidgetDesign` interface. |
 | `Registry.kt` | Concatenates the per-category design lists (gallery order), checks them against the slots, and builds the catalog JSON for Dart. |
 | `Slots.kt` | One `AppWidgetProvider` per category × size (`Slot`); enables only slots some design fills. |
-| `Instances.kt` | Per-`appWidgetId` binding: design id + `Style`, and the last live key. |
+| `Instances.kt` | Per-`appWidgetId` binding (design id + `Style`, in the vault) and the last live key. |
 | `Engine.kt` | Resolves an id to its binding, renders it per launcher size, and decides what to redraw. |
 | `WidgetSizes.kt` | `WidgetSizes`: the boxes a launcher lays a widget out in. `WidgetTap`: the per-widget tap intent. |
 | `Renderer.kt` | Draws the surface and design into a bitmap, attaches overlays, returns `RemoteViews`. |
@@ -137,8 +137,8 @@ The editor's photo controls open the system photo picker (`ACTION_PICK_IMAGES`,
 or the document picker before it), so no storage permission is requested.
 `PhotoStore` (`data/Photos.kt`) decodes each pick once, rotates it upright
 from EXIF, downscales it so its short side is at most the screen's short side
-(`PhotoMath.storedSize`) and writes a private JPEG to `files/photos` with an
-index. The album (up to 12 photos and a caption) is shared by every photo
+(`PhotoMath.storedSize`) and seals the JPEG into the vault (see Data at rest)
+with an album index. The album (up to 12 photos and a caption) is shared by every photo
 widget; changing it refreshes `Signal.CONTENT`. At render time a design
 decodes one photo at a time with an `inSampleSize` just large enough for its
 region and recycles it after drawing. A RemoteViews may carry at most 1.5
@@ -147,9 +147,37 @@ screens of ARGB bitmap memory (`PhotoMath.remoteViewsBudget`);
 bitmap leaves, lowering frame resolution first and frame count second.
 
 The editor's Photo surface picks one image through the same pipeline into
-`files/backgrounds`, named by a hash of its content. Styles (drafts and
-placed widgets) refer to it by path and outlive any album change, so these
-files are never deleted.
+the vault, with an id that is a hash of its content. Styles (drafts and
+placed widgets) refer to it by that id and outlive any album change, so these
+images are never deleted.
+
+### Data at rest
+
+Everything the user typed or chose is AES-256-GCM encrypted under one random
+256-bit data key, in core_crypto's payload layout (salt | nonce | ciphertext |
+tag), so either side of the channel opens the other's files.
+
+- **The key** is owned natively (`security/DataKey.kt`), because widgets draw
+  from receivers and workers without a Flutter engine. It is wrapped by a
+  non-exportable AES key in the Android Keystore and the wrapped bytes live in
+  `no_backup`. A missing key while sealed data exists throws `DataKeyLost`
+  rather than starting an empty store.
+- **The engine's documents** (`security/Vault.kt`, `files/vault/engine`):
+  content, placed-widget bindings, the forecast for the user's city, battery
+  history, the photo album and its JPEGs, and photo surfaces. `Vault.key` is the single entry
+  point, so whichever runs first after an update (the app, a launcher update,
+  the boot or package-replaced receiver, a worker) seals v0.3.0's plaintext
+  first (`security/LegacyPlaintext.kt`).
+- **The app's documents** (`data/vault.dart`, `files/vault/app`): content,
+  style drafts and settings, sealed with core_crypto under the key the
+  `vault` channel call returns. `TesseraStore` keeps them in memory for
+  synchronous reads; `migratePlaintext` moves v0.3.0's shared preferences in.
+- **Left in plain storage:** progress flags (intro seen, schema), the
+  appearance mode core_theme keeps, and live keys (dates, levels, counts).
+  None is something the user typed or chose.
+
+Backup and device-to-device transfer are off (`allowBackup="false"`,
+`data_extraction_rules.xml`), so nothing leaves the phone.
 
 ### Previews are the widget
 
@@ -278,7 +306,7 @@ tolerates small font rasterisation differences between macOS and Linux.
   the draft of its successor design and binds widgets placed on v0.1.
 
 Drafts (the style being tuned for a design before pinning) live in the app's
-shared preferences; placed widgets own their binding natively.
+encrypted documents; placed widgets own their binding natively.
 
 ## Fonts
 

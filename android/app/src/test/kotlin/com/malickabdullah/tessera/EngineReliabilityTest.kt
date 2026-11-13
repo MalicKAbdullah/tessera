@@ -78,8 +78,8 @@ class EngineReliabilityTest {
         val broken = place(ClockWidget::class.java)
         val healthy = place(ClockWidget::class.java)
         val minimal = Registry.design("clock.minimal")
-        // A photo surface whose file is gone makes the renderer throw.
-        val missingPhoto = minimal.defaults.copy(bg = minimal.defaults.bg.copy(kind = BgKind.PHOTO, photo = "/nonexistent.jpg"))
+        // A photo surface that is gone makes the renderer throw.
+        val missingPhoto = minimal.defaults.copy(bg = minimal.defaults.bg.copy(kind = BgKind.PHOTO, photo = "missing"))
         Instances.put(context, broken, minimal.id, missingPhoto)
         Instances.put(context, healthy, minimal.id, minimal.defaults)
         Instances.setLastKey(context, broken, "stale")
@@ -98,7 +98,7 @@ class EngineReliabilityTest {
         val broken = place(ClockWidget::class.java)
         val healthy = place(ClockWidget::class.java)
         val minimal = Registry.design("clock.minimal")
-        Instances.put(context, broken, minimal.id, minimal.defaults.copy(bg = minimal.defaults.bg.copy(kind = BgKind.PHOTO, photo = "/nonexistent.jpg")))
+        Instances.put(context, broken, minimal.id, minimal.defaults.copy(bg = minimal.defaults.bg.copy(kind = BgKind.PHOTO, photo = "missing")))
         Instances.put(context, healthy, minimal.id, minimal.defaults)
         Instances.setLastKey(context, healthy, "stale")
 
@@ -111,7 +111,7 @@ class EngineReliabilityTest {
     fun aTickThatFailsStillReArmsTheTicker() {
         val broken = place(ClockWidget::class.java)
         val minimal = Registry.design("clock.minimal")
-        Instances.put(context, broken, minimal.id, minimal.defaults.copy(bg = minimal.defaults.bg.copy(kind = BgKind.PHOTO, photo = "/nonexistent.jpg")))
+        Instances.put(context, broken, minimal.id, minimal.defaults.copy(bg = minimal.defaults.bg.copy(kind = BgKind.PHOTO, photo = "missing")))
         Instances.setLastKey(context, broken, "stale")
         LiveTicker.cancel(context)
 

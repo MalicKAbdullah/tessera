@@ -7,10 +7,10 @@ import android.graphics.Matrix
 import android.media.ExifInterface
 import android.net.Uri
 import android.provider.MediaStore
+import com.malickabdullah.tessera.security.Vault
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
-import java.io.File
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalDate
@@ -20,10 +20,10 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 import kotlin.math.min
 
-/** One imported photo: a private, pre-downscaled JPEG in app storage. */
-data class Photo(val id: String, val file: File, val width: Int, val height: Int, val date: LocalDate) {
+/** One imported photo: a private, pre-downscaled JPEG sealed in the [Vault]; its bytes come from [Data.photo]. */
+data class Photo(val id: String, val width: Int, val height: Int, val date: LocalDate) {
     fun toJson(): JSONObject = JSONObject()
-        .put("id", id).put("path", file.absolutePath).put("width", width).put("height", height)
+        .put("id", id).put("width", width).put("height", height)
         .put("date", date.toString())
 }
 
@@ -38,26 +38,25 @@ data class PhotoAlbum(val photos: List<Photo>, val caption: String) {
 /**
  * Photos arrive from the system photo picker as content URIs, which only
  * stay readable while the picker's grant lasts, so each is decoded once,
- * rotated upright, downscaled to what a widget can show and written to
- * `files/photos`. Widgets read only those copies.
+ * rotated upright, downscaled to what a widget can show and sealed into the
+ * [Vault]. Widgets read only those copies.
  */
 object PhotoStore : DataSource<PhotoAlbum> {
     const val MAX = 12
-    private const val INDEX = "album.json"
+    const val ALBUM = "album"
 
-    private fun dir(context: Context) = File(context.filesDir, "photos").apply { mkdirs() }
+    fun photoName(id: String) = "photos/$id"
+
+    fun backgroundName(id: String) = "backgrounds/$id"
 
     override fun read(context: Context): PhotoAlbum {
-        val index = File(dir(context), INDEX)
-        if (!index.exists()) return PhotoAlbum(emptyList(), "")
-        val json = JSONObject(index.readText())
+        val json = Vault.readText(context, ALBUM)?.let(::JSONObject) ?: return PhotoAlbum(emptyList(), "")
         val photos = json.getJSONArray("photos")
         return PhotoAlbum(
             (0 until photos.length()).map { i ->
                 val p = photos.getJSONObject(i)
                 Photo(
                     p.getString("id"),
-                    File(dir(context), "${p.getString("id")}.jpg"),
                     p.getInt("width"),
                     p.getInt("height"),
                     LocalDate.parse(p.getString("date")),
@@ -67,7 +66,14 @@ object PhotoStore : DataSource<PhotoAlbum> {
         )
     }
 
-    /** The index is replaced before any file is deleted, so a render never lists a photo whose file is gone. */
+    fun bytes(context: Context, id: String): ByteArray =
+        checkNotNull(Vault.read(context, photoName(id))) { "Photo $id is missing" }
+
+    /** The JPEG of a photo surface, by the id [importBackground] returned. */
+    fun background(context: Context, id: String): ByteArray =
+        checkNotNull(Vault.read(context, backgroundName(id))) { "Photo surface $id is missing" }
+
+    /** The index is replaced before any photo is deleted, so a render never lists a photo that is gone. */
     private fun write(context: Context, album: PhotoAlbum) {
         val json = JSONObject()
             .put("caption", album.caption)
@@ -79,10 +85,7 @@ object PhotoStore : DataSource<PhotoAlbum> {
                     },
                 ),
             )
-        val index = File(dir(context), INDEX)
-        val tmp = File(dir(context), "$INDEX.tmp")
-        tmp.writeText(json.toString())
-        check(tmp.renameTo(index)) { "Could not replace the photo index" }
+        Vault.writeText(context, ALBUM, json.toString())
     }
 
     /** Imports [uris] ahead of the existing photos; the album keeps at most [MAX]. Runs off the main thread. */
@@ -93,7 +96,7 @@ object PhotoStore : DataSource<PhotoAlbum> {
         val kept = added + album.photos
         val next = album.copy(photos = kept.take(MAX))
         write(context, next)
-        kept.drop(MAX).forEach { it.file.delete() }
+        kept.drop(MAX).forEach { Vault.delete(context, photoName(it.id)) }
         return next
     }
 
@@ -101,7 +104,7 @@ object PhotoStore : DataSource<PhotoAlbum> {
         val album = read(context)
         val next = album.copy(photos = album.photos.filter { it.id != id })
         write(context, next)
-        album.photos.filter { it.id == id }.forEach { it.file.delete() }
+        album.photos.filter { it.id == id }.forEach { Vault.delete(context, photoName(it.id)) }
         return next
     }
 
@@ -112,34 +115,28 @@ object PhotoStore : DataSource<PhotoAlbum> {
         val exif = context.contentResolver.openInputStream(uri).use { ExifInterface(checkNotNull(it)) }
         val upright = decodeUpright(context, uri, maxShort, exif)
         val id = UUID.randomUUID().toString()
-        val file = File(dir(context), "$id.jpg")
-        file.outputStream().use { upright.compress(Bitmap.CompressFormat.JPEG, 90, it) }
-        val photo = Photo(id, file, upright.width, upright.height, dateOf(context, uri, exif))
+        val jpeg = ByteArrayOutputStream().also { upright.compress(Bitmap.CompressFormat.JPEG, 90, it) }.toByteArray()
+        Vault.write(context, photoName(id), jpeg)
+        val photo = Photo(id, upright.width, upright.height, dateOf(context, uri, exif))
         upright.recycle()
         return photo
     }
 
     /**
-     * Imports one picked image as a widget's photo surface. Styles (drafts
-     * and placed widgets alike) refer to it by path and outlive any album
-     * change, so the file is named by its content and never deleted: picking
-     * the same image again reuses it. Runs off the main thread.
+     * Imports one picked image as a widget's photo surface and returns its
+     * id. Styles (drafts and placed widgets alike) refer to it by that id and
+     * outlive any album change, so it is named by its content and never
+     * deleted: picking the same image again reuses it. Runs off the main thread.
      */
-    fun importBackground(context: Context, uri: Uri): File {
+    fun importBackground(context: Context, uri: Uri): String {
         val maxShort = context.resources.displayMetrics.let { min(it.widthPixels, it.heightPixels) }
         val exif = context.contentResolver.openInputStream(uri).use { ExifInterface(checkNotNull(it)) }
         val upright = decodeUpright(context, uri, maxShort, exif)
         val bytes = ByteArrayOutputStream().also { upright.compress(Bitmap.CompressFormat.JPEG, 90, it) }.toByteArray()
         upright.recycle()
-        val name = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }.take(32)
-        val dir = File(context.filesDir, "backgrounds").apply { mkdirs() }
-        val file = File(dir, "$name.jpg")
-        if (!file.exists()) {
-            val tmp = File(dir, "$name.tmp")
-            tmp.writeBytes(bytes)
-            check(tmp.renameTo(file)) { "Could not store background $name" }
-        }
-        return file
+        val id = MessageDigest.getInstance("SHA-256").digest(bytes).joinToString("") { "%02x".format(it) }.take(32)
+        if (!Vault.exists(context, backgroundName(id))) Vault.write(context, backgroundName(id), bytes)
+        return id
     }
 
     /** Decodes [uri] once at the stored size ([PhotoMath.storedSize]) and turns it upright from EXIF. */

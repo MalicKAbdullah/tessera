@@ -21,7 +21,7 @@ data class Background(
     val color: Int,
     val color2: Int,
     val angle: Float,
-    /** Absolute path of an image in app storage; required when [kind] is PHOTO. */
+    /** Id of a photo surface imported by [com.malickabdullah.tessera.data.PhotoStore.importBackground]; required when [kind] is PHOTO. */
     val photo: String?,
 )
 

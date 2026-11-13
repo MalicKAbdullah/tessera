@@ -86,15 +86,15 @@ void main() {
       reason: 'a cancelled pick keeps the surface',
     );
 
-    engine.pickedBackground = '/data/backgrounds/a.jpg';
+    engine.pickedBackground = '3f1c0a9e5b7d2c4e6f8a0b1c2d3e4f50';
     await tester.tap(find.text('Photo'));
     await tester.pumpAndSettle();
     final bg = container.read(styleProvider(_target)).background;
     expect(bg.kind, BgKind.photo);
-    expect(bg.photo, '/data/backgrounds/a.jpg');
+    expect(bg.photo, '3f1c0a9e5b7d2c4e6f8a0b1c2d3e4f50');
     expect(
       container.read(storeProvider).draft(_target.design)!.background.photo,
-      '/data/backgrounds/a.jpg',
+      '3f1c0a9e5b7d2c4e6f8a0b1c2d3e4f50',
     );
     expect(find.text('Choose another photo'), findsOneWidget);
   });
