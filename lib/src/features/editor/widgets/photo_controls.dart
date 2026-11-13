@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:core_theme/core_theme.dart';
 import 'package:flutter/material.dart';
@@ -160,13 +159,14 @@ class _AddTile extends StatelessWidget {
   }
 }
 
-class _Thumb extends StatelessWidget {
+class _Thumb extends ConsumerWidget {
   const _Thumb({required this.photo, required this.onRemove});
   final AlbumPhoto photo;
   final VoidCallback? onRemove;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final jpeg = ref.watch(photoBytesProvider(photo.id)).valueOrNull;
     final dpr = MediaQuery.devicePixelRatioOf(context);
     final c = SuiteColors.of(context);
     return Padding(
@@ -175,13 +175,19 @@ class _Thumb extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(Radii.s + 2),
-            child: Image.file(
-              File(photo.path),
-              width: 72,
-              height: 72,
-              fit: BoxFit.cover,
-              cacheWidth: (72 * dpr).round(),
-            ),
+            child: jpeg == null
+                ? SizedBox(
+                    width: 72,
+                    height: 72,
+                    child: ColoredBox(color: c.surfaceAlt),
+                  )
+                : Image.memory(
+                    jpeg,
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
+                    cacheWidth: (72 * dpr).round(),
+                  ),
           ),
           Positioned(
             top: 4,

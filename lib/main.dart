@@ -9,6 +9,7 @@ import 'src/app.dart';
 import 'src/core/router/app_router.dart';
 import 'src/features/settings/settings_providers.dart';
 import 'src/features/widgets/data/tessera_store.dart';
+import 'src/features/widgets/data/vault.dart';
 import 'src/features/widgets/providers/widget_providers.dart';
 import 'src/features/widgets/services/engine.dart';
 import 'src/features/widgets/services/migration.dart';
@@ -19,14 +20,16 @@ Future<void> main() async {
   final appearance = await AppearanceController.load();
   LicenseRegistry.addLicense(_widgetFontLicences);
   final engine = Engine();
-  final catalog = await engine.catalog();
-  final store = TesseraStore(prefs);
+  final (catalog, vault) = await (engine.catalog(), engine.vault()).wait;
+  final store = await TesseraStore.open(prefs, Vault(vault.dir, vault.key));
+  await migratePlaintext(prefs, store);
   await migrateFromV1(store, engine, catalog);
   await engine.setContent(store.content());
 
   final container = ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(prefs),
+      storeProvider.overrideWithValue(store),
       engineProvider.overrideWithValue(engine),
       catalogProvider.overrideWithValue(catalog),
       appearanceProvider.overrideWithValue(appearance),

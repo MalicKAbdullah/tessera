@@ -27,8 +27,9 @@ final catalogProvider = Provider<Catalog>(
   (ref) => throw StateError('catalogProvider not overridden'),
 );
 
-final storeProvider = Provider(
-  (ref) => TesseraStore(ref.watch(sharedPreferencesProvider)),
+/// Overridden in main() with the store opened before runApp.
+final storeProvider = Provider<TesseraStore>(
+  (ref) => throw StateError('storeProvider not overridden'),
 );
 final weatherServiceProvider = Provider((ref) => WeatherService());
 
@@ -170,8 +171,14 @@ class ContentNotifier extends Notifier<WidgetContent> {
 /// before it can write a stale copy back.
 Future<void> reloadContent(ProviderContainer container) async {
   await container.read(sharedPreferencesProvider).reload();
+  await container.read(storeProvider).reload();
   container.invalidate(contentProvider);
 }
+
+/// An album photo's JPEG, decrypted by the engine.
+final photoBytesProvider = FutureProvider.autoDispose.family<Uint8List, String>(
+  (ref, id) => ref.read(engineProvider).photoBytes(id),
+);
 
 final placedProvider = FutureProvider<List<PlacedWidget>>((ref) {
   ref.watch(dataRevisionProvider);

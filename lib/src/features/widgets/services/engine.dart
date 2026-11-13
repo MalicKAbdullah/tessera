@@ -135,10 +135,21 @@ class Engine {
   Future<PhotoAlbum> pickPhotos() =>
       _album(_channel.invokeMethod('pickPhotos'));
 
-  /// Picks one image for a photo surface; its stored path, or null when
-  /// the picker was cancelled.
+  /// Picks one image for a photo surface; its id, or null when the picker
+  /// was cancelled.
   Future<String?> pickBackground() =>
       _channel.invokeMethod<String>('pickBackground');
+
+  /// A photo's decrypted JPEG.
+  Future<Uint8List> photoBytes(String id) async =>
+      (await _channel.invokeMethod<Uint8List>('photoBytes', {'id': id}))!;
+
+  /// Where the app's encrypted documents live and the key that seals them.
+  /// The engine owns the key because widgets decrypt without Flutter.
+  Future<({String dir, Uint8List key})> vault() async {
+    final vault = (await _channel.invokeMapMethod<String, Object>('vault'))!;
+    return (dir: vault['dir']! as String, key: vault['key']! as Uint8List);
+  }
 
   Future<PhotoAlbum> removePhoto(String id) =>
       _album(_channel.invokeMethod('removePhoto', {'id': id}));

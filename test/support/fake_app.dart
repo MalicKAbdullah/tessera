@@ -8,6 +8,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tessera/src/core/theme.dart';
 import 'package:tessera/src/features/settings/settings_providers.dart';
+import 'package:tessera/src/features/widgets/data/tessera_store.dart';
+import 'package:tessera/src/features/widgets/data/vault.dart';
 import 'package:tessera/src/features/widgets/models/catalog.dart';
 import 'package:tessera/src/features/widgets/models/widget_style.dart';
 import 'package:tessera/src/features/widgets/providers/widget_providers.dart';
@@ -118,6 +120,19 @@ class FakeEngine extends Engine {
       Future.value(pinAccepted);
 }
 
+/// Documents kept in memory, as JSON round-trips like the encrypted vault.
+class MemoryDocuments implements Documents {
+  final Map<String, String> docs = {};
+
+  @override
+  Future<Object?> read(String name) async =>
+      docs[name] == null ? null : jsonDecode(docs[name]!);
+
+  @override
+  Future<void> write(String name, Object? value) async =>
+      docs[name] = jsonEncode(value);
+}
+
 /// Never finds an update, without touching the network.
 class FakeUpdateService implements IUpdateService {
   UpdateInfo? next;
@@ -136,10 +151,12 @@ Future<ProviderContainer> fakeContainer(
 }) async {
   SharedPreferences.setMockInitialValues(prefs);
   final sp = await SharedPreferences.getInstance();
+  final store = await TesseraStore.open(sp, MemoryDocuments());
   final appearance = await AppearanceController.load();
   return ProviderContainer(
     overrides: [
       sharedPreferencesProvider.overrideWithValue(sp),
+      storeProvider.overrideWithValue(store),
       engineProvider.overrideWithValue(engine),
       catalogProvider.overrideWithValue(catalog),
       minuteProvider.overrideWith((ref) => Stream.value(DateTime(2026))),

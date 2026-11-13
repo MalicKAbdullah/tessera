@@ -27,7 +27,8 @@ class Background {
   final Color color2;
   final double angle;
 
-  /// Absolute path of an image in app storage; set when [kind] is photo.
+  /// Id of a photo surface the engine imported (`Engine.pickBackground`);
+  /// set when [kind] is photo.
   final String? photo;
 
   Background copyWith({

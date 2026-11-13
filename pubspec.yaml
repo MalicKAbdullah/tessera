@@ -40,6 +40,11 @@ dependencies:
   http: ^1.6.0
   intl: ^0.20.3
   package_info_plus: ^8.0.0
+  core_crypto:
+    git:
+      url: https://github.com/MalicKAbdullah/secure-suite-core.git
+      path: core_crypto
+      ref: 969da8527078646fe3558556a9f69710fe30b65b
   core_theme:
     git:
       url: https://github.com/MalicKAbdullah/secure-suite-core.git

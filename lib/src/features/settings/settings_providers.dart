@@ -18,18 +18,14 @@ final updateServiceProvider = Provider<IUpdateService>(
   (ref) => GithubUpdateService(owner: 'MalicKAbdullah', repo: 'tessera'),
 );
 
-/// Shared-preferences key for checking for updates on open.
-const updateAutoCheckKey = 'updateAutoCheck';
-
 /// Whether the gallery asks GitHub for a newer release on open. On by
 /// default; the update check is the app's only call that is not widget data.
 final updateAutoCheckProvider = Provider<bool>(
-  (ref) =>
-      ref.watch(sharedPreferencesProvider).getBool(updateAutoCheckKey) ?? true,
+  (ref) => ref.watch(storeProvider).updateAutoCheck,
 );
 
 Future<void> setUpdateAutoCheck(WidgetRef ref, bool on) async {
-  await ref.read(sharedPreferencesProvider).setBool(updateAutoCheckKey, on);
+  await ref.read(storeProvider).setUpdateAutoCheck(on);
   ref.invalidate(updateAutoCheckProvider);
 }
 
