@@ -2,6 +2,7 @@ package com.malickabdullah.tessera.data
 
 import android.app.AlarmManager
 import android.content.Context
+import com.malickabdullah.tessera.security.Vault
 import org.json.JSONObject
 import java.time.Instant
 import java.time.LocalDate
@@ -31,14 +32,13 @@ data class Content(
 )
 
 object ContentSource : DataSource<Content> {
-    private const val PREFS = "tessera.content"
-    private const val KEY = "content"
+    const val DOC = "content"
 
     /** Content before the app first pushes any: the same defaults the Dart model starts with. */
     private val INITIAL = Content("Less, but better.", "Dieter Rams", "New Year", null, null, emptyList(), emptyList(), null)
 
     override fun read(context: Context): Content {
-        val raw = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY, null) ?: return INITIAL
+        val raw = Vault.readText(context, DOC) ?: return INITIAL
         val json = JSONObject(raw)
         return Content(
             note = json.getString("note"),
@@ -70,7 +70,7 @@ object ContentSource : DataSource<Content> {
     }
 
     fun write(context: Context, json: String) {
-        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putString(KEY, json).apply()
+        Vault.writeText(context, DOC, json)
     }
 }
 

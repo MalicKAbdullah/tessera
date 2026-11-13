@@ -28,4 +28,10 @@ open class Data(private val context: Context) {
     open val memory: MemoryState by lazy { MemorySource.read(context) }
     open val network: NetworkState by lazy { NetworkSource.read(context) }
     open val uptimeMs: Long by lazy { UptimeSource.read(context) }
+
+    /** A photo's JPEG, read when a design draws it rather than with the album. */
+    open fun photo(photo: Photo): ByteArray = PhotoStore.bytes(context, photo.id)
+
+    /** The JPEG of the photo surface with id [id]. */
+    open fun background(id: String): ByteArray = PhotoStore.background(context, id)
 }

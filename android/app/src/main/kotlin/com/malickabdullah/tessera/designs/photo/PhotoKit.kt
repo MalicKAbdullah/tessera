@@ -7,6 +7,7 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
+import com.malickabdullah.tessera.data.Data
 import com.malickabdullah.tessera.data.Photo
 import com.malickabdullah.tessera.data.PhotoMath
 import com.malickabdullah.tessera.engine.Scene
@@ -75,12 +76,13 @@ internal object PhotoKit {
      * Decodes [photo] just large enough to cover wPx x hPx and recycles it
      * after [block]: a render holds at most one full photo at a time.
      */
-    fun <T> decode(photo: Photo, wPx: Float, hPx: Float, block: (Bitmap) -> T): T {
+    fun <T> decode(data: Data, photo: Photo, wPx: Float, hPx: Float, block: (Bitmap) -> T): T {
         val k = max(wPx / photo.width, hPx / photo.height)
         val options = BitmapFactory.Options().apply {
             inSampleSize = PhotoMath.sampleSize(photo.width, photo.height, ceil(photo.width * k).toInt(), ceil(photo.height * k).toInt())
         }
-        val bitmap = checkNotNull(BitmapFactory.decodeFile(photo.file.path, options)) { "Photo ${photo.id} is unreadable" }
+        val jpeg = data.photo(photo)
+        val bitmap = checkNotNull(BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size, options)) { "Photo ${photo.id} is unreadable" }
         try {
             return block(bitmap)
         } finally {
@@ -97,7 +99,7 @@ internal object PhotoKit {
 
     /** Draws [photo] covering [dst], clipped to [clip], on [c] (the scene canvas unless a flipper frame). */
     fun cover(s: Scene, photo: Photo, dst: RectF, clip: Path, c: Canvas = s.canvas, paint: Paint = photoPaint()) {
-        decode(photo, dst.width() * s.bitmapScale, dst.height() * s.bitmapScale) { bmp ->
+        decode(s.data, photo, dst.width() * s.bitmapScale, dst.height() * s.bitmapScale) { bmp ->
             c.save()
             c.clipPath(clip)
             drawCover(c, bmp, dst, paint)

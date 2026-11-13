@@ -3,6 +3,7 @@ package com.malickabdullah.tessera.designs.photo
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.RectF
+import com.malickabdullah.tessera.data.Data
 import com.malickabdullah.tessera.data.Photo
 import com.malickabdullah.tessera.data.PhotoMath
 import com.malickabdullah.tessera.engine.Category
@@ -53,7 +54,7 @@ object PhotoDots : WidgetDesign {
     private fun led(s: Scene, photo: Photo, area: RectF, pitch: Float, on: android.graphics.Paint, off: android.graphics.Paint) {
         val cols = (area.width() / pitch).toInt()
         val rows = (area.height() / pitch).toInt()
-        val lum = sample(photo, cols, rows)
+        val lum = sample(s.data, photo, cols, rows)
         val ox = area.left + (area.width() - (cols - 1) * pitch) / 2f
         val oy = area.top + (area.height() - (rows - 1) * pitch) / 2f
         for (r in 0 until rows) for (c in 0 until cols) {
@@ -70,7 +71,7 @@ object PhotoDots : WidgetDesign {
     private fun halftone(s: Scene, photo: Photo, area: RectF, pitch: Float, on: android.graphics.Paint) {
         val cols = (area.width() / pitch * 2).toInt()
         val rows = (area.height() / pitch * 2).toInt()
-        val lum = sample(photo, cols, rows)
+        val lum = sample(s.data, photo, cols, rows)
         val cos45 = cos(Math.PI / 4).toFloat()
         val sin45 = sin(Math.PI / 4).toFloat()
         val half = (area.width() + area.height()) / pitch
@@ -91,9 +92,9 @@ object PhotoDots : WidgetDesign {
     }
 
     /** Luminance of [photo] cover-cropped to cols x rows, contrast-stretched. */
-    private fun sample(photo: Photo, cols: Int, rows: Int): FloatArray {
+    private fun sample(data: Data, photo: Photo, cols: Int, rows: Int): FloatArray {
         val grid = Bitmap.createBitmap(cols, rows, Bitmap.Config.ARGB_8888)
-        PhotoKit.decode(photo, cols * 2f, rows * 2f) { bmp -> PhotoKit.drawCover(Canvas(grid), bmp, RectF(0f, 0f, cols.toFloat(), rows.toFloat())) }
+        PhotoKit.decode(data, photo, cols * 2f, rows * 2f) { bmp -> PhotoKit.drawCover(Canvas(grid), bmp, RectF(0f, 0f, cols.toFloat(), rows.toFloat())) }
         val px = IntArray(cols * rows)
         grid.getPixels(px, 0, cols, 0, 0, cols, rows)
         grid.recycle()

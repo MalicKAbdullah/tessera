@@ -148,8 +148,10 @@ object Fixed {
 }
 
 /** Data with every source fixed; nothing reads the device. */
-class FixedData(context: Context, state: DataState, photoDir: File) : Data(context) {
+class FixedData(context: Context, state: DataState, private val photoDir: File) : Data(context) {
     private val empty = state == DataState.EMPTY
+
+    override fun photo(photo: Photo): ByteArray = File(photoDir, "${photo.id}.jpg").readBytes()
 
     override val battery = when (state) {
         DataState.CHARGING -> BatteryState(82, true, false, PlugType.AC, 33.4f, 4210, "Good", 38L * 60_000)
@@ -206,7 +208,7 @@ object TestPhotos {
         val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
         paint(Canvas(bmp), w.toFloat(), h.toFloat())
         file.outputStream().use { bmp.compress(Bitmap.CompressFormat.JPEG, 88, it) }
-        return Photo(id, file, w, h, date)
+        return Photo(id, w, h, date)
     }
 
     private fun gradient(c: Canvas, w: Float, h: Float, vararg stops: Long) {

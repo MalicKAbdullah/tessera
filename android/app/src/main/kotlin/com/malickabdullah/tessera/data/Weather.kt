@@ -1,6 +1,7 @@
 package com.malickabdullah.tessera.data
 
 import android.content.Context
+import com.malickabdullah.tessera.security.Vault
 import org.json.JSONException
 import org.json.JSONObject
 import java.io.IOException
@@ -62,18 +63,20 @@ data class WeatherState(
 
 /** Reads the forecast cached by [WeatherFetch]; null until the first fetch for a city succeeds. */
 object WeatherSource : DataSource<WeatherState?> {
-    internal const val PREFS = "tessera.weather"
+    /** The forecast is for the user's city, so it is kept in the [Vault] like the city itself. */
+    const val DOC = "weather"
 
     /** Bumped whenever the requested fields change; a cache of another version is refetched, never parsed. */
     internal const val CACHE_VERSION = 2
 
     override fun read(context: Context): WeatherState? {
-        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        val raw = prefs.getString("forecast", null) ?: return null
+        val cache = cache(context) ?: return null
         val city = ContentSource.read(context).city ?: return null
-        if (prefs.getString("city", null) != city.key || prefs.getInt("version", 0) != CACHE_VERSION) return null
-        return parse(city.name, Instant.ofEpochMilli(prefs.getLong("fetchedAt", 0)), JSONObject(raw))
+        if (cache.getString("city") != city.key || cache.getInt("version") != CACHE_VERSION) return null
+        return parse(city.name, Instant.ofEpochMilli(cache.getLong("fetchedAt")), cache.getJSONObject("forecast"))
     }
+
+    internal fun cache(context: Context): JSONObject? = Vault.readText(context, DOC)?.let(::JSONObject)
 
     internal fun parse(city: String, fetchedAt: Instant, json: JSONObject): WeatherState {
         val current = json.getJSONObject("current")
@@ -125,10 +128,10 @@ object WeatherFetch {
 
     fun isStale(context: Context): Boolean {
         val city = ContentSource.read(context).city ?: return false
-        val prefs = context.getSharedPreferences(WeatherSource.PREFS, Context.MODE_PRIVATE)
-        return prefs.getString("city", null) != city.key ||
-            prefs.getInt("version", 0) != WeatherSource.CACHE_VERSION ||
-            System.currentTimeMillis() - prefs.getLong("fetchedAt", 0) > STALE_AFTER_MS
+        val cache = WeatherSource.cache(context) ?: return true
+        return cache.getString("city") != city.key ||
+            cache.getInt("version") != WeatherSource.CACHE_VERSION ||
+            System.currentTimeMillis() - cache.getLong("fetchedAt") > STALE_AFTER_MS
     }
 
     /**
@@ -152,17 +155,17 @@ object WeatherFetch {
         try {
             if (connection.responseCode != 200) throw IOException("Open-Meteo returned ${connection.responseCode}")
             val body = connection.inputStream.bufferedReader().use { it.readText() }
-            try {
-                WeatherSource.parse(city.name, Instant.now(), JSONObject(body))
+            val forecast = try {
+                JSONObject(body).also { WeatherSource.parse(city.name, Instant.now(), it) }
             } catch (e: JSONException) {
                 throw IOException("Open-Meteo returned an unreadable forecast", e)
             }
-            context.getSharedPreferences(WeatherSource.PREFS, Context.MODE_PRIVATE).edit()
-                .putString("forecast", body)
-                .putString("city", city.key)
-                .putInt("version", WeatherSource.CACHE_VERSION)
-                .putLong("fetchedAt", System.currentTimeMillis())
-                .apply()
+            val cache = JSONObject()
+                .put("forecast", forecast)
+                .put("city", city.key)
+                .put("version", WeatherSource.CACHE_VERSION)
+                .put("fetchedAt", System.currentTimeMillis())
+            Vault.writeText(context, WeatherSource.DOC, cache.toString())
         } finally {
             connection.disconnect()
         }

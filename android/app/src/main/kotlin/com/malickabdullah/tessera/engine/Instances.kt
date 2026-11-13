@@ -1,6 +1,7 @@
 package com.malickabdullah.tessera.engine
 
 import android.content.Context
+import com.malickabdullah.tessera.security.Vault
 import org.json.JSONObject
 
 /** The design and style one placed widget (appWidgetId) is bound to. */
@@ -10,28 +11,38 @@ data class Binding(val designId: String, val style: Style)
  * Per-appWidgetId bindings. A placed widget is unbound until the pin
  * callback, the configure screen or the v0.1 migration binds it; unbound
  * widgets draw their slot's default design in its default style.
+ *
+ * Bindings carry what the user chose (photo surfaces included), so they live
+ * in the [Vault]. The live keys only record what a render depended on (dates,
+ * levels, counts) and stay in plain preferences.
  */
 object Instances {
-    private const val PREFS = "tessera.instances"
+    const val DOC = "instances"
+    const val PREFS = "tessera.instances"
 
     private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
 
+    private fun all(context: Context): JSONObject = Vault.readText(context, DOC)?.let(::JSONObject) ?: JSONObject()
+
     fun get(context: Context, id: Int): Binding? {
-        val raw = prefs(context).getString("i.$id", null) ?: return null
-        val json = JSONObject(raw)
+        val json = all(context).optJSONObject("$id") ?: return null
         return Binding(json.getString("design"), Style.parse(json.getJSONObject("style")))
     }
 
+    /** Synchronized: the pin callback, configure screen and editor may bind at once, and each rewrites the whole document. */
+    @Synchronized
     fun put(context: Context, id: Int, designId: String, style: Style) {
         Registry.design(designId)
-        prefs(context).edit()
-            .putString("i.$id", JSONObject().put("design", designId).put("style", style.toJson()).toString())
-            .remove("k.$id")
-            .apply()
+        val all = all(context).put("$id", JSONObject().put("design", designId).put("style", style.toJson()))
+        Vault.writeText(context, DOC, all.toString())
+        prefs(context).edit().remove("k.$id").apply()
     }
 
+    @Synchronized
     fun remove(context: Context, id: Int) {
-        prefs(context).edit().remove("i.$id").remove("k.$id").apply()
+        val all = all(context)
+        if (all.remove("$id") != null) Vault.writeText(context, DOC, all.toString())
+        prefs(context).edit().remove("k.$id").apply()
     }
 
     /** The [WidgetDesign.liveKey] the instance was last drawn with. */
